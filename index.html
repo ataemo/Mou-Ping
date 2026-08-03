@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<base target="_top">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>ໝູປີ້ງ Online</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Lao:wght@400;500;600;700;900&family=Noto+Sans+Lao:wght@300;400;500;600;700;800&family=Noto+Sans+Lao+Looped:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN SYSTEM — "IVORY AURUM"
+   A crisp, luxury white/ivory base with a burnished-gold + deep
+   claret accent duo, and rich espresso-black chrome for contrast.
+   Every token below is admin-editable at runtime from
+   Settings → ຮ້ານ & ໂຕນຮັບ, including dedicated text colors for
+   the header and sidebar so nothing ever goes invisible again.
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  /* base palette (fixed reference tones) */
+  --porcelain:#FFFFFF;
+  --porcelain-2:#F5F2EC;
+  --blush:#FBF3EC;
+  --charcoal:#17130F;
+  --charcoal-2:#241D17;
+  --ink:#241C15;
+  --ink-soft:#8A7C6C;
+  --line:rgba(36,28,21,.10);
+  --white:#FFFFFF;
+  --success:#4E8A5C;
+  --danger:#C23A4B;
+
+  /* admin-editable aliases — overridden live via JS */
+  --c-primary:#C6702D;
+  --c-secondary:#7A2E3D;
+  --c-accent:#C9A227;
+  --c-bg:#FAF9F7;
+  --c-surface:#FFFFFF;
+  --c-text:#241C15;
+  --c-header:#1B140F;
+  --c-header-text:#FBF6EE;
+  --c-sidebar:#1B140F;
+  --c-sidebar-text:#F1E7D6;
+
+  --radius-s:12px;
+  --radius-m:18px;
+  --radius-l:28px;
+  --radius-xl:34px;
+  --shadow-card:0 10px 30px -14px rgba(30,22,14,.16), 0 2px 8px -2px rgba(30,22,14,.06);
+  --shadow-pop:0 30px 80px -20px rgba(30,22,14,.45);
+  --shadow-soft:0 2px 14px rgba(30,22,14,.05);
+  --glass:rgba(255,255,255,.78);
+
+  --font-display:'Noto Serif Lao','Noto Serif',serif;
+  --font-body:'Noto Sans Lao','Noto Sans',sans-serif;
+  --font-accent:'Cormorant Garamond',serif;
+  --font-num:'Noto Sans','Noto Sans Lao',sans-serif;
+}
+[data-dark="true"]{
+  --c-bg:#15100C;
+  --c-surface:#221A14;
+  --c-text:#F5EFE5;
+  --line:rgba(245,239,229,.1);
+  --ink-soft:#C7B7A4;
+  --glass:rgba(34,26,20,.78);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font-body);
+  background:
+    radial-gradient(1200px 500px at 100% -10%, color-mix(in srgb, var(--c-accent) 12%, transparent), transparent 60%),
+    radial-gradient(900px 500px at -10% 0%, color-mix(in srgb, var(--c-primary) 8%, transparent), transparent 55%),
+    radial-gradient(700px 400px at 50% 100%, color-mix(in srgb, var(--c-secondary) 5%, transparent), transparent 60%),
+    var(--c-bg);
+  color:var(--c-text);
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+  padding-bottom:84px;
+  transition:background .35s ease,color .35s ease;
+  letter-spacing:.01em;
+}
+h1,h2,h3,.display{font-family:var(--font-display);letter-spacing:0;}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums;}
+.accent-script{font-family:var(--font-accent);font-style:italic;}
+a{color:inherit;text-decoration:none;}
+button{font-family:inherit;cursor:pointer;}
+img{max-width:100%;display:block;}
+::-webkit-scrollbar{height:0;width:6px;}
+::-webkit-scrollbar-thumb{background:var(--c-accent);border-radius:6px;}
+.icon-emoji{font-size:18px;line-height:1;display:inline-block;}
+svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── gilded divider (signature element) ─────────────────────── */
+.gilt-divider{display:flex;align-items:center;gap:10px;margin:8px 0 16px;}
+.gilt-divider .ln{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--c-accent) 20%,var(--c-accent) 80%,transparent);}
+.gilt-divider .gem{width:7px;height:7px;border-radius:2px;background:var(--c-accent);transform:rotate(45deg);box-shadow:0 0 0 3px color-mix(in srgb, var(--c-accent) 18%, transparent);flex:none;}
+
+/* ── loader ─────────────────────────────────────────────────── */
+#loader{position:fixed;inset:0;background:var(--charcoal);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s ease;}
+#loader.hide{opacity:0;pointer-events:none;}
+.ember-spin{width:54px;height:54px;position:relative;}
+.ember-spin::before{content:'';position:absolute;inset:0;border-radius:50%;border:3px solid rgba(199,154,73,.2);border-top-color:var(--c-accent,#C79A49);animation:spin 1s linear infinite;}
+.ember-spin::after{content:'🍖';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#loader p{color:#F3EEE5;font-family:var(--font-display);font-size:15px;letter-spacing:.04em;}
+
+/* ── header ─────────────────────────────────────────────────── */
+#app-header{
+  position:sticky;top:0;z-index:200;
+  background:linear-gradient(120deg, var(--c-header), color-mix(in srgb, var(--c-header) 85%, var(--c-secondary)));
+  color:var(--c-header-text);
+  padding:13px 14px;display:flex;align-items:center;gap:8px;
+  box-shadow:0 8px 24px rgba(0,0,0,.24);
+  border-bottom:1px solid color-mix(in srgb, var(--c-accent) 35%, transparent);
+}
+.brand{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
+.brand img.logo{width:40px;height:40px;border-radius:12px;object-fit:cover;background:var(--c-primary);box-shadow:0 0 0 1.5px rgba(199,154,73,.4);}
+.brand .logo-fallback{width:40px;height:40px;border-radius:12px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;font-size:19px;flex:none;box-shadow:0 0 0 1.5px rgba(199,154,73,.4);}
+.brand-text{min-width:0;}
+.brand-text .name{font-family:var(--font-display);font-weight:700;font-size:16.5px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.brand-text .tag{font-size:10.5px;color:var(--c-accent);opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.03em;}
+.icon-btn{
+  width:39px;height:39px;border-radius:13px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.07);
+  color:var(--c-header-text);display:flex;align-items:center;justify-content:center;position:relative;flex:none;
+  transition:background .15s, transform .15s;
+}
+.icon-btn:hover{background:rgba(255,255,255,.14);}
+.icon-btn:active{transform:scale(.93);}
+.badge-dot{position:absolute;top:-4px;right:-4px;background:var(--c-accent);color:var(--charcoal);font-size:10px;font-weight:800;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;font-family:var(--font-num);box-shadow:0 0 0 2px var(--c-header);}
+
+/* ── hero slider ────────────────────────────────────────────── */
+#hero{position:relative;margin:14px;border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-card);aspect-ratio:16/10;background:var(--charcoal);}
+#hero::before{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(199,154,73,.35);z-index:6;pointer-events:none;}
+#hero .slide{position:absolute;inset:0;opacity:0;transition:opacity .7s ease;}
+#hero .slide.active{opacity:1;}
+#hero .slide img{width:100%;height:100%;object-fit:cover;}
+#hero .slide::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(20,13,9,.94) 0%,rgba(20,13,9,.4) 52%,rgba(199,154,73,.12) 100%);}
+#hero .slide .eyebrow{position:absolute;left:20px;top:16px;background:rgba(255,255,255,.14);backdrop-filter:blur(6px);color:#fff;font-size:10.5px;font-weight:700;letter-spacing:.08em;padding:5px 12px;border-radius:100px;border:1px solid rgba(199,154,73,.5);z-index:2;}
+#hero .slide .txt{position:absolute;left:20px;right:20px;bottom:18px;color:#fff;z-index:2;}
+#hero .slide .txt h2{font-size:23px;margin:0 0 4px;line-height:1.25;text-shadow:0 2px 12px rgba(0,0,0,.4);}
+#hero .slide .txt p{margin:0 0 12px;font-size:13px;opacity:.9;font-family:var(--font-accent);font-style:italic;font-size:15px;}
+.hero-cta{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,var(--c-accent),color-mix(in srgb, var(--c-accent) 60%, #fff));color:var(--charcoal);padding:10px 18px;border-radius:100px;font-weight:800;font-size:13px;border:none;box-shadow:0 10px 26px -8px rgba(0,0,0,.5);}
+#hero-dots{position:absolute;bottom:10px;left:0;right:0;display:flex;justify-content:center;gap:5px;z-index:5;}
+#hero-dots span{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.35);transition:.3s;}
+#hero-dots span.active{background:var(--c-accent);width:18px;border-radius:4px;}
+
+/* ── section titles ─────────────────────────────────────────── */
+.section{padding:6px 16px 6px;}
+.section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px;}
+.section-head h3{font-size:17.5px;margin:0;display:flex;align-items:center;gap:8px;}
+.section-head .see-all{font-size:12px;color:var(--c-primary);font-weight:700;}
+
+/* ── categories ─────────────────────────────────────────────── */
+#category-row{display:flex;gap:10px;overflow-x:auto;padding:6px 16px 14px;scrollbar-width:none;}
+.cat-pill{
+  flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;
+  width:70px;padding:12px 4px 9px;border-radius:18px;background:var(--c-surface);
+  border:1px solid var(--line);cursor:pointer;transition:.18s;box-shadow:var(--shadow-soft);
+}
+.cat-pill .ico{font-size:22px;}
+.cat-pill span{font-size:11px;text-align:center;font-weight:700;line-height:1.2;}
+.cat-pill.active{background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));border-color:transparent;color:#fff;box-shadow:0 10px 22px -8px rgba(181,82,42,.55);transform:translateY(-2px);}
+
+/* ── product grid ───────────────────────────────────────────── */
+#product-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;padding:6px 16px 22px;}
+.pcard{
+  background:var(--c-surface);border-radius:var(--radius-m);overflow:hidden;box-shadow:var(--shadow-card);
+  display:flex;flex-direction:column;position:relative;cursor:pointer;border:1px solid var(--line);transition:transform .18s, box-shadow .18s;
+}
+.pcard:hover{box-shadow:0 16px 38px -16px color-mix(in srgb, var(--c-primary) 35%, rgba(30,22,14,.2));transform:translateY(-2px);}
+.pcard:active{transform:scale(.98);}
+.pcard .imgwrap{position:relative;aspect-ratio:1/1;overflow:hidden;background:var(--porcelain-2);}
+.pcard .imgwrap img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
+.pcard:hover .imgwrap img{transform:scale(1.06);}
+.pbadges{position:absolute;top:9px;left:9px;display:flex;flex-direction:column;gap:5px;}
+.pbadge{font-size:9.5px;font-weight:800;padding:4px 8px;border-radius:100px;color:#fff;letter-spacing:.03em;backdrop-filter:blur(4px);}
+.pbadge.new{background:rgba(110,143,92,.92);}
+.pbadge.best{background:rgba(199,154,73,.95);color:var(--charcoal);}
+.pbadge.promo{background:rgba(140,47,59,.92);}
+.pcard .body{padding:11px 11px 13px;display:flex;flex-direction:column;gap:5px;flex:1;}
+.pcard .pname{font-size:13.5px;font-weight:700;line-height:1.32;min-height:35px;}
+.pcard .prices{display:flex;align-items:baseline;gap:6px;margin-top:2px;}
+.pcard .price-now{font-family:var(--font-num);font-weight:800;color:var(--c-primary);font-size:15px;}
+.pcard .price-old{font-family:var(--font-num);font-size:11px;color:var(--ink-soft);text-decoration:line-through;}
+.pcard .addbtn{
+  margin-top:6px;width:35px;height:35px;border-radius:12px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));color:#fff;border:none;
+  display:flex;align-items:center;justify-content:center;position:absolute;right:11px;bottom:11px;box-shadow:0 8px 18px -6px rgba(181,82,42,.6);
+}
+.pcard .addbtn svg{width:16px;height:16px;}
+.pcard.out .imgwrap::after{content:'ໝົດ';position:absolute;inset:0;background:rgba(20,13,9,.6);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;letter-spacing:.05em;}
+
+/* ── modal / sheet base ─────────────────────────────────────── */
+.overlay{position:fixed;inset:0;background:rgba(20,13,9,.5);backdrop-filter:blur(3px);z-index:500;opacity:0;pointer-events:none;transition:opacity .25s;}
+.overlay.show{opacity:1;pointer-events:auto;}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;max-height:88vh;background:var(--c-surface);color:var(--c-text);
+  border-radius:26px 26px 0 0;z-index:501;transform:translateY(100%);transition:transform .34s cubic-bezier(.32,.72,0,1);
+  display:flex;flex-direction:column;box-shadow:var(--shadow-pop);border-top:1px solid rgba(199,154,73,.25);
+  pointer-events:none;
+}
+.sheet.show{transform:translateY(0);pointer-events:auto;}
+.sheet-handle{width:40px;height:4px;background:var(--line);border-radius:4px;margin:11px auto 4px;flex:none;}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;padding:8px 20px 12px;flex:none;border-bottom:1px solid var(--line);}
+.sheet-head h3{margin:0;font-size:17px;}
+.sheet-body{overflow-y:auto;padding:16px 20px 26px;}
+.sheet-close{background:var(--porcelain-2);border:none;width:31px;height:31px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+[data-dark="true"] .sheet-close{background:var(--charcoal-2);}
+
+/* product detail */
+.pd-gallery{border-radius:18px;overflow:hidden;aspect-ratio:4/3;margin-bottom:14px;background:var(--porcelain-2);}
+.pd-gallery img{width:100%;height:100%;object-fit:cover;}
+.pd-title{font-size:19.5px;margin:0 0 5px;}
+.pd-desc{font-size:13px;color:var(--ink-soft);line-height:1.65;margin:0 0 12px;}
+.pd-price{display:flex;align-items:baseline;gap:9px;margin-bottom:16px;}
+.pd-price .now{font-size:22px;font-weight:800;color:var(--c-primary);font-family:var(--font-num);}
+.pd-price .old{font-size:14px;text-decoration:line-through;color:var(--ink-soft);font-family:var(--font-num);}
+.qty-row{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+.qty-btn{width:38px;height:38px;border-radius:12px;border:1.5px solid var(--line);background:var(--c-bg);font-size:18px;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.qty-val{font-size:17px;font-weight:700;min-width:24px;text-align:center;font-family:var(--font-num);}
+.btn-primary{
+  background:linear-gradient(135deg,var(--c-primary),color-mix(in srgb, var(--c-primary) 65%, var(--c-accent)));color:#fff;border:none;border-radius:15px;
+  padding:14px;font-weight:800;font-size:14.5px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 14px 30px -12px color-mix(in srgb, var(--c-primary) 70%, transparent), inset 0 1px 0 rgba(255,255,255,.25);letter-spacing:.01em;
+  transition:transform .15s, box-shadow .15s;
+}
+.btn-primary:active{transform:scale(.98);}
+.btn-secondary{background:var(--c-bg);border:1.5px solid var(--c-primary);color:var(--c-primary);border-radius:15px;padding:13px;font-weight:800;width:100%;}
+.btn-ghost{background:transparent;border:1px solid var(--line);border-radius:13px;padding:11px;font-weight:600;color:var(--c-text);}
+
+/* cart */
+.cart-item{display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--line);}
+.cart-item img{width:60px;height:60px;border-radius:12px;object-fit:cover;flex:none;}
+.cart-item .ci-body{flex:1;min-width:0;}
+.cart-item .ci-name{font-size:13px;font-weight:700;}
+.cart-item .ci-price{font-size:12px;color:var(--c-primary);font-weight:700;font-family:var(--font-num);}
+.cart-item .ci-qty{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.mini-qty-btn{width:25px;height:25px;border-radius:8px;border:1px solid var(--line);background:var(--c-bg);display:flex;align-items:center;justify-content:center;font-size:14px;}
+.summary-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:var(--ink-soft);}
+.summary-row.total{font-size:16.5px;font-weight:800;color:var(--c-text);border-top:1px dashed var(--line);margin-top:6px;padding-top:11px;}
+.summary-row .num{font-family:var(--font-num);}
+
+/* form */
+.field{margin-bottom:13px;}
+.field label{display:block;font-size:12px;font-weight:700;margin-bottom:6px;color:var(--ink-soft);}
+.field input,.field textarea,.field select{
+  width:100%;padding:11px 13px;border-radius:13px;border:1.5px solid var(--line);background:var(--c-bg);
+  color:var(--c-text);font-family:inherit;font-size:14px;
+}
+.field textarea{resize:vertical;min-height:60px;}
+.seg{display:flex;gap:8px;flex-wrap:wrap;}
+.seg-btn{flex:1;min-width:80px;padding:10px;border-radius:13px;border:1.5px solid var(--line);background:var(--c-bg);text-align:center;font-size:12.5px;font-weight:700;}
+.seg-btn.active{background:var(--c-primary);border-color:var(--c-primary);color:#fff;}
+
+/* order status timeline */
+.timeline{list-style:none;margin:0;padding:0;}
+.timeline li{display:flex;gap:12px;padding-bottom:22px;position:relative;}
+.timeline li:last-child{padding-bottom:0;}
+.timeline li::before{content:'';position:absolute;left:11px;top:26px;bottom:0;width:2px;background:var(--line);}
+.timeline li:last-child::before{display:none;}
+.t-dot{width:24px;height:24px;border-radius:50%;background:var(--c-bg);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none;z-index:1;}
+.timeline li.done .t-dot{background:var(--success);border-color:var(--success);}
+.timeline li.done .t-dot svg{stroke:#fff;}
+.timeline li.current .t-dot{background:var(--c-primary);border-color:var(--c-primary);animation:pulse 1.4s infinite;}
+@keyframes pulse{0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--c-primary) 50%, transparent);}100%{box-shadow:0 0 0 10px transparent;}}
+.t-label{font-weight:700;font-size:13.5px;}
+.t-sub{font-size:11.5px;color:var(--ink-soft);}
+
+/* bottom nav */
+#bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;background:var(--glass);backdrop-filter:blur(14px);border-top:1px solid var(--line);
+  display:flex;z-index:150;box-shadow:0 -10px 26px rgba(0,0,0,.08);padding-bottom:env(safe-area-inset-bottom);
+}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px 9px;color:var(--ink-soft);position:relative;background:none;border:none;}
+.nav-btn svg{width:21px;height:21px;}
+.nav-btn span{font-size:10px;font-weight:700;}
+.nav-btn.active{color:var(--c-primary);}
+.nav-btn.active::before{content:'';position:absolute;top:2px;width:16px;height:3px;border-radius:3px;background:var(--c-accent);}
+
+/* empty state */
+.empty-state{text-align:center;padding:46px 20px;color:var(--ink-soft);}
+.empty-state .ico{font-size:44px;margin-bottom:12px;}
+.empty-state h4{margin:0 0 6px;color:var(--c-text);font-family:var(--font-display);}
+.empty-state p{margin:0;font-size:13px;}
+
+/* toast */
+#toast-wrap{position:fixed;top:14px;left:0;right:0;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:9000;pointer-events:none;}
+.toast{background:var(--charcoal);color:#fff;padding:12px 20px;border-radius:100px;font-size:13px;font-weight:700;box-shadow:0 12px 34px rgba(0,0,0,.32);display:flex;align-items:center;gap:9px;transform:translateY(-20px);opacity:0;transition:.3s;border:1px solid rgba(199,154,73,.35);}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* ═════════════════ ADMIN ═════════════════ */
+#admin-root{position:fixed;inset:0;background:var(--c-bg);z-index:800;display:none;flex-direction:column;padding-bottom:0;}
+#admin-root.show{display:flex;}
+#admin-topbar{background:linear-gradient(120deg, var(--c-header), color-mix(in srgb, var(--c-header) 85%, var(--c-secondary)));color:var(--c-header-text);display:flex;align-items:center;gap:10px;padding:13px 16px;flex:none;box-shadow:0 6px 18px rgba(0,0,0,.2);border-bottom:1px solid color-mix(in srgb, var(--c-accent) 35%, transparent);}
+#admin-topbar h2{font-size:15px;margin:0;flex:1;font-family:var(--font-display);}
+#admin-body{flex:1;display:flex;overflow:hidden;}
+#admin-sidebar{
+  width:220px;background:var(--c-sidebar);color:var(--c-sidebar-text);flex:none;overflow-y:auto;
+  display:flex;flex-direction:column;padding:14px 0;border-right:1px solid color-mix(in srgb, var(--c-accent) 20%, transparent);
+}
+.a-nav-item{display:flex;align-items:center;gap:11px;padding:12px 20px;font-size:13.5px;font-weight:600;color:color-mix(in srgb, var(--c-sidebar-text) 68%, transparent);border-left:3px solid transparent;transition:.15s;}
+.a-nav-item svg{width:17px;height:17px;flex:none;}
+.a-nav-item.active{color:var(--c-sidebar-text);background:color-mix(in srgb, var(--c-accent) 14%, transparent);border-left-color:var(--c-accent);}
+.a-nav-sec{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:color-mix(in srgb, var(--c-sidebar-text) 40%, transparent);padding:16px 20px 5px;}
+#admin-main{flex:1;overflow-y:auto;padding:20px 22px 64px;}
+.a-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+.a-title-row h2{margin:0;font-size:19px;font-family:var(--font-display);}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:13px;margin-bottom:20px;}
+.kpi-card{background:var(--c-surface);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow-card);border:1px solid var(--line);position:relative;overflow:hidden;}
+.kpi-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c-primary),var(--c-accent));}
+.kpi-card .lbl{font-size:11.5px;color:var(--ink-soft);font-weight:700;margin-bottom:7px;}
+.kpi-card .val{font-size:21px;font-weight:800;font-family:var(--font-num);}
+.kpi-card .val.orange{color:var(--c-primary);}
+.kpi-card .val.chili{color:var(--c-secondary);}
+.kpi-card .val.herb{color:var(--success);}
+.a-panel{background:var(--c-surface);border-radius:18px;padding:18px;box-shadow:var(--shadow-card);border:1px solid var(--line);margin-bottom:18px;}
+.a-panel h4{margin:0 0 14px;font-size:14px;font-family:var(--font-display);}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.bar-row .bl{width:70px;font-size:11.5px;color:var(--ink-soft);flex:none;}
+.bar-track{flex:1;height:9px;background:var(--porcelain-2);border-radius:6px;overflow:hidden;}
+[data-dark="true"] .bar-track{background:var(--charcoal-2);}
+.bar-fill{height:100%;background:linear-gradient(90deg,var(--c-primary),var(--c-accent));border-radius:6px;}
+table.a-table{width:100%;border-collapse:collapse;font-size:13px;}
+table.a-table th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-soft);padding:9px 11px;border-bottom:2px solid var(--line);}
+table.a-table td{padding:11px;border-bottom:1px solid var(--line);vertical-align:middle;}
+table.a-table tr:hover td{background:var(--c-bg);}
+.pill{display:inline-block;padding:4px 11px;border-radius:100px;font-size:11px;font-weight:800;}
+.pill.PENDING{background:#FBEBD1;color:#946200;}
+.pill.CONFIRMED{background:#DCEBFF;color:#1D5FC7;}
+.pill.PREPARING{background:#FCE3D2;color:var(--c-primary);}
+.pill.READY{background:#E4E9FF;color:#4A4FD9;}
+.pill.OUT_FOR_DELIVERY{background:#F1DBFF;color:#8A2FC9;}
+.pill.DELIVERED,.pill.COMPLETED{background:#DFEEDB;color:var(--success);}
+.pill.CANCELLED{background:#FBDADA;color:var(--danger);}
+.pill.active{background:#DFEEDB;color:var(--success);}
+.pill.inactive{background:var(--porcelain-2);color:var(--ink-soft);}
+.btn-sm{padding:7px 13px;border-radius:10px;border:1px solid var(--line);background:var(--c-bg);font-size:12px;font-weight:700;color:var(--c-text);}
+.btn-sm.primary{background:var(--c-primary);border-color:var(--c-primary);color:#fff;}
+.btn-sm.danger{background:#FBDADA;border-color:#FBDADA;color:var(--danger);}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;}
+@media(max-width:720px){
+  #admin-sidebar{position:fixed;left:0;top:59px;bottom:0;transform:translateX(-100%);transition:.25s;z-index:850;box-shadow:8px 0 26px rgba(0,0,0,.32);}
+  #admin-sidebar.open{transform:translateX(0);}
+  .grid-2,.grid-3{grid-template-columns:1fr;}
+}
+.color-swatch-row{display:flex;flex-wrap:wrap;gap:11px;}
+.color-field{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.color-field input[type=color]{width:46px;height:46px;border-radius:13px;border:2px solid var(--line);padding:0;background:none;}
+.color-field span{font-size:10.5px;color:var(--ink-soft);font-weight:700;}
+.preset-card{border:2px solid var(--line);border-radius:16px;padding:11px;display:flex;align-items:center;gap:11px;cursor:pointer;transition:.15s;}
+.preset-card.active{border-color:var(--c-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--c-accent) 18%, transparent);}
+.preset-dots{display:flex;gap:4px;}
+.preset-dots span{width:16px;height:16px;border-radius:50%;}
+.thumb-row{display:flex;gap:11px;overflow-x:auto;padding:2px;}
+.admin-thumb{position:relative;flex:none;width:112px;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--c-bg);}
+.admin-thumb img{width:100%;height:70px;object-fit:cover;}
+.admin-thumb .cap{font-size:10.5px;padding:6px 7px;font-weight:700;}
+.switch{position:relative;width:42px;height:24px;flex:none;}
+.switch input{opacity:0;width:0;height:0;}
+.switch .slider{position:absolute;inset:0;background:var(--line);border-radius:24px;transition:.2s;}
+.switch .slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;}
+.switch input:checked+.slider{background:var(--c-primary);}
+.switch input:checked+.slider::before{transform:translateX(18px);}
+.stat-flex{display:flex;align-items:center;gap:10px;}
+.icon-edit-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);}
+.icon-edit-row .preview{width:38px;height:38px;border-radius:11px;background:var(--c-bg);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;border:1px solid var(--line);}
+.icon-edit-row .lbl{flex:1;font-size:12.5px;font-weight:600;}
+.icon-edit-row input{width:66px;text-align:center;padding:8px;border-radius:10px;border:1.5px solid var(--line);background:var(--c-bg);color:var(--c-text);font-size:16px;}
+
+/* login card */
+.login-card{max-width:340px;margin:auto;background:var(--c-surface);border-radius:24px;padding:30px 26px;box-shadow:var(--shadow-pop);text-align:center;border:1px solid var(--line);}
+.login-card .ico{font-size:38px;margin-bottom:10px;}
+.login-card h3{margin:0 0 4px;font-family:var(--font-display);}
+.login-card p{font-size:12.5px;color:var(--ink-soft);margin:0 0 20px;}
+
+/* tablet / desktop tweaks for CUSTOMER site */
+@media(min-width:720px){
+  #product-grid{grid-template-columns:repeat(4,1fr);max-width:1100px;margin:0 auto;padding:6px 24px 30px;}
+  #category-row{max-width:1100px;margin:0 auto;padding:6px 24px 14px;}
+  #hero{max-width:1100px;margin:14px auto;aspect-ratio:21/8;}
+  .section{max-width:1100px;margin:0 auto;padding-left:24px;padding-right:24px;}
+  #bottom-nav{display:none;}
+  body{padding-bottom:0;}
+  .sheet{left:50%;right:auto;bottom:auto;top:50%;transform:translate(-50%,-46%) scale(.96);width:440px;max-height:85vh;border-radius:26px;opacity:0;}
+  .sheet.show{transform:translate(-50%,-50%) scale(1);opacity:1;}
+}
+</style>
+</head>
+<body data-dark="false">
+
+<div id="loader"><div class="ember-spin"></div><p>ກຳລັງໂຫຼດຮ້ານ...</p></div>
+<div id="toast-wrap"></div>
+<div class="overlay" id="overlay"></div>
+
+<!-- ══════════════ HEADER ══════════════ -->
+<header id="app-header">
+  <div class="brand">
+    <div id="logo-holder"></div>
+    <div class="brand-text">
+      <div class="name" id="hdr-store-name">ໝູປີ້ງ Online</div>
+      <div class="tag" id="hdr-tag">ປີ້ງສົດ ທຸກຊີ້ນ ທຸກອອເດີ</div>
+    </div>
+  </div>
+  <button class="icon-btn" onclick="openSearch()" aria-label="search" id="btn-search"></button>
+  <button class="icon-btn" onclick="openTrackSheet()" aria-label="orders" id="btn-orders"></button>
+  <button class="icon-btn" onclick="openCart()" aria-label="cart" id="btn-cart">
+    <span class="badge-dot" id="cart-badge" style="display:none;">0</span>
+  </button>
+  <button class="icon-btn" onclick="toggleHamburger()" aria-label="menu" id="btn-menu"></button>
+</header>
+
+<!-- ══════════════ HAMBURGER SHEET (menu -> admin login) ══════════════ -->
+<div class="overlay" id="hamburger-overlay" onclick="closeHamburger()"></div>
+<div class="sheet" id="hamburger-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><h3>ເມນູ</h3><button class="sheet-close" onclick="closeHamburger()">✕</button></div>
+  <div class="sheet-body">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn-ghost" onclick="scrollToId('hero');closeHamburger();" style="text-align:left;">🏠 ໜ້າຫຼັກ</button>
+      <button class="btn-ghost" onclick="openTrackSheet();closeHamburger();" style="text-align:left;">📦 ຕິດຕາມອອເດີ</button>
+      <button class="btn-ghost" onclick="openAccountSheet();closeHamburger();" style="text-align:left;">👤 ບັນຊີຂອງຂ້ອຍ</button>
+      <button class="btn-ghost" onclick="toggleDarkMode();closeHamburger();" style="text-align:left;">🌓 ໂໝດມືດ / ສະຫວ່າງ</button>
+      <div class="gilt-divider"><div class="ln"></div><div class="gem"></div><div class="ln"></div></div>
+      <button class="btn-primary" onclick="openAdminLogin();closeHamburger();">🔐 ເຂົ້າລະບົບຫຼັງບ້ານ (Admin)</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MAIN CUSTOMER VIEW ══════════════ -->
+<main id="view-customer">
+
+  <div id="hero"><div id="hero-dots"></div></div>
+
+  <div class="section">
+    <div class="section-head"><h3>🍢 ໝວດໝູ່</h3></div>
+  </div>
+  <div id="category-row"></div>
+
+  <div class="section">
+    <div class="section-head"><h3 id="grid-title">🔥 ເມນູແນະນຳ</h3></div>
+    <div class="gilt-divider"><div class="ln"></div><div class="gem"></div><div class="ln"></div></div>
+  </div>
+  <div id="product-grid"></div>
+</main>
+
+<!-- ══════════════ SEARCH SHEET ══════════════ -->
+<div class="overlay" id="search-overlay" onclick="closeSheet('search')"></div>
+<div class="sheet" id="search-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><h3>ຄົ້ນຫາເມນູ</h3><button class="sheet-close" onclick="closeSheet('search')">✕</button></div>
+  <div class="sheet-body">
+    <div class="field"><input type="text" id="search-input" placeholder="ຄົ້ນຫາ ເຊັ່ນ: ໝູປີ້ງ, ໄກ່..." oninput="renderProducts()"></div>
+    <div id="search-results"></div>
+  </div>
+</div>
+
+<!-- ══════════════ PRODUCT DETAIL SHEET ══════════════ -->
+<div class="overlay" id="pd-overlay" onclick="closeSheet('pd')"></div>
+<div class="sheet" id="pd-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><h3>ລາຍລະອຽດ</h3><button class="sheet-close" onclick="closeSheet('pd')">✕</button></div>
+  <div class="sheet-body" id="pd-body"></div>
+</div>
+
+<!-- ══════════════ CART SHEET ══════════════ -->
+<div class="overlay" id="cart-overlay" onclick="closeSheet('cart')"></div>
+<div class="sheet" id="cart-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><h3>ກະຕ່າສິນຄ້າ</h3><button class="sheet-close" onclick="closeSheet('cart')">✕</button></div>
+  <div class="sheet-body" id="cart-body"></div>
+</div>
+
+<!-- ══════════════ CHECKOUT SHEET ══════════════ -->
+<div class="overlay" id="checkout-overlay" onclick="closeSheet('checkout')"></div>
+<div class="sheet" id="checkout-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><h3>ຢືນຢັນການສັ່ງຊື້</h3><button class="sheet-close" onclick="closeSheet('checkout')">✕</button></div>
+  <div class="sheet-body" id="checkout-body"></div>
+</div>
+
+<!-- ══════════════ ORDER TRACK SHEET ══════════════ -->
+<div class="overlay" id="track-overlay" onclick="closeSheet('track')"></div>
+<div class="sheet" id="track-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><h3>ຕິດຕາມອອເດີ</h3><button class="sheet-close" onclick="closeSheet('track')">✕</button></div>
+  <div class="sheet-body" id="track-body"></div>
+</div>
+
+<!-- ══════════════ ACCOUNT SHEET ══════════════ -->
+<div class="overlay" id="account-overlay" onclick="closeSheet('account')"></div>
+<div class="sheet" id="account-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><h3>ບັນຊີຂອງຂ້ອຍ</h3><button class="sheet-close" onclick="closeSheet('account')">✕</button></div>
+  <div class="sheet-body" id="account-body"></div>
+</div>
+
+<!-- ══════════════ ADMIN LOGIN ══════════════ -->
+<div class="overlay" id="login-overlay" onclick="closeSheet('login')"></div>
+<div class="sheet" id="login-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><h3>ຫຼັງບ້ານ</h3><button class="sheet-close" onclick="closeSheet('login')">✕</button></div>
+  <div class="sheet-body">
+    <div class="login-card" style="box-shadow:none;padding:10px 4px;border:none;">
+      <div class="ico">🔐</div>
+      <h3>ເຂົ້າສູ່ລະບົບແອັດມິນ</h3>
+      <p>ປ້ອນລະຫັດຜ່ານເພື່ອຈັດການຮ້ານ</p>
+      <div class="field"><input type="password" id="admin-pw" placeholder="ລະຫັດຜ່ານ" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
+      <button class="btn-primary" onclick="doAdminLogin()">ເຂົ້າສູ່ລະບົບ</button>
+      <p style="margin-top:10px;font-size:11px;">ລະຫັດຜ່ານເລີ່ມຕົ້ນ: 1234 (ປ່ຽນໄດ້ໃນ Settings)</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ BOTTOM NAV (mobile) ══════════════ -->
+<nav id="bottom-nav">
+  <button class="nav-btn active" onclick="setNav(this);scrollToId('hero')" id="nav-home"><span>ໜ້າຫຼັກ</span></button>
+  <button class="nav-btn" onclick="setNav(this);scrollToId('product-grid')" id="nav-menu"><span>ເມນູ</span></button>
+  <button class="nav-btn" onclick="setNav(this);openTrackSheet()" id="nav-orders"><span>ອອເດີ</span></button>
+  <button class="nav-btn" onclick="setNav(this);openCart()" id="nav-cart"><span>ກະຕ່າ</span></button>
+  <button class="nav-btn" onclick="setNav(this);openAccountSheet()" id="nav-account"><span>ບັນຊີ</span></button>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ADMIN PANEL
+     ══════════════════════════════════════════════════════════════ -->
+<div id="admin-root">
+  <div id="admin-topbar">
+    <button class="icon-btn" onclick="document.getElementById('admin-sidebar').classList.toggle('open')" style="width:32px;height:32px;">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <h2 id="admin-page-title">Dashboard</h2>
+    <button class="icon-btn" onclick="refreshAdminCurrentView()" title="Refresh" style="width:32px;height:32px;">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.5 15"/></svg>
+    </button>
+    <button class="icon-btn" onclick="adminLogout()" style="width:32px;height:32px;" title="Logout">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+    </button>
+  </div>
+  <div id="admin-body">
+    <div id="admin-sidebar">
+      <div class="a-nav-sec">ພາບລວມ</div>
+      <div class="a-nav-item active" data-page="dashboard" onclick="gotoAdminPage('dashboard')" id="sb-dashboard">
+        <span>Dashboard</span>
+      </div>
+      <div class="a-nav-sec">ຂາຍ / ສິນຄ້າ</div>
+      <div class="a-nav-item" data-page="orders" onclick="gotoAdminPage('orders')" id="sb-orders"><span>ອອເດີ</span></div>
+      <div class="a-nav-item" data-page="products" onclick="gotoAdminPage('products')" id="sb-products"><span>ສິນຄ້າ</span></div>
+      <div class="a-nav-item" data-page="categories" onclick="gotoAdminPage('categories')" id="sb-categories"><span>ໝວດໝູ່</span></div>
+      <div class="a-nav-item" data-page="banners" onclick="gotoAdminPage('banners')" id="sb-banners"><span>Banner</span></div>
+      <div class="a-nav-sec">ຕັ້ງຄ່າ</div>
+      <div class="a-nav-item" data-page="settings" onclick="gotoAdminPage('settings')" id="sb-settings"><span>ຮ້ານ &amp; ໂຕນຮັບ</span></div>
+    </div>
+    <div id="admin-main"></div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   ICON SYSTEM — every glyph below is the DEFAULT. Admin can
+   override any of them with an emoji/character from Settings ->
+   ຮ້ານ & ໂຕນຮັບ -> ໄອຄອນລະບົບ, and it applies everywhere instantly.
+   ═══════════════════════════════════════════════════════════════ */
+const DEFAULT_ICONS = {
+  search:  '<svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>',
+  orders:  '<svg class="ico" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7L12 12l8.7-5M12 22V12"/></svg>',
+  cart:    '<svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.6 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg>',
+  menu:    '<svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>',
+  home:    '<svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+  grid:    '<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+  account: '<svg class="ico" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  dashboard:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>',
+  a_orders:'<svg class="ico" viewBox="0 0 24 24"><path d="M6 2l1.5 4h9L18 2M6 2H4M18 2h2M6 2v20h12V2"/></svg>',
+  a_products:'<svg class="ico" viewBox="0 0 24 24"><path d="M20.4 14.5L16 10 4 20"/><circle cx="18" cy="6" r="3"/></svg>',
+  a_categories:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
+  a_banners:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 5-5 4 4"/></svg>',
+  a_settings:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
+};
+const ICON_LABELS = {
+  search:'ຄົ້ນຫາ (Header)', orders:'ອອເດີ (Header)', cart:'ກະຕ່າ (Header)', menu:'ເມນູ (Header)',
+  home:'ໜ້າຫຼັກ (Nav)', grid:'ເມນູອາຫານ (Nav)', account:'ບັນຊີ (Nav)',
+  dashboard:'Dashboard (Admin)', a_orders:'ອອເດີ (Admin)', a_products:'ສິນຄ້າ (Admin)',
+  a_categories:'ໝວດໝູ່ (Admin)', a_banners:'Banner (Admin)', a_settings:'ຮ້ານ & ໂຕນຮັບ (Admin)'
+};
+function iconHtml(key){
+  const custom = state.settings && state.settings['icon_'+key];
+  if(custom && String(custom).trim()) return '<span class="icon-emoji">'+custom+'</span>';
+  return DEFAULT_ICONS[key] || '';
+}
+function applyAllIcons(){
+  document.getElementById('btn-search').innerHTML = iconHtml('search');
+  document.getElementById('btn-orders').innerHTML = iconHtml('orders');
+  const cartBtn = document.getElementById('btn-cart');
+  cartBtn.innerHTML = iconHtml('cart') + '<span class="badge-dot" id="cart-badge" style="display:none;">0</span>';
+  document.getElementById('btn-menu').innerHTML = iconHtml('menu');
+  document.getElementById('nav-home').innerHTML = iconHtml('home')+'<span>ໜ້າຫຼັກ</span>';
+  document.getElementById('nav-menu').innerHTML = iconHtml('grid')+'<span>ເມນູ</span>';
+  document.getElementById('nav-orders').innerHTML = iconHtml('orders')+'<span>ອອເດີ</span>';
+  document.getElementById('nav-cart').innerHTML = iconHtml('cart')+'<span>ກະຕ່າ</span>';
+  document.getElementById('nav-account').innerHTML = iconHtml('account')+'<span>ບັນຊີ</span>';
+  const sb = {dashboard:'dashboard', orders:'a_orders', products:'a_products', categories:'a_categories', banners:'a_banners', settings:'a_settings'};
+  const labels = {dashboard:'Dashboard', orders:'ອອເດີ', products:'ສິນຄ້າ', categories:'ໝວດໝູ່', banners:'Banner', settings:'ຮ້ານ &amp; ໂຕນຮັບ'};
+  Object.keys(sb).forEach(function(page){
+    const el = document.getElementById('sb-'+page);
+    if(el) el.innerHTML = iconHtml(sb[page]) + '<span>'+labels[page]+'</span>';
+  });
+  updateCartBadge();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   APP STATE
+   ═══════════════════════════════════════════════════════════════ */
+const state = {
+  settings:{}, categories:[], products:[], banners:[],
+  cart: JSON.parse(localStorage.getItem('pk_cart')||'[]'),
+  activeCategory:'all',
+  heroIdx:0, heroTimer:null,
+  admin:{ token: sessionStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null },
+  customer: JSON.parse(localStorage.getItem('pk_customer')||'{}')
+};
+
+/* ── promise wrapper around google.script.run ─────────────────── */
+function gs(fn){
+  return function(...args){
+    return new Promise((resolve,reject)=>{
+      google.script.run
+        .withSuccessHandler(resolve)
+        .withFailureHandler(err=>{ reject(err); })
+        [fn](...args);
+    });
+  };
+}
+const api = {
+  getInitialData: gs('getInitialData'),
+  createOrder: gs('createOrder'),
+  getOrderStatusPublic: gs('getOrderStatusPublic'),
+  adminLogin: gs('adminLogin'),
+  getDashboardStats: gs('getDashboardStats'),
+  getOrders: gs('getOrders'),
+  updateOrderStatus: gs('updateOrderStatus'),
+  updatePaymentStatus: gs('updatePaymentStatus'),
+  saveProduct: gs('saveProduct'),
+  deleteProduct: gs('deleteProduct'),
+  saveCategory: gs('saveCategory'),
+  deleteCategory: gs('deleteCategory'),
+  saveBanner: gs('saveBanner'),
+  deleteBanner: gs('deleteBanner'),
+  saveSettings: gs('saveSettings'),
+  getSettings: gs('getSettings')
+};
+
+/* ── formatting ─────────────────────────────────────────────── */
+function money(n){
+  n = Number(n)||0;
+  return n.toLocaleString('en-US') + ' ₭';
+}
+function toast(msg, icon){
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className='toast';
+  t.innerHTML = (icon||'✅') + ' ' + msg;
+  wrap.appendChild(t);
+  requestAnimationFrame(()=>t.classList.add('show'));
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 2600);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════════════════ */
+async function init(){
+  try{
+    const data = await api.getInitialData();
+    state.settings = data.settings; state.categories = data.categories;
+    state.products = data.products; state.banners = data.banners;
+    applyTheme();
+    renderHeader();
+    applyAllIcons();
+    renderHero();
+    renderCategories();
+    renderProducts();
+    updateCartBadge();
+    document.getElementById('loader').classList.add('hide');
+    // gentle live-sync polling for the storefront
+    setInterval(syncPublicData, 30000);
+    if(state.admin.token){ showAdmin(); }
+  }catch(e){
+    document.getElementById('loader').innerHTML = '<p style="color:#fff">ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ. ກະລຸນາໂຫຼດໃໝ່.</p>';
+    console.error(e);
+  }
+}
+async function syncPublicData(){
+  try{
+    const data = await api.getInitialData();
+    state.settings=data.settings; state.categories=data.categories; state.products=data.products; state.banners=data.banners;
+    renderCategories(); renderProducts(); renderHero();
+  }catch(e){}
+}
+
+/* ── theme engine ───────────────────────────────────────────── */
+const FONT_PAIRS = {
+  'ຄລາສສິກ': { display:"'Noto Serif Lao','Noto Serif',serif", body:"'Noto Sans Lao','Noto Sans',sans-serif" },
+  'ໂມເດິນ ໂຄ້ງມົນ': { display:"'Noto Sans Lao Looped','Noto Sans',sans-serif", body:"'Noto Sans Lao','Noto Sans',sans-serif" },
+  'ມາດຕະຖານ ງ່າຍໆ': { display:"'Noto Sans Lao','Noto Sans',sans-serif", body:"'Noto Sans Lao','Noto Sans',sans-serif" }
+};
+function applyTheme(){
+  const s = state.settings; const r = document.documentElement.style;
+  r.setProperty('--c-primary', s.colorPrimary||'#C6702D');
+  r.setProperty('--c-secondary', s.colorSecondary||'#7A2E3D');
+  r.setProperty('--c-accent', s.colorAccent||'#C9A227');
+  r.setProperty('--c-bg', s.colorBg||'#FBF9F5');
+  r.setProperty('--c-surface', s.colorSurface||'#FFFFFF');
+  r.setProperty('--c-text', s.colorText||'#2A211B');
+  r.setProperty('--c-header', s.colorHeader||'#1B140F');
+  r.setProperty('--c-header-text', s.colorHeaderText||'#FBF6EE');
+  r.setProperty('--c-sidebar', s.colorSidebar||'#1B140F');
+  r.setProperty('--c-sidebar-text', s.colorSidebarText||'#F1E7D6');
+  const pair = FONT_PAIRS[s.fontPairing] || FONT_PAIRS['ຄລາສສິກ'];
+  r.setProperty('--font-display', pair.display);
+  r.setProperty('--font-body', pair.body);
+  document.body.setAttribute('data-dark', s.darkMode==='true'?'true':'false');
+}
+function toggleDarkMode(){
+  const cur = document.body.getAttribute('data-dark')==='true';
+  document.body.setAttribute('data-dark', (!cur).toString());
+}
+
+function renderHeader(){
+  document.getElementById('hdr-store-name').textContent = state.settings.storeName||'ໝູປີ້ງ Online';
+  document.getElementById('hdr-tag').textContent = state.settings.tagline||'';
+  const holder = document.getElementById('logo-holder');
+  if(state.settings.logoUrl){
+    holder.innerHTML = '<img class="logo" src="'+state.settings.logoUrl+'">';
+  } else {
+    holder.innerHTML = '<div class="logo-fallback">🍖</div>';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   HERO SLIDER
+   ═══════════════════════════════════════════════════════════════ */
+function renderHero(){
+  const hero = document.getElementById('hero');
+  const dots = document.getElementById('hero-dots');
+  const active = (state.banners||[]).filter(b=>b.status==='active');
+  hero.querySelectorAll('.slide').forEach(el=>el.remove());
+  dots.innerHTML='';
+  if(active.length===0){
+    hero.insertAdjacentHTML('afterbegin','<div class="slide active"><img src="https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=1200"><div class="eyebrow">ໝູປີ້ງ ອອນລາຍ</div><div class="txt"><h2>ຍິນດີຕ້ອນຮັບ</h2><p>ເລືອກເມນູທີ່ທ່ານມັກ</p></div></div>');
+    return;
+  }
+  active.forEach((b,i)=>{
+    hero.insertAdjacentHTML('afterbegin',
+      '<div class="slide '+(i===state.heroIdx?'active':'')+'" data-i="'+i+'">'+
+        '<img src="'+b.image+'">'+
+        '<div class="eyebrow">ໝູປີ້ງ ອອນລາຍ</div>'+
+        '<div class="txt"><h2>'+b.title+'</h2><p>'+(b.subtitle||'')+'</p>'+
+        (b.buttonText? '<button class="hero-cta" onclick="scrollToId(\'product-grid\')">'+b.buttonText+' →</button>':'')+
+        '</div></div>');
+    dots.insertAdjacentHTML('beforeend','<span class="'+(i===state.heroIdx?'active':'')+'"></span>');
+  });
+  clearInterval(state.heroTimer);
+  if(active.length>1){
+    state.heroTimer = setInterval(()=>{
+      state.heroIdx = (state.heroIdx+1)%active.length;
+      hero.querySelectorAll('.slide').forEach((el,i)=>el.classList.toggle('active', i===state.heroIdx));
+      dots.querySelectorAll('span').forEach((el,i)=>el.classList.toggle('active', i===state.heroIdx));
+    }, 4500);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CATEGORIES + PRODUCTS
+   ═══════════════════════════════════════════════════════════════ */
+function renderCategories(){
+  const row = document.getElementById('category-row');
+  const cats = (state.categories||[]).filter(c=>c.status==='active').sort((a,b)=>a.sortOrder-b.sortOrder);
+  let html = '<div class="cat-pill '+(state.activeCategory==='all'?'active':'')+'" onclick="selectCategory(\'all\')"><div class="ico">🍽️</div><span>ທັງໝົດ</span></div>';
+  cats.forEach(c=>{
+    html += '<div class="cat-pill '+(state.activeCategory===c.id?'active':'')+'" onclick="selectCategory(\''+c.id+'\')"><div class="ico">'+(c.icon||'🍢')+'</div><span>'+c.name+'</span></div>';
+  });
+  row.innerHTML = html;
+}
+function selectCategory(id){ state.activeCategory=id; renderCategories(); renderProducts(); }
+
+function renderProducts(){
+  const grid = document.getElementById('product-grid');
+  const q = (document.getElementById('search-input')?.value||'').trim().toLowerCase();
+  let list = (state.products||[]).filter(p=>p.status==='active');
+  if(state.activeCategory!=='all') list = list.filter(p=>p.categoryId===state.activeCategory);
+  if(q) list = list.filter(p=>p.name.toLowerCase().includes(q));
+  list = list.sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
+
+  document.getElementById('grid-title').textContent = q? '🔎 ຜົນການຄົ້ນຫາ' : (state.activeCategory==='all'? '🔥 ເມນູແນະນຳ' : (state.categories.find(c=>c.id===state.activeCategory)?.name||'ເມນູ'));
+
+  if(list.length===0){
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="ico">🍢</div><h4>ບໍ່ພົບເມນູ</h4><p>ລອງຄົ້ນຫາຄຳອື່ນ ຫຼື ເລືອກໝວດໝູ່ອື່ນ</p></div>';
+    return;
+  }
+  grid.innerHTML = list.map(p=>{
+    const promo = Number(p.promoPrice)>0 && Number(p.promoPrice)<Number(p.regularPrice);
+    const out = Number(p.stock)<=0;
+    let badges='';
+    if(p.badgeNew===true||p.badgeNew==='TRUE') badges+='<span class="pbadge new">ໃໝ່</span>';
+    if(p.badgeBestSeller===true||p.badgeBestSeller==='TRUE') badges+='<span class="pbadge best">ຂາຍດີ</span>';
+    if(promo) badges+='<span class="pbadge promo">ໂປຣໂມຊັ່ນ</span>';
+    return '<div class="pcard '+(out?'out':'')+'" onclick="openProductDetail(\''+p.id+'\')">'+
+      '<div class="imgwrap"><img loading="lazy" src="'+p.image+'"><div class="pbadges">'+badges+'</div></div>'+
+      '<div class="body"><div class="pname">'+p.name+'</div>'+
+      '<div class="prices"><span class="price-now num">'+money(promo?p.promoPrice:p.regularPrice)+'</span>'+(promo?'<span class="price-old num">'+money(p.regularPrice)+'</span>':'')+'</div></div>'+
+      (out?'':'<button class="addbtn" onclick="event.stopPropagation();quickAdd(\''+p.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>')+
+      '</div>';
+  }).join('');
+}
+function openSearch(){ openSheet('search'); setTimeout(()=>document.getElementById('search-input').focus(),300); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SHEET / MODAL PLUMBING
+   ═══════════════════════════════════════════════════════════════ */
+function openSheet(id){
+  document.getElementById(id+'-overlay').classList.add('show');
+  document.getElementById(id+'-sheet').classList.add('show');
+}
+function closeSheet(id){
+  document.getElementById(id+'-overlay').classList.remove('show');
+  document.getElementById(id+'-sheet').classList.remove('show');
+}
+function toggleHamburger(){
+  document.getElementById('hamburger-overlay').classList.add('show');
+  document.getElementById('hamburger-sheet').classList.add('show');
+}
+function closeHamburger(){
+  document.getElementById('hamburger-overlay').classList.remove('show');
+  document.getElementById('hamburger-sheet').classList.remove('show');
+}
+function scrollToId(id){ document.getElementById(id).scrollIntoView({behavior:'smooth', block:'start'}); }
+function setNav(el){ document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); }
+
+/* ═══════════════════════════════════════════════════════════════
+   PRODUCT DETAIL
+   ═══════════════════════════════════════════════════════════════ */
+let pdQty = 1, pdProduct = null;
+function openProductDetail(id){
+  pdProduct = state.products.find(p=>p.id===id);
+  if(!pdProduct) return;
+  pdQty = 1;
+  renderPD();
+  openSheet('pd');
+}
+function renderPD(){
+  const p = pdProduct;
+  const promo = Number(p.promoPrice)>0 && Number(p.promoPrice)<Number(p.regularPrice);
+  document.getElementById('pd-body').innerHTML =
+    '<div class="pd-gallery"><img src="'+p.image+'"></div>'+
+    '<h2 class="pd-title">'+p.name+'</h2>'+
+    '<p class="pd-desc">'+(p.description||'')+'</p>'+
+    '<div class="pd-price"><span class="now">'+money(promo?p.promoPrice:p.regularPrice)+'</span>'+(promo?'<span class="old">'+money(p.regularPrice)+'</span>':'')+'</div>'+
+    '<div class="qty-row"><button class="qty-btn" onclick="pdChangeQty(-1)">−</button><span class="qty-val" id="pd-qty-val">'+pdQty+'</span><button class="qty-btn" onclick="pdChangeQty(1)">+</button>'+
+    '<span style="font-size:12px;color:var(--ink-soft);margin-left:auto;">ຄົງເຫຼືອ: '+p.stock+' '+(p.unit||'')+'</span></div>'+
+    '<div style="display:flex;gap:10px;"><button class="btn-secondary" onclick="addToCart(pdProduct,pdQty);closeSheet(\'pd\')">ໃສ່ກະຕ່າ</button>'+
+    '<button class="btn-primary" onclick="addToCart(pdProduct,pdQty);closeSheet(\'pd\');openCheckout();">ສັ່ງເລີຍ</button></div>';
+}
+function pdChangeQty(d){
+  pdQty = Math.max(1, Math.min(Number(pdProduct.stock)||99, pdQty+d));
+  document.getElementById('pd-qty-val').textContent = pdQty;
+}
+function quickAdd(id){
+  const p = state.products.find(x=>x.id===id);
+  if(p){ addToCart(p,1); toast(p.name+' ໃສ່ກະຕ່າແລ້ວ','🛒'); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CART
+   ═══════════════════════════════════════════════════════════════ */
+function saveCart(){ localStorage.setItem('pk_cart', JSON.stringify(state.cart)); updateCartBadge(); }
+function updateCartBadge(){
+  const count = state.cart.reduce((s,i)=>s+i.qty,0);
+  const badge = document.getElementById('cart-badge');
+  if(!badge) return;
+  if(count>0){ badge.style.display='flex'; badge.textContent=count; } else { badge.style.display='none'; }
+}
+function addToCart(p, qty){
+  const promo = Number(p.promoPrice)>0 && Number(p.promoPrice)<Number(p.regularPrice);
+  const price = promo? Number(p.promoPrice): Number(p.regularPrice);
+  const existing = state.cart.find(i=>i.id===p.id);
+  if(existing){ existing.qty += qty; } else { state.cart.push({id:p.id, name:p.name, image:p.image, price:price, qty:qty}); }
+  saveCart();
+}
+function changeCartQty(id, d){
+  const item = state.cart.find(i=>i.id===id);
+  if(!item) return;
+  item.qty += d;
+  if(item.qty<=0) state.cart = state.cart.filter(i=>i.id!==id);
+  saveCart(); renderCartBody();
+}
+function removeCartItem(id){ state.cart = state.cart.filter(i=>i.id!==id); saveCart(); renderCartBody(); }
+
+function cartTotals(){
+  const subtotal = state.cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const deliveryFee = Number(state.settings.deliveryFeeDefault)||0;
+  const tax = Math.round(subtotal * (Number(state.settings.taxPercent)||0)/100);
+  const serviceFee = Math.round(subtotal * (Number(state.settings.serviceFeePercent)||0)/100);
+  return {subtotal, deliveryFee, tax, serviceFee, total: subtotal+deliveryFee+tax+serviceFee};
+}
+function openCart(){ renderCartBody(); openSheet('cart'); }
+function renderCartBody(){
+  const body = document.getElementById('cart-body');
+  if(state.cart.length===0){
+    body.innerHTML = '<div class="empty-state"><div class="ico">🛒</div><h4>ກະຕ່າຫວ່າງເປົ່າ</h4><p>ເລືອກເມນູທີ່ທ່ານມັກເພື່ອເລີ່ມສັ່ງຊື້</p></div>';
+    return;
+  }
+  const t = cartTotals();
+  body.innerHTML = state.cart.map(i=>
+    '<div class="cart-item"><img src="'+i.image+'"><div class="ci-body"><div class="ci-name">'+i.name+'</div><div class="ci-price num">'+money(i.price)+'</div>'+
+    '<div class="ci-qty"><button class="mini-qty-btn" onclick="changeCartQty(\''+i.id+'\',-1)">−</button><span class="num">'+i.qty+'</span><button class="mini-qty-btn" onclick="changeCartQty(\''+i.id+'\',1)">+</button>'+
+    '<button style="margin-left:auto;background:none;border:none;color:var(--c-secondary);font-size:11px;" onclick="removeCartItem(\''+i.id+'\')">ລຶບ</button></div></div></div>'
+  ).join('') +
+  '<div style="margin-top:12px;">'+
+  '<div class="summary-row"><span>ລວມຍ່ອຍ</span><span class="num">'+money(t.subtotal)+'</span></div>'+
+  '<div class="summary-row"><span>ຄ່າສົ່ງ</span><span class="num">'+money(t.deliveryFee)+'</span></div>'+
+  (t.serviceFee?'<div class="summary-row"><span>ຄ່າບໍລິການ</span><span class="num">'+money(t.serviceFee)+'</span></div>':'')+
+  (t.tax?'<div class="summary-row"><span>ພາສີ</span><span class="num">'+money(t.tax)+'</span></div>':'')+
+  '<div class="summary-row total"><span>ລວມທັງໝົດ</span><span class="num">'+money(t.total)+'</span></div>'+
+  '</div><button class="btn-primary" style="margin-top:14px;" onclick="openCheckout()">ສັ່ງຊື້ ('+state.cart.length+')</button>';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CHECKOUT
+   ═══════════════════════════════════════════════════════════════ */
+let checkoutState = {orderType:'delivery', payment:'cash'};
+function openCheckout(){
+  if(state.cart.length===0){ toast('ກະຕ່າຍັງຫວ່າງເປົ່າ','⚠️'); return; }
+  closeSheet('cart');
+  renderCheckout();
+  openSheet('checkout');
+}
+function renderCheckout(){
+  const c = state.customer;
+  const t = cartTotals();
+  document.getElementById('checkout-body').innerHTML =
+    '<div class="field"><label>ຊື່ຜູ້ສັ່ງ</label><input id="co-name" value="'+(c.name||'')+'" placeholder="ຊື່ ແລະ ນາມສະກຸນ"></div>'+
+    '<div class="field"><label>ເບີໂທ</label><input id="co-phone" value="'+(c.phone||'')+'" placeholder="020 xxxxxxxx"></div>'+
+    '<div class="field"><label>ປະເພດການສັ່ງ</label><div class="seg" id="co-type">'+
+      ['delivery:ຈັດສົ່ງ','pickup:ມາຮັບເອງ','dinein:ນັ່ງຮ້ານ'].map(o=>{const[v,l]=o.split(':');return '<div class="seg-btn '+(checkoutState.orderType===v?'active':'')+'" onclick="setOrderType(\''+v+'\')">'+l+'</div>';}).join('')+
+    '</div></div>'+
+    '<div class="field" id="co-addr-wrap"><label>ທີ່ຢູ່ຈັດສົ່ງ</label><textarea id="co-address" placeholder="ບ້ານ, ເມືອງ, ຈຸດສັງເກດ">'+(c.address||'')+'</textarea></div>'+
+    '<div class="field"><label>ໝາຍເຫດ</label><textarea id="co-note" placeholder="ເຊັ່ນ: ບໍ່ເອົາຜັກ, ເຜັດໜ້ອຍ..."></textarea></div>'+
+    '<div class="field"><label>ຊຳລະເງິນ</label><div class="seg" id="co-pay">'+
+      ['cash:ເງິນສົດ','transfer:ໂອນເງິນ','qr:ສະແກນ QR'].map(o=>{const[v,l]=o.split(':');return '<div class="seg-btn '+(checkoutState.payment===v?'active':'')+'" onclick="setPayment(\''+v+'\')">'+l+'</div>';}).join('')+
+    '</div></div>'+
+    '<div class="a-panel" style="padding:12px 14px;">'+
+    '<div class="summary-row"><span>ລວມຍ່ອຍ</span><span class="num">'+money(t.subtotal)+'</span></div>'+
+    '<div class="summary-row"><span>ຄ່າສົ່ງ</span><span class="num">'+money(t.deliveryFee)+'</span></div>'+
+    '<div class="summary-row total"><span>ລວມທັງໝົດ</span><span class="num">'+money(t.total)+'</span></div>'+
+    '</div>'+
+    '<button class="btn-primary" onclick="submitOrder()">ຢືນຢັນສັ່ງຊື້ 🛵</button>';
+}
+function setOrderType(v){ checkoutState.orderType=v; renderCheckout(); }
+function setPayment(v){ checkoutState.payment=v; renderCheckout(); }
+
+async function submitOrder(){
+  const name = document.getElementById('co-name').value.trim();
+  const phone = document.getElementById('co-phone').value.trim();
+  const address = document.getElementById('co-address')?.value.trim()||'';
+  if(!name || !phone){ toast('ກະລຸນາປ້ອນຊື່ ແລະ ເບີໂທ','⚠️'); return; }
+  const t = cartTotals();
+  const orderInput = {
+    customerName:name, phone:phone, address:address,
+    orderType:checkoutState.orderType,
+    items: state.cart.map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty})),
+    subtotal:t.subtotal, discount:0, deliveryFee:t.deliveryFee, serviceFee:t.serviceFee, tax:t.tax, total:t.total,
+    paymentMethod:checkoutState.payment, note:document.getElementById('co-note').value.trim(), branch:'Main'
+  };
+  try{
+    const res = await api.createOrder(orderInput);
+    state.customer = {name:name, phone:phone, address:address};
+    localStorage.setItem('pk_customer', JSON.stringify(state.customer));
+    state.cart = []; saveCart();
+    closeSheet('checkout');
+    toast('ສັ່ງຊື້ສຳເລັດ! ລະຫັດ '+res.orderId,'🎉');
+    showOrderConfirmation(res.orderId);
+  }catch(e){ toast('ເກີດຂໍ້ຜິດພາດ ລອງໃໝ່ອີກຄັ້ງ','⚠️'); console.error(e); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ORDER TRACKING (customer)
+   ═══════════════════════════════════════════════════════════════ */
+const STATUS_STEPS = [
+  {k:'PENDING', l:'ລໍຖ້າຢືນຢັນ'}, {k:'CONFIRMED', l:'ຢືນຢັນແລ້ວ'}, {k:'PREPARING', l:'ກຳລັງກຽມ'},
+  {k:'READY', l:'ພ້ອມສົ່ງ/ຮັບ'}, {k:'OUT_FOR_DELIVERY', l:'ກຳລັງຈັດສົ່ງ'}, {k:'DELIVERED', l:'ຮັບເອົາແລ້ວ'}, {k:'COMPLETED', l:'ສຳເລັດ'}
+];
+function openTrackSheet(){
+  document.getElementById('track-body').innerHTML =
+    '<div class="field"><label>ປ້ອນລະຫັດອອເດີ</label><input id="track-input" placeholder="ຕົວຢ່າງ: ORD260802-1234"></div>'+
+    '<button class="btn-primary" onclick="lookupOrder()">ຄົ້ນຫາ</button>'+
+    '<div id="track-result" style="margin-top:16px;"></div>';
+  openSheet('track');
+}
+function showOrderConfirmation(orderId){
+  document.getElementById('track-body').innerHTML = '<div id="track-result"></div>';
+  openSheet('track');
+  document.getElementById('track-result').innerHTML='<p style="text-align:center;">ກຳລັງໂຫຼດ...</p>';
+  renderOrderTimeline(orderId);
+}
+async function lookupOrder(){
+  const id = document.getElementById('track-input').value.trim();
+  if(!id) return;
+  await renderOrderTimeline(id);
+}
+async function renderOrderTimeline(orderId){
+  const box = document.getElementById('track-result');
+  box.innerHTML = '<p style="text-align:center;color:var(--ink-soft);">ກຳລັງຄົ້ນຫາ...</p>';
+  try{
+    const o = await api.getOrderStatusPublic(orderId);
+    if(!o){ box.innerHTML='<div class="empty-state"><div class="ico">🔍</div><h4>ບໍ່ພົບອອເດີ</h4><p>ກະລຸນາກວດສອບລະຫັດອອເດີອີກຄັ້ງ</p></div>'; return; }
+    const idx = STATUS_STEPS.findIndex(s=>s.k===o.orderStatus);
+    box.innerHTML = '<h3 style="margin:0 0 2px;">#'+o.orderId+'</h3>'+
+      '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 14px;">'+new Date(o.date).toLocaleString('lo-LA')+' · '+money(o.total)+'</p>'+
+      '<ul class="timeline">'+STATUS_STEPS.map((s,i)=>{
+        const cls = o.orderStatus==='CANCELLED'? '' : (i<idx?'done':(i===idx?'current':''));
+        return '<li class="'+cls+'"><div class="t-dot">'+(cls==='done'?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>':'')+'</div><div><div class="t-label">'+s.l+'</div></div></li>';
+      }).join('')+'</ul>'+
+      (o.orderStatus==='CANCELLED'?'<p style="color:var(--c-secondary);font-weight:700;">❌ ອອເດີນີ້ຖືກຍົກເລີກ</p>':'');
+  }catch(e){ box.innerHTML='<p>ເກີດຂໍ້ຜິດພາດ</p>'; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACCOUNT
+   ═══════════════════════════════════════════════════════════════ */
+function openAccountSheet(){
+  const c = state.customer;
+  document.getElementById('account-body').innerHTML = c.name?
+    '<div style="text-align:center;margin-bottom:16px;"><div style="width:66px;height:66px;border-radius:20px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin:0 auto 10px;box-shadow:0 10px 24px -8px rgba(0,0,0,.3);">👤</div>'+
+    '<h3 style="margin:0;">'+c.name+'</h3><p style="color:var(--ink-soft);font-size:13px;margin:2px 0;">'+c.phone+'</p></div>'+
+    '<div class="field"><label>ທີ່ຢູ່</label><input value="'+(c.address||'')+'" readonly></div>'+
+    '<button class="btn-ghost" style="width:100%;" onclick="openTrackSheet()">📦 ຕິດຕາມອອເດີຫຼ້າສຸດ</button>'
+    :
+    '<div class="empty-state"><div class="ico">👤</div><h4>ຍັງບໍ່ມີຂໍ້ມູນ</h4><p>ຂໍ້ມູນຂອງທ່ານຈະຖືກບັນທຶກອັດຕະໂນມັດຫຼັງຈາກສັ່ງຊື້ຄັ້ງທຳອິດ</p></div>';
+  openSheet('account');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ADMIN — AUTH
+   ═══════════════════════════════════════════════════════════════ */
+function openAdminLogin(){ openSheet('login'); }
+async function doAdminLogin(){
+  const pw = document.getElementById('admin-pw').value;
+  try{
+    const res = await api.adminLogin(pw);
+    if(res.success){
+      state.admin.token = res.token;
+      sessionStorage.setItem('pk_admin_token', res.token);
+      closeSheet('login');
+      showAdmin();
+    } else { toast('ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ','⚠️'); }
+  }catch(e){ toast('ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ','⚠️'); }
+}
+function adminLogout(){
+  state.admin.token=null; sessionStorage.removeItem('pk_admin_token');
+  document.getElementById('admin-root').classList.remove('show');
+}
+function showAdmin(){
+  document.getElementById('admin-root').classList.add('show');
+  gotoAdminPage('dashboard');
+}
+
+/* ── admin nav ─────────────────────────────────────────────── */
+const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', settings:'ຮ້ານ & ໂຕນຮັບ'};
+function gotoAdminPage(page){
+  state.admin.page = page;
+  document.querySelectorAll('.a-nav-item').forEach(el=>el.classList.toggle('active', el.dataset.page===page));
+  document.getElementById('admin-sidebar').classList.remove('open');
+  document.getElementById('admin-page-title').textContent = ADMIN_TITLES[page];
+  const renderers = {dashboard:renderAdminDashboard, orders:renderAdminOrders, products:renderAdminProducts, categories:renderAdminCategories, banners:renderAdminBanners, settings:renderAdminSettings};
+  renderers[page]();
+}
+function refreshAdminCurrentView(){ gotoAdminPage(state.admin.page); toast('ອັບເດດແລ້ວ','🔄'); }
+
+/* ── dashboard ─────────────────────────────────────────────── */
+async function renderAdminDashboard(){
+  const main = document.getElementById('admin-main');
+  main.innerHTML = '<p>ກຳລັງໂຫຼດ...</p>';
+  try{
+    const s = await api.getDashboardStats(state.admin.token);
+    const maxDay = Math.max(1, ...Object.values(s.last7));
+    main.innerHTML =
+      '<div class="kpi-grid">'+
+        kpi('ອອເດີມື້ນີ້', s.todayOrders, '', 'orange')+
+        kpi('ຍອດຂາຍມື້ນີ້', money(s.todaySales), '', 'chili')+
+        kpi('ກຳໄລເບື້ອງຕົ້ນມື້ນີ້', money(s.todayGrossProfit), '', 'herb')+
+        kpi('ອອເດີທັງໝົດ', s.totalOrders, '', '')+
+      '</div>'+
+      '<div class="grid-2">'+
+        '<div class="a-panel"><h4>📈 ຍອດຂາຍ 7 ມື້ຫຼ້າສຸດ</h4>'+
+          Object.keys(s.last7).map(d=>{
+            const v = s.last7[d]; const pct = Math.round((v/maxDay)*100);
+            return '<div class="bar-row"><div class="bl">'+d.slice(5)+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="num" style="font-size:11px;width:70px;text-align:right;">'+money(v)+'</div></div>';
+          }).join('')+
+        '</div>'+
+        '<div class="a-panel"><h4>🏆 ສິນຄ້າຂາຍດີ</h4>'+
+          (s.topProducts.length? s.topProducts.map(p=>{
+            const pct = Math.round((p.qty/(s.topProducts[0].qty||1))*100);
+            return '<div class="bar-row"><div class="bl" style="width:110px;">'+p.name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="num" style="font-size:11px;width:30px;text-align:right;">'+p.qty+'</div></div>';
+          }).join('') : '<p style="font-size:12px;color:var(--ink-soft);">ຍັງບໍ່ມີຂໍ້ມູນ</p>')+
+        '</div>'+
+      '</div>'+
+      '<div class="grid-2">'+
+        '<div class="a-panel"><h4>📊 ອອເດີຕາມສະຖານະ</h4>'+
+          Object.keys(s.byStatus).map(k=>'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;"><span class="pill '+k+'">'+k+'</span><span class="num">'+s.byStatus[k]+'</span></div>').join('')+
+        '</div>'+
+        '<div class="a-panel"><h4>⚠️ ສິນຄ້າໃກ້ໝົດ</h4>'+
+          (s.lowStock.length? s.lowStock.map(p=>'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;"><span>'+p.name+'</span><span class="num" style="color:var(--c-secondary);font-weight:700;">'+p.stock+'</span></div>').join('') : '<p style="font-size:12px;color:var(--success);">✅ ສະຕັອກທັງໝົດປົກກະຕິ</p>')+
+        '</div>'+
+      '</div>';
+  }catch(e){ main.innerHTML='<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; console.error(e); }
+}
+function kpi(label,val,extra,cls){
+  return '<div class="kpi-card"><div class="lbl">'+label+'</div><div class="val num '+cls+'">'+val+'</div></div>';
+}
+
+/* ── orders admin ──────────────────────────────────────────── */
+async function renderAdminOrders(){
+  const main = document.getElementById('admin-main');
+  main.innerHTML = '<p>ກຳລັງໂຫຼດ...</p>';
+  const orders = await api.getOrders(state.admin.token);
+  state.admin.orders = orders;
+  main.innerHTML =
+    '<div class="a-title-row"><h2>ອອເດີທັງໝົດ ('+orders.length+')</h2></div>'+
+    '<div class="a-panel" style="padding:0;overflow-x:auto;"><table class="a-table"><thead><tr>'+
+    '<th>ລະຫັດ</th><th>ລູກຄ້າ</th><th>ວັນທີ</th><th>ຍອດລວມ</th><th>ຊຳລະ</th><th>ສະຖານະ</th><th></th></tr></thead><tbody>'+
+    orders.map(o=>
+      '<tr><td class="num">'+o.orderId+'</td><td>'+o.customerName+'<br><span style="font-size:11px;color:var(--ink-soft);">'+o.phone+'</span></td>'+
+      '<td style="font-size:12px;">'+new Date(o.date).toLocaleString('lo-LA')+'</td>'+
+      '<td class="num">'+money(o.total)+'</td>'+
+      '<td><span class="pill '+o.paymentStatus+'">'+o.paymentStatus+'</span></td>'+
+      '<td><select onchange="changeOrderStatus(\''+o.orderId+'\',this.value)" style="padding:6px;border-radius:9px;border:1px solid var(--line);background:var(--c-bg);color:var(--c-text);">'+
+        STATUS_STEPS.concat([{k:'CANCELLED',l:'ຍົກເລີກ'}]).map(s=>'<option value="'+s.k+'" '+(o.orderStatus===s.k?'selected':'')+'>'+s.l+'</option>').join('')+
+      '</select></td>'+
+      '<td><button class="btn-sm" onclick="viewOrderDetail(\''+o.orderId+'\')">ລາຍລະອຽດ</button></td></tr>'
+    ).join('')+
+    '</tbody></table></div>';
+}
+async function changeOrderStatus(orderId, status){
+  await api.updateOrderStatus(state.admin.token, orderId, status);
+  toast('ອັບເດດສະຖານະແລ້ວ','✅');
+}
+function viewOrderDetail(orderId){
+  const o = state.admin.orders.find(x=>x.orderId===orderId);
+  if(!o) return;
+  alert('ອອເດີ '+o.orderId+'\\nລູກຄ້າ: '+o.customerName+' ('+o.phone+')\\nທີ່ຢູ່: '+o.address+'\\nໝາຍເຫດ: '+(o.note||'-')+'\\n\\nລາຍການ:\\n'+
+    o.items.map(i=>'- '+i.name+' x'+i.qty+' = '+money(i.price*i.qty)).join('\\n')+'\\n\\nລວມ: '+money(o.total));
+}
+
+/* ── products admin ────────────────────────────────────────── */
+async function renderAdminProducts(){
+  const main = document.getElementById('admin-main');
+  main.innerHTML =
+    '<div class="a-title-row"><h2>ສິນຄ້າ ('+state.products.length+')</h2><button class="btn-sm primary" onclick="openProductForm()">+ ເພີ່ມສິນຄ້າ</button></div>'+
+    '<div class="a-panel" style="padding:0;overflow-x:auto;"><table class="a-table"><thead><tr><th>ຮູບ</th><th>ຊື່</th><th>ໝວດ</th><th>ລາຄາ</th><th>ສະຕັອກ</th><th>ສະຖານະ</th><th></th></tr></thead><tbody id="prod-tbody"></tbody></table></div>'+
+    '<div id="product-form-holder"></div>';
+  document.getElementById('prod-tbody').innerHTML = state.products.map(p=>{
+    const cat = state.categories.find(c=>c.id===p.categoryId);
+    return '<tr><td><img src="'+p.image+'" style="width:42px;height:42px;border-radius:10px;object-fit:cover;"></td>'+
+      '<td>'+p.name+'</td><td>'+(cat?cat.name:'-')+'</td><td class="num">'+money(p.regularPrice)+'</td>'+
+      '<td class="num">'+p.stock+'</td><td><span class="pill '+(p.status==='active'?'active':'inactive')+'">'+p.status+'</span></td>'+
+      '<td><button class="btn-sm" onclick=\'openProductForm(JSON.parse(this.dataset.p))\' data-p=\''+JSON.stringify(p).replace(/'/g,"&apos;")+'\'>ແກ້ໄຂ</button> '+
+      '<button class="btn-sm danger" onclick="removeProduct(\''+p.id+'\')">ລຶບ</button></td></tr>';
+  }).join('');
+}
+function openProductForm(p){
+  p = p || {id:'',sku:'',name:'',categoryId:state.categories[0]?.id||'',description:'',image:'',regularPrice:0,promoPrice:0,costPrice:0,stock:0,minStock:5,unit:'ຈານ',badgeNew:false,badgeBestSeller:false,badgePromotion:false,status:'active',sortOrder:state.products.length+1};
+  const holder = document.getElementById('product-form-holder');
+  holder.innerHTML = '<div class="overlay show" onclick="this.nextElementSibling.remove();this.remove();"></div>'+
+  '<div class="sheet show" style="position:fixed;">'+
+  '<div class="sheet-handle"></div><div class="sheet-head"><h3>'+(p.id?'ແກ້ໄຂສິນຄ້າ':'ເພີ່ມສິນຄ້າ')+'</h3><button class="sheet-close" onclick="closeProductForm()">✕</button></div>'+
+  '<div class="sheet-body">'+
+    '<div class="grid-2">'+
+    '<div class="field"><label>SKU</label><input id="pf-sku" value="'+p.sku+'"></div>'+
+    '<div class="field"><label>ໝວດໝູ່</label><select id="pf-cat">'+state.categories.map(c=>'<option value="'+c.id+'" '+(c.id===p.categoryId?'selected':'')+'>'+c.name+'</option>').join('')+'</select></div>'+
+    '</div>'+
+    '<div class="field"><label>ຊື່ສິນຄ້າ</label><input id="pf-name" value="'+p.name+'"></div>'+
+    '<div class="field"><label>ຄຳອະທິບາຍ</label><textarea id="pf-desc">'+p.description+'</textarea></div>'+
+    '<div class="field"><label>URL ຮູບພາບ (ຫຼື Google Drive image URL)</label><input id="pf-image" value="'+p.image+'"></div>'+
+    '<div class="grid-3">'+
+    '<div class="field"><label>ລາຄາປົກກະຕິ</label><input type="number" id="pf-price" value="'+p.regularPrice+'"></div>'+
+    '<div class="field"><label>ລາຄາໂປຣ</label><input type="number" id="pf-promo" value="'+p.promoPrice+'"></div>'+
+    '<div class="field"><label>ຕົ້ນທຶນ</label><input type="number" id="pf-cost" value="'+p.costPrice+'"></div>'+
+    '</div>'+
+    '<div class="grid-3">'+
+    '<div class="field"><label>ສະຕັອກ</label><input type="number" id="pf-stock" value="'+p.stock+'"></div>'+
+    '<div class="field"><label>ຂັ້ນຕ່ຳ</label><input type="number" id="pf-minstock" value="'+p.minStock+'"></div>'+
+    '<div class="field"><label>ຫົວໜ່ວຍ</label><input id="pf-unit" value="'+p.unit+'"></div>'+
+    '</div>'+
+    '<div class="field"><label>Badge</label><div class="seg">'+
+      '<label class="seg-btn" style="display:flex;gap:5px;align-items:center;justify-content:center;"><input type="checkbox" id="pf-new" '+(p.badgeNew?'checked':'')+'> ໃໝ່</label>'+
+      '<label class="seg-btn" style="display:flex;gap:5px;align-items:center;justify-content:center;"><input type="checkbox" id="pf-best" '+(p.badgeBestSeller?'checked':'')+'> ຂາຍດີ</label>'+
+    '</div></div>'+
+    '<div class="field"><label>ສະຖານະ</label><select id="pf-status"><option value="active" '+(p.status==='active'?'selected':'')+'>ເປີດຂາຍ</option><option value="inactive" '+(p.status==='inactive'?'selected':'')+'>ປິດຂາຍ</option></select></div>'+
+    '<button class="btn-primary" onclick="submitProductForm(\''+p.id+'\')">ບັນທຶກ</button>'+
+  '</div></div>';
+}
+function closeProductForm(){ document.getElementById('product-form-holder').innerHTML=''; }
+async function submitProductForm(id){
+  const p = {
+    id:id||'', sku:val('pf-sku'), name:val('pf-name'), categoryId:val('pf-cat'), description:val('pf-desc'), image:val('pf-image'),
+    regularPrice:Number(val('pf-price'))||0, promoPrice:Number(val('pf-promo'))||0, costPrice:Number(val('pf-cost'))||0,
+    stock:Number(val('pf-stock'))||0, minStock:Number(val('pf-minstock'))||0, unit:val('pf-unit'),
+    badgeNew:document.getElementById('pf-new').checked, badgeBestSeller:document.getElementById('pf-best').checked, badgePromotion:false,
+    status:val('pf-status'), sortOrder:state.products.length+1
+  };
+  state.products = await api.saveProduct(state.admin.token, p);
+  closeProductForm(); renderAdminProducts(); toast('ບັນທຶກສິນຄ້າແລ້ວ','✅');
+  renderProducts();
+}
+function val(id){ return document.getElementById(id).value; }
+async function removeProduct(id){
+  if(!confirm('ຢືນຢັນລຶບສິນຄ້ານີ້?')) return;
+  state.products = await api.deleteProduct(state.admin.token, id);
+  renderAdminProducts(); renderProducts(); toast('ລຶບແລ້ວ','🗑️');
+}
+
+/* ── categories admin ──────────────────────────────────────── */
+async function renderAdminCategories(){
+  const main = document.getElementById('admin-main');
+  main.innerHTML = '<div class="a-title-row"><h2>ໝວດໝູ່ ('+state.categories.length+')</h2><button class="btn-sm primary" onclick="openCategoryForm()">+ ເພີ່ມໝວດ</button></div>'+
+    '<div class="grid-3">'+state.categories.map(c=>
+      '<div class="a-panel" style="text-align:center;"><div style="font-size:28px;">'+c.icon+'</div><h4 style="margin:8px 0 4px;">'+c.name+'</h4>'+
+      '<span class="pill '+(c.status==='active'?'active':'inactive')+'">'+c.status+'</span>'+
+      '<div style="display:flex;gap:6px;justify-content:center;margin-top:10px;">'+
+      '<button class="btn-sm" onclick=\'openCategoryForm(JSON.parse(this.dataset.c))\' data-c=\''+JSON.stringify(c).replace(/'/g,"&apos;")+'\'>ແກ້ໄຂ</button>'+
+      '<button class="btn-sm danger" onclick="removeCategory(\''+c.id+'\')">ລຶບ</button></div></div>'
+    ).join('')+'</div><div id="category-form-holder"></div>';
+}
+function openCategoryForm(c){
+  c = c || {id:'',name:'',icon:'🍢',sortOrder:state.categories.length+1,status:'active'};
+  document.getElementById('category-form-holder').innerHTML =
+    '<div class="overlay show" onclick="this.nextElementSibling.remove();this.remove();"></div>'+
+    '<div class="sheet show" style="position:fixed;"><div class="sheet-handle"></div>'+
+    '<div class="sheet-head"><h3>ໝວດໝູ່</h3><button class="sheet-close" onclick="document.getElementById(\'category-form-holder\').innerHTML=\'\'">✕</button></div>'+
+    '<div class="sheet-body"><div class="field"><label>ຊື່ໝວດ</label><input id="cf-name" value="'+c.name+'"></div>'+
+    '<div class="field"><label>Icon (emoji) — ປ່ຽນໄດ້ຕາມໃຈ</label><input id="cf-icon" value="'+c.icon+'"></div>'+
+    '<div class="field"><label>ສະຖານະ</label><select id="cf-status"><option value="active" '+(c.status==='active'?'selected':'')+'>ເປີດ</option><option value="inactive" '+(c.status==='inactive'?'selected':'')+'>ປິດ</option></select></div>'+
+    '<button class="btn-primary" onclick="submitCategoryForm(\''+c.id+'\')">ບັນທຶກ</button></div></div>';
+}
+async function submitCategoryForm(id){
+  const c = {id:id||'', name:val('cf-name'), icon:val('cf-icon'), status:val('cf-status'), sortOrder:state.categories.length+1};
+  state.categories = await api.saveCategory(state.admin.token, c);
+  document.getElementById('category-form-holder').innerHTML='';
+  renderAdminCategories(); renderCategories(); toast('ບັນທຶກແລ້ວ','✅');
+}
+async function removeCategory(id){
+  if(!confirm('ຢືນຢັນລຶບໝວດໝູ່ນີ້?')) return;
+  state.categories = await api.deleteCategory(state.admin.token, id);
+  renderAdminCategories(); renderCategories(); toast('ລຶບແລ້ວ','🗑️');
+}
+
+/* ── banners admin ─────────────────────────────────────────── */
+async function renderAdminBanners(){
+  const main = document.getElementById('admin-main');
+  main.innerHTML = '<div class="a-title-row"><h2>Banner ໜ້າຫຼັກ ('+state.banners.length+')</h2><button class="btn-sm primary" onclick="openBannerForm()">+ ເພີ່ມ Banner</button></div>'+
+    '<div class="thumb-row">'+state.banners.map(b=>
+      '<div class="admin-thumb"><img src="'+b.image+'"><div class="cap">'+b.title+'</div>'+
+      '<div style="display:flex;gap:4px;padding:0 6px 6px;"><button class="btn-sm" style="flex:1;padding:4px;" onclick=\'openBannerForm(JSON.parse(this.dataset.b))\' data-b=\''+JSON.stringify(b).replace(/'/g,"&apos;")+'\'>ແກ້ໄຂ</button>'+
+      '<button class="btn-sm danger" style="flex:1;padding:4px;" onclick="removeBanner(\''+b.id+'\')">ລຶບ</button></div></div>'
+    ).join('')+'</div><div id="banner-form-holder"></div>';
+}
+function openBannerForm(b){
+  b = b || {id:'',image:'',title:'',subtitle:'',buttonText:'ສັ່ງເລີຍ',buttonLink:'#products',status:'active',sortOrder:state.banners.length+1};
+  document.getElementById('banner-form-holder').innerHTML =
+    '<div class="overlay show" onclick="this.nextElementSibling.remove();this.remove();"></div>'+
+    '<div class="sheet show" style="position:fixed;"><div class="sheet-handle"></div>'+
+    '<div class="sheet-head"><h3>Banner</h3><button class="sheet-close" onclick="document.getElementById(\'banner-form-holder\').innerHTML=\'\'">✕</button></div>'+
+    '<div class="sheet-body">'+
+    '<div class="field"><label>URL ຮູບພາບ (ຫຼື Google Drive URL)</label><input id="bf-image" value="'+b.image+'"></div>'+
+    '<div class="field"><label>ຫົວຂໍ້</label><input id="bf-title" value="'+b.title+'"></div>'+
+    '<div class="field"><label>ຄຳອະທິບາຍຍ່ອຍ</label><input id="bf-sub" value="'+b.subtitle+'"></div>'+
+    '<div class="field"><label>ຂໍ້ຄວາມປຸ່ມ</label><input id="bf-btn" value="'+b.buttonText+'"></div>'+
+    '<div class="field"><label>ສະຖານະ</label><select id="bf-status"><option value="active" '+(b.status==='active'?'selected':'')+'>ເປີດ</option><option value="inactive" '+(b.status==='inactive'?'selected':'')+'>ປິດ</option></select></div>'+
+    '<button class="btn-primary" onclick="submitBannerForm(\''+b.id+'\')">ບັນທຶກ</button></div></div>';
+}
+async function submitBannerForm(id){
+  const b = {id:id||'', image:val('bf-image'), title:val('bf-title'), subtitle:val('bf-sub'), buttonText:val('bf-btn'), buttonLink:'#products', status:val('bf-status'), sortOrder:state.banners.length+1};
+  state.banners = await api.saveBanner(state.admin.token, b);
+  document.getElementById('banner-form-holder').innerHTML='';
+  renderAdminBanners(); renderHero(); toast('ບັນທຶກແລ້ວ','✅');
+}
+async function removeBanner(id){
+  if(!confirm('ຢືນຢັນລຶບ Banner ນີ້?')) return;
+  state.banners = await api.deleteBanner(state.admin.token, id);
+  renderAdminBanners(); renderHero(); toast('ລຶບແລ້ວ','🗑️');
+}
+
+/* ── settings / theme / font / icon admin ────────────────────── */
+const PRESETS = {
+  'Ivory Aurum':     {colorPrimary:'#C6702D',colorSecondary:'#7A2E3D',colorAccent:'#C9A227',colorBg:'#FAF9F7',colorSurface:'#FFFFFF',colorText:'#241C15',colorHeader:'#1B140F',colorHeaderText:'#FBF6EE',colorSidebar:'#1B140F',colorSidebarText:'#F1E7D6'},
+  'Pearl & Rose Gold':{colorPrimary:'#B5657A',colorSecondary:'#7A2E3D',colorAccent:'#D9B36C',colorBg:'#FFFFFF',colorSurface:'#FCF7F5',colorText:'#2B1E20',colorHeader:'#FFFFFF',colorHeaderText:'#2B1E20',colorSidebar:'#241A1D',colorSidebarText:'#F3E4E7'},
+  'Sage & Champagne':{colorPrimary:'#5E7A4E',colorSecondary:'#33472C',colorAccent:'#C9A227',colorBg:'#F7F8F3',colorSurface:'#FFFFFF',colorText:'#1E241A',colorHeader:'#1A2216',colorHeaderText:'#F3F6EE',colorSidebar:'#1A2216',colorSidebarText:'#EAF0E2'},
+  'Midnight Gold':   {colorPrimary:'#D9B36C',colorSecondary:'#E8AE55',colorAccent:'#F0C875',colorBg:'#13100C',colorSurface:'#1E1712',colorText:'#F5EEE0',colorHeader:'#0C0A08',colorHeaderText:'#F5EEE0',colorSidebar:'#0C0A08',colorSidebarText:'#EFE3CC'},
+  'White Marble':    {colorPrimary:'#2A211B',colorSecondary:'#7A2E3D',colorAccent:'#C9A227',colorBg:'#FFFFFF',colorSurface:'#FFFFFF',colorText:'#201810',colorHeader:'#FFFFFF',colorHeaderText:'#201810',colorSidebar:'#FFFFFF',colorSidebarText:'#201810'},
+  'Terracotta Sun':  {colorPrimary:'#D9662E',colorSecondary:'#B5522A',colorAccent:'#F4A825',colorBg:'#FFF9F2',colorSurface:'#FFFFFF',colorText:'#2B211B',colorHeader:'#2B211B',colorHeaderText:'#FBF3E7',colorSidebar:'#2B211B',colorSidebarText:'#F3E6D2'}
+};
+function renderAdminSettings(){
+  const s = state.settings;
+  const main = document.getElementById('admin-main');
+  main.innerHTML =
+  '<div class="a-panel"><h4>🏪 ຂໍ້ມູນຮ້ານ</h4>'+
+  '<div class="grid-2">'+
+  '<div class="field"><label>ຊື່ຮ້ານ</label><input id="st-name" value="'+s.storeName+'"></div>'+
+  '<div class="field"><label>ຄຳຂວັນ (Tagline)</label><input id="st-tag" value="'+s.tagline+'"></div>'+
+  '</div>'+
+  '<div class="field"><label>ໂລໂກ້ URL</label><input id="st-logo" value="'+s.logoUrl+'"></div>'+
+  '<div class="grid-2">'+
+  '<div class="field"><label>ເບີໂທ</label><input id="st-phone" value="'+s.phone+'"></div>'+
+  '<div class="field"><label>ທີ່ຢູ່</label><input id="st-addr" value="'+s.address+'"></div>'+
+  '</div></div>'+
+
+  '<div class="a-panel"><h4>🎨 ຮູບແບບສີ (Theme Presets)</h4>'+
+  '<div class="grid-3" id="preset-grid">'+Object.keys(PRESETS).map(name=>{
+    const pr = PRESETS[name];
+    return '<div class="preset-card '+(s.themePreset===name?'active':'')+'" onclick="applyPreset(\''+name+'\')"><div class="preset-dots">'+
+      '<span style="background:'+pr.colorPrimary+'"></span><span style="background:'+pr.colorSecondary+'"></span><span style="background:'+pr.colorAccent+'"></span></div>'+
+      '<span style="font-size:12px;font-weight:700;">'+name+'</span></div>';
+  }).join('')+'</div>'+
+  '<div style="margin-top:14px;" class="color-swatch-row">'+
+    colorField('colorPrimary','ຫຼັກ', s.colorPrimary||'#C6702D')+colorField('colorSecondary','ຮອງ', s.colorSecondary||'#7A2E3D')+colorField('colorAccent','ຄຳ/ເນັ້ນ', s.colorAccent||'#C9A227')+
+    colorField('colorBg','ພື້ນຫຼັງ', s.colorBg||'#FAF9F7')+colorField('colorSurface','ກ່ອງ/ບັດ', s.colorSurface||'#FFFFFF')+colorField('colorText','ຕົວໜັງສືທົ່ວໄປ', s.colorText||'#241C15')+
+    colorField('colorHeader','ພື້ນ Header', s.colorHeader||'#1B140F')+colorField('colorHeaderText','ໂຕໜັງສື Header', s.colorHeaderText||'#FBF6EE')+
+    colorField('colorSidebar','ພື້ນ Sidebar', s.colorSidebar||'#1B140F')+colorField('colorSidebarText','ໂຕໜັງສື Sidebar', s.colorSidebarText||'#F1E7D6')+
+  '</div>'+
+  '<p style="font-size:11.5px;color:var(--ink-soft);margin:10px 0 0;">💡 ຖ້າສີພື້ນ ແລະ ສີໂຕໜັງສີໃກ້ກັນເກີນໄປ (ເຊັ່ນ ພື້ນຂາວ + ໂຕໜັງສືຂາວ) ຕົວໜັງສືຈະເບິ່ງບໍ່ເຫັນ — ໃຫ້ປັບສີໂຕໜັງສືກົງກັນຂ້າມກັບພື້ນສະເໝີ.</p>'+
+  '<div style="display:flex;align-items:center;gap:10px;margin-top:14px;"><label class="switch"><input type="checkbox" id="st-dark" '+(s.darkMode==='true'?'checked':'')+'><span class="slider"></span></label><span style="font-size:13px;font-weight:600;">ໂໝດມືດເປັນຄ່າເລີ່ມຕົ້ນ</span></div>'+
+  '</div>'+
+
+  '<div class="a-panel"><h4>✒️ ຮູບແບບໂຕອັກສອນ (Typography)</h4>'+
+  '<div class="field"><label>ຄູ່ໂຕໜັງສື — ຫົວຂໍ້ / ເນື້ອຫາ</label><select id="st-font">'+
+    Object.keys(FONT_PAIRS).map(name=>'<option value="'+name+'" '+((s.fontPairing||'ຄລາສສິກ')===name?'selected':'')+'>'+name+'</option>').join('')+
+  '</select></div>'+
+  '<div id="font-preview" style="margin-top:10px;padding:16px;border-radius:14px;background:var(--c-bg);border:1px solid var(--line);">'+
+    '<div class="display" style="font-size:20px;font-weight:700;" id="fp-display">ໝູປີ້ງ ອອນລາຍ ແຊບຫຼາຍ</div>'+
+    '<div style="font-size:13px;color:var(--ink-soft);margin-top:4px;" id="fp-body">ຕົວຢ່າງໂຕໜັງສືເນື້ອຫາ — ປີ້ງສົດ ທຸກຊີ້ນ ທຸກອອເດີ</div>'+
+  '</div></div>'+
+
+  '<div class="a-panel"><h4>🔷 ໄອຄອນລະບົບ (ປ່ຽນໄດ້ທຸກໜ້າ)</h4>'+
+  '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">ໃສ່ Emoji ເພື່ອແທນທີ່ໄອຄອນເລີ່ມຕົ້ນ — ຫວ່າງໄວ້ = ໃຊ້ໄອຄອນມາດຕະຖານ</p>'+
+  Object.keys(ICON_LABELS).map(function(key){
+    const cur = s['icon_'+key] || '';
+    return '<div class="icon-edit-row"><div class="preview" id="icon-prev-'+key+'">'+(cur? '<span class="icon-emoji">'+cur+'</span>' : DEFAULT_ICONS[key])+'</div>'+
+      '<div class="lbl">'+ICON_LABELS[key]+'</div>'+
+      '<input type="text" maxlength="4" id="icon-in-'+key+'" value="'+cur+'" placeholder="🔥" oninput="previewIcon(\''+key+'\')"></div>';
+  }).join('')+
+  '</div>'+
+
+  '<div class="a-panel"><h4>🛵 ການສັ່ງຊື້ & ຄ່າທຳນຽມ</h4><div class="grid-3">'+
+  '<div class="field"><label>ຄ່າສົ່ງເລີ່ມຕົ້ນ (₭)</label><input type="number" id="st-delivery" value="'+s.deliveryFeeDefault+'"></div>'+
+  '<div class="field"><label>ພາສີ (%)</label><input type="number" id="st-tax" value="'+s.taxPercent+'"></div>'+
+  '<div class="field"><label>ຄ່າບໍລິການ (%)</label><input type="number" id="st-service" value="'+s.serviceFeePercent+'"></div>'+
+  '</div></div>'+
+
+  '<div class="a-panel"><h4>🔐 ຄວາມປອດໄພ</h4>'+
+  '<div class="field"><label>ປ່ຽນລະຫັດຜ່ານແອັດມິນ (ຫວ່າງໄວ້ = ບໍ່ປ່ຽນ)</label><input type="password" id="st-pw" placeholder="ລະຫັດຜ່ານໃໝ່"></div></div>'+
+
+  '<button class="btn-primary" onclick="saveAllSettings()">💾 ບັນທຶກການຕັ້ງຄ່າທັງໝົດ</button>';
+
+  updateFontPreview();
+  document.getElementById('st-font').addEventListener('change', updateFontPreview);
+}
+function updateFontPreview(){
+  const name = document.getElementById('st-font').value;
+  const pair = FONT_PAIRS[name];
+  document.getElementById('fp-display').style.fontFamily = pair.display;
+  document.getElementById('fp-body').style.fontFamily = pair.body;
+}
+function previewIcon(key){
+  const v = document.getElementById('icon-in-'+key).value.trim();
+  document.getElementById('icon-prev-'+key).innerHTML = v? '<span class="icon-emoji">'+v+'</span>' : DEFAULT_ICONS[key];
+}
+function colorField(key,label,value){
+  return '<div class="color-field"><input type="color" id="st-'+key+'" value="'+value+'"><span>'+label+'</span></div>';
+}
+function applyPreset(name){
+  const pr = PRESETS[name];
+  Object.keys(pr).forEach(k=>{ const el = document.getElementById('st-'+k); if(el) el.value = pr[k]; });
+  state.settings.themePreset = name;
+  previewTheme();
+  document.querySelectorAll('.preset-card').forEach(el=>el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+function previewTheme(){
+  ['colorPrimary','colorSecondary','colorAccent','colorBg','colorSurface','colorText','colorHeader','colorHeaderText','colorSidebar','colorSidebarText'].forEach(k=>{
+    const el = document.getElementById('st-'+k); if(el) state.settings[k]=el.value;
+  });
+  applyTheme();
+}
+async function saveAllSettings(){
+  const newS = {
+    storeName:val('st-name'), tagline:val('st-tag'), logoUrl:val('st-logo'), phone:val('st-phone'), address:val('st-addr'),
+    colorPrimary:val('st-colorPrimary'), colorSecondary:val('st-colorSecondary'), colorAccent:val('st-colorAccent'),
+    colorBg:val('st-colorBg'), colorSurface:val('st-colorSurface'), colorText:val('st-colorText'),
+    colorHeader:val('st-colorHeader'), colorHeaderText:val('st-colorHeaderText'),
+    colorSidebar:val('st-colorSidebar'), colorSidebarText:val('st-colorSidebarText'),
+    darkMode: document.getElementById('st-dark').checked?'true':'false',
+    fontPairing: val('st-font'),
+    deliveryFeeDefault:val('st-delivery'), taxPercent:val('st-tax'), serviceFeePercent:val('st-service'),
+    themePreset: state.settings.themePreset||'Ivory Aurum'
+  };
+  Object.keys(ICON_LABELS).forEach(function(key){
+    newS['icon_'+key] = document.getElementById('icon-in-'+key).value.trim();
+  });
+  const pw = val('st-pw'); if(pw) newS.adminPassword = pw;
+  state.settings = await api.saveSettings(newS);
+  applyTheme(); renderHeader(); applyAllIcons();
+  toast('ບັນທຶກການຕັ້ງຄ່າແລ້ວ','✅');
+}
+
+/* attach live color preview listeners after settings render */
+document.addEventListener('input', e=>{
+  if(e.target && e.target.id && e.target.id.startsWith('st-color')) previewTheme();
+});
+
+init();
+</script>
+</body>
+</html>
