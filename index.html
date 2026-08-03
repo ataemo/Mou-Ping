@@ -620,34 +620,39 @@ const state = {
   customer: JSON.parse(localStorage.getItem('pk_customer')||'{}')
 };
 
-/* ── promise wrapper around google.script.run ─────────────────── */
-function gs(fn){
-  return function(...args){
-    return new Promise((resolve,reject)=>{
-      google.script.run
-        .withSuccessHandler(resolve)
-        .withFailureHandler(err=>{ reject(err); })
-        [fn](...args);
-    });
-  };
+/* ── API ຜ່ານ fetch() ໄປຫາ Apps Script Web App ─────────────────── */
+const API_BASE_URL = 'https://script.google.com/macros/s/ໃສ່ລະຫັດ_ຂອງທ່ານທີ່ນີ້/exec';
+
+function callApi(action, params){
+  return fetch(API_BASE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: action, params: params || {} })
+  })
+  .then(r=>r.json())
+  .then(res=>{
+    if(!res.success) throw new Error(res.error || 'API error');
+    return res.data;
+  });
 }
+
 const api = {
-  getInitialData: gs('getInitialData'),
-  createOrder: gs('createOrder'),
-  getOrderStatusPublic: gs('getOrderStatusPublic'),
-  adminLogin: gs('adminLogin'),
-  getDashboardStats: gs('getDashboardStats'),
-  getOrders: gs('getOrders'),
-  updateOrderStatus: gs('updateOrderStatus'),
-  updatePaymentStatus: gs('updatePaymentStatus'),
-  saveProduct: gs('saveProduct'),
-  deleteProduct: gs('deleteProduct'),
-  saveCategory: gs('saveCategory'),
-  deleteCategory: gs('deleteCategory'),
-  saveBanner: gs('saveBanner'),
-  deleteBanner: gs('deleteBanner'),
-  saveSettings: gs('saveSettings'),
-  getSettings: gs('getSettings')
+  getInitialData: () => callApi('getInitialData'),
+  createOrder: (order) => callApi('createOrder', {order}),
+  getOrderStatusPublic: (orderId) => callApi('getOrderStatusPublic', {orderId}),
+  adminLogin: (password, remember) => callApi('adminLogin', {password, remember}),
+  getDashboardStats: (token) => callApi('getDashboardStats', {token}),
+  getOrders: (token) => callApi('getOrders', {token}),
+  updateOrderStatus: (token, orderId, status) => callApi('updateOrderStatus', {token, orderId, status}),
+  updatePaymentStatus: (token, orderId, status) => callApi('updatePaymentStatus', {token, orderId, status}),
+  saveProduct: (token, product) => callApi('saveProduct', {token, product}),
+  deleteProduct: (token, id) => callApi('deleteProduct', {token, id}),
+  saveCategory: (token, category) => callApi('saveCategory', {token, category}),
+  deleteCategory: (token, id) => callApi('deleteCategory', {token, id}),
+  saveBanner: (token, banner) => callApi('saveBanner', {token, banner}),
+  deleteBanner: (token, id) => callApi('deleteBanner', {token, id}),
+  saveSettings: (token, settings) => callApi('saveSettings', {token, settings}),
+  getSettings: () => callApi('getSettings')
 };
 
 /* ── formatting ─────────────────────────────────────────────── */
@@ -1407,7 +1412,7 @@ async function saveAllSettings(){
     newS['icon_'+key] = document.getElementById('icon-in-'+key).value.trim();
   });
   const pw = val('st-pw'); if(pw) newS.adminPassword = pw;
-  state.settings = await api.saveSettings(newS);
+  state.settings = await api.saveSettings(state.admin.token, newS);
   applyTheme(); renderHeader(); applyAllIcons();
   toast('ບັນທຶກການຕັ້ງຄ່າແລ້ວ','✅');
 }
