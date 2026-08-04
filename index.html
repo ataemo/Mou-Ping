@@ -625,7 +625,7 @@ const state = {
   cart: JSON.parse(localStorage.getItem('pk_cart')||'[]'),
   activeCategory:'all',
   heroIdx:0, heroTimer:null,
-  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null },
+  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null },
   customer: JSON.parse(localStorage.getItem('pk_customer')||'{}'),
   _catJson:'', _prodJson:'', _banJson:''
 };
@@ -662,7 +662,9 @@ const api = {
   saveBanner: (token, banner) => callApi('saveBanner', {token, banner}),
   deleteBanner: (token, id) => callApi('deleteBanner', {token, id}),
   saveSettings: (token, settings) => callApi('saveSettings', {token, settings}),
-  getSettings: () => callApi('getSettings')
+  getSettings: () => callApi('getSettings'),
+  uploadSlip: (base64, fileName, mimeType) => callApi('uploadSlip', {base64, fileName, mimeType}),
+  getOrdersByPhone: (phone) => callApi('getOrdersByPhone', {phone})
 };
 
 /* ── formatting ─────────────────────────────────────────────── */
@@ -670,6 +672,22 @@ function money(n){
   n = Number(n)||0;
   return n.toLocaleString('en-US') + ' ₭';
 }
+
+function playNotificationSound(){
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o = ctx.createOscillator(); const g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(880, ctx.currentTime);
+    o.frequency.setValueAtTime(1046.5, ctx.currentTime+0.12);
+    g.gain.setValueAtTime(0.001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.3);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(); o.stop(ctx.currentTime+0.32);
+  }catch(e){}
+}
+
 function toast(msg, icon){
   const wrap = document.getElementById('toast-wrap');
   const t = document.createElement('div');
@@ -860,6 +878,7 @@ function openSheet(id){
 function closeSheet(id){
   document.getElementById(id+'-overlay').classList.remove('show');
   document.getElementById(id+'-sheet').classList.remove('show');
+  if(id==='track'){ clearInterval(state._trackTimer); }
 }
 function toggleHamburger(){
   document.getElementById('hamburger-overlay').classList.add('show');
@@ -963,7 +982,7 @@ function renderCartBody(){
 /* ═══════════════════════════════════════════════════════════════
    CHECKOUT
    ═══════════════════════════════════════════════════════════════ */
-let checkoutState = {orderType:'delivery', payment:'cash'};
+let checkoutState = {orderType:'delivery', payment:'cash', slipUrl:''};
 function openCheckout(){
   if(state.cart.length===0){ toast('ກະຕ່າຍັງຫວ່າງເປົ່າ','⚠️'); return; }
   closeSheet('cart');
@@ -973,6 +992,22 @@ function openCheckout(){
 function renderCheckout(){
   const c = state.customer;
   const t = cartTotals();
+  const s = state.settings;
+  const qrBlock = checkoutState.payment==='qr' ? (
+    '<div class="a-panel" style="padding:14px;">'+
+    '<div style="font-weight:800;font-size:13px;margin-bottom:10px;">💳 ຂໍ້ມູນໂອນເງິນ</div>'+
+    '<div style="font-size:13px;line-height:1.9;">'+
+      '<div>🏦 <b>'+(s.bankName||'-')+'</b></div>'+
+      '<div>📋 '+(s.bankAccountNumber||'-')+'</div>'+
+      '<div>👤 '+(s.bankAccountHolder||'-')+'</div>'+
+    '</div>'+
+    (s.bankQrUrl? '<div style="text-align:center;margin:14px 0;"><img src="'+s.bankQrUrl+'" style="width:190px;height:190px;object-fit:contain;border-radius:14px;border:1px solid var(--line);"></div>' : '')+
+    '<div class="field" style="margin-top:6px;"><label>📎 ອັບໂຫລດ Slip ການໂອນ</label>'+
+    '<input type="file" accept="image/*" id="co-slip" onchange="handleSlipUpload(this)">'+
+    '<div id="co-slip-status" style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;"></div>'+
+    (checkoutState.slipUrl? '<img src="'+checkoutState.slipUrl+'" style="width:100%;border-radius:12px;margin-top:8px;border:1px solid var(--line);">' : '')+
+    '</div></div>'
+  ) : '';
   document.getElementById('checkout-body').innerHTML =
     '<div class="field"><label>ຊື່ຜູ້ສັ່ງ</label><input id="co-name" value="'+(c.name||'')+'" placeholder="ຊື່ ແລະ ນາມສະກຸນ"></div>'+
     '<div class="field"><label>ເບີໂທ</label><input id="co-phone" value="'+(c.phone||'')+'" placeholder="020 xxxxxxxx"></div>'+
@@ -984,12 +1019,28 @@ function renderCheckout(){
     '<div class="field"><label>ຊຳລະເງິນ</label><div class="seg" id="co-pay">'+
       ['cash:ເງິນສົດ','transfer:ໂອນເງິນ','qr:ສະແກນ QR'].map(o=>{const[v,l]=o.split(':');return '<div class="seg-btn '+(checkoutState.payment===v?'active':'')+'" onclick="setPayment(\''+v+'\')">'+l+'</div>';}).join('')+
     '</div></div>'+
+    qrBlock+
     '<div class="a-panel" style="padding:12px 14px;">'+
     '<div class="summary-row"><span>ລວມຍ່ອຍ</span><span class="num">'+money(t.subtotal)+'</span></div>'+
     '<div class="summary-row"><span>ຄ່າສົ່ງ</span><span class="num">'+money(t.deliveryFee)+'</span></div>'+
     '<div class="summary-row total"><span>ລວມທັງໝົດ</span><span class="num">'+money(t.total)+'</span></div>'+
     '</div>'+
     '<button class="btn-primary" onclick="submitOrder()">ຢືນຢັນສັ່ງຊື້ 🛵</button>';
+}
+function handleSlipUpload(input){
+  const file = input.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('co-slip-status');
+  statusEl.textContent = 'ກຳລັງອັບໂຫລດ...';
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    try{
+      const res = await api.uploadSlip(e.target.result, file.name, file.type);
+      checkoutState.slipUrl = res.url;
+      renderCheckout();
+    }catch(err){ statusEl.textContent = '⚠️ ອັບໂຫລດບໍ່ສຳເລັດ ລອງໃໝ່'; console.error(err); }
+  };
+  reader.readAsDataURL(file);
 }
 function setOrderType(v){ checkoutState.orderType=v; renderCheckout(); }
 function setPayment(v){ checkoutState.payment=v; renderCheckout(); }
@@ -1005,13 +1056,14 @@ async function submitOrder(){
     orderType:checkoutState.orderType,
     items: state.cart.map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty})),
     subtotal:t.subtotal, discount:0, deliveryFee:t.deliveryFee, serviceFee:t.serviceFee, tax:t.tax, total:t.total,
-    paymentMethod:checkoutState.payment, note:document.getElementById('co-note').value.trim(), branch:'Main'
+    paymentMethod:checkoutState.payment, slipUrl:checkoutState.slipUrl||'', note:document.getElementById('co-note').value.trim(), branch:'Main'
   };
   try{
     const res = await api.createOrder(orderInput);
     state.customer = {name:name, phone:phone, address:address};
     localStorage.setItem('pk_customer', JSON.stringify(state.customer));
     state.cart = []; saveCart();
+    checkoutState.slipUrl = '';
     closeSheet('checkout');
     toast('ສັ່ງຊື້ສຳເລັດ! ລະຫັດ '+res.orderId,'🎉');
     showOrderConfirmation(res.orderId);
@@ -1026,38 +1078,68 @@ const STATUS_STEPS = [
   {k:'READY', l:'ພ້ອມສົ່ງ/ຮັບ'}, {k:'OUT_FOR_DELIVERY', l:'ກຳລັງຈັດສົ່ງ'}, {k:'DELIVERED', l:'ຮັບເອົາແລ້ວ'}, {k:'COMPLETED', l:'ສຳເລັດ'}
 ];
 function openTrackSheet(){
+  const savedPhone = state.customer.phone || '';
   document.getElementById('track-body').innerHTML =
-    '<div class="field"><label>ປ້ອນລະຫັດອອເດີ</label><input id="track-input" placeholder="ຕົວຢ່າງ: ORD260802-1234"></div>'+
-    '<button class="btn-primary" onclick="lookupOrder()">ຄົ້ນຫາ</button>'+
+    '<div class="field"><label>ເບີໂທທີ່ໃຊ້ສັ່ງ</label><input id="track-input" value="'+savedPhone+'" placeholder="020 xxxxxxxx"></div>'+
+    '<button class="btn-primary" onclick="lookupOrder()">🔍 ຄົ້ນຫາ</button>'+
     '<div id="track-result" style="margin-top:16px;"></div>';
   openSheet('track');
+  if(savedPhone) lookupOrder();
 }
 function showOrderConfirmation(orderId){
-  document.getElementById('track-body').innerHTML = '<div id="track-result"></div>';
-  openSheet('track');
-  document.getElementById('track-result').innerHTML='<p style="text-align:center;">ກຳລັງໂຫຼດ...</p>';
-  renderOrderTimeline(orderId);
+  openTrackSheet();
 }
 async function lookupOrder(){
-  const id = document.getElementById('track-input').value.trim();
-  if(!id) return;
-  await renderOrderTimeline(id);
+  const phone = document.getElementById('track-input').value.trim();
+  if(!phone) return;
+  state._trackPhone = phone;
+  await refreshTrackedOrders(true);
+  clearInterval(state._trackTimer);
+  state._trackTimer = setInterval(()=>refreshTrackedOrders(false), 8000);
 }
-async function renderOrderTimeline(orderId){
+async function refreshTrackedOrders(showLoading){
   const box = document.getElementById('track-result');
-  box.innerHTML = '<p style="text-align:center;color:var(--ink-soft);">ກຳລັງຄົ້ນຫາ...</p>';
+  if(!box || !state._trackPhone) return;
+  if(showLoading) box.innerHTML = '<p style="text-align:center;color:var(--ink-soft);">ກຳລັງຄົ້ນຫາ...</p>';
   try{
-    const o = await api.getOrderStatusPublic(orderId);
-    if(!o){ box.innerHTML='<div class="empty-state"><div class="ico">🔍</div><h4>ບໍ່ພົບອອເດີ</h4><p>ກະລຸນາກວດສອບລະຫັດອອເດີອີກຄັ້ງ</p></div>'; return; }
-    const idx = STATUS_STEPS.findIndex(s=>s.k===o.orderStatus);
-    box.innerHTML = '<h3 style="margin:0 0 2px;">#'+o.orderId+'</h3>'+
-      '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 14px;">'+new Date(o.date).toLocaleString('lo-LA')+' · '+money(o.total)+'</p>'+
-      '<ul class="timeline">'+STATUS_STEPS.map((s,i)=>{
-        const cls = o.orderStatus==='CANCELLED'? '' : (i<idx?'done':(i===idx?'current':''));
-        return '<li class="'+cls+'"><div class="t-dot">'+(cls==='done'?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>':'')+'</div><div><div class="t-label">'+s.l+'</div></div></li>';
-      }).join('')+'</ul>'+
-      (o.orderStatus==='CANCELLED'?'<p style="color:var(--c-secondary);font-weight:700;">❌ ອອເດີນີ້ຖືກຍົກເລີກ</p>':'');
-  }catch(e){ box.innerHTML='<p>ເກີດຂໍ້ຜິດພາດ</p>'; }
+    const orders = await api.getOrdersByPhone(state._trackPhone);
+    if(orders.length===0){
+      box.innerHTML = '<div class="empty-state"><div class="ico">🔍</div><h4>ບໍ່ພົບອອເດີ</h4><p>ກະລຸນາກວດສອບເບີໂທອີກຄັ້ງ</p></div>';
+      return;
+    }
+    const prevMap = state._trackStatusMap || {};
+    let changed = false;
+    const newMap = {};
+    orders.forEach(o=>{ newMap[o.orderId]=o.orderStatus; if(prevMap[o.orderId] && prevMap[o.orderId]!==o.orderStatus) changed = true; });
+    state._trackStatusMap = newMap;
+    if(changed && !showLoading){ playNotificationSound(); toast('ສະຖານະອອເດີມີການອັບເດດ','🔔'); }
+
+    box.innerHTML = orders.map(o=>{
+      const idx = STATUS_STEPS.findIndex(s=>s.k===o.orderStatus);
+      const cancelled = o.orderStatus==='CANCELLED';
+      const label = (STATUS_STEPS.find(s=>s.k===o.orderStatus)||{}).l || o.orderStatus;
+      return '<div class="a-panel" style="padding:14px;margin-bottom:12px;">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'+
+        '<h3 style="margin:0;font-size:15px;">#'+o.orderId+'</h3>'+
+        '<span class="pill '+o.orderStatus+'">'+label+'</span>'+
+        '</div>'+
+        '<p style="font-size:11.5px;color:var(--ink-soft);margin:0 0 10px;">'+new Date(o.date).toLocaleString('lo-LA')+' · '+money(o.total)+'</p>'+
+        (cancelled? '<p style="color:var(--c-secondary);font-weight:700;">❌ ອອເດີນີ້ຖືກຍົກເລີກ</p>' :
+        '<ul class="timeline">'+STATUS_STEPS.map((s,i)=>{
+          const cls = i<idx?'done':(i===idx?'current':'');
+          return '<li class="'+cls+'"><div class="t-dot">'+(cls==='done'?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>':'')+'</div><div><div class="t-label">'+s.l+'</div></div></li>';
+        }).join('')+'</ul>')+
+        (o.slipUrl? '<div style="margin-top:10px;"><div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;">🧾 ຫຼັກຖານການໂອນ</div><img src="'+o.slipUrl+'" style="width:100%;border-radius:10px;border:1px solid var(--line);"></div>' : '')+
+        '<button class="btn-ghost" style="width:100%;margin-top:10px;" onclick="toggleOrderItems(\''+o.orderId+'\')">📋 ເບິ່ງລາຍການສັ່ງຊື້</button>'+
+        '<div id="items-'+o.orderId+'" style="display:none;margin-top:8px;">'+
+          o.items.map(it=>'<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line);"><span>'+it.name+' x'+it.qty+'</span><span class="num">'+money(it.price*it.qty)+'</span></div>').join('')+
+        '</div></div>';
+    }).join('');
+  }catch(e){ if(showLoading) box.innerHTML='<p>ເກີດຂໍ້ຜິດພາດ</p>'; console.error(e); }
+}
+function toggleOrderItems(orderId){
+  const el = document.getElementById('items-'+orderId);
+  if(el) el.style.display = el.style.display==='none'?'block':'none';
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1094,15 +1176,39 @@ async function doAdminLogin(){
 function adminLogout(){
   state.admin.token=null; localStorage.removeItem('pk_admin_token');
   document.getElementById('admin-root').classList.remove('show');
+  stopAdminOrderPoll();
 }
 function showAdmin(){
   document.getElementById('admin-root').classList.add('show');
   gotoAdminPage('dashboard');
+  startAdminOrderPoll();
 }
 function viewStorefront(){
   document.getElementById('admin-root').classList.remove('show');
   syncPublicData();
+  stopAdminOrderPoll();
   toast('ກຳລັງເບິ່ງໜ້າຮ້ານ — ກົດເມນູ ☰ ເພື່ອກັບໄປ Admin','🏠');
+}
+function startAdminOrderPoll(){
+  stopAdminOrderPoll();
+  state.admin.pollTimer = setInterval(checkNewOrders, 15000);
+  checkNewOrders();
+}
+function stopAdminOrderPoll(){ clearInterval(state.admin.pollTimer); }
+async function checkNewOrders(){
+  try{
+    const orders = await api.getOrders(state.admin.token);
+    const ids = orders.map(o=>o.orderId);
+    if(state.admin.seenOrderIds===null){ state.admin.seenOrderIds = ids; return; }
+    const newOnes = ids.filter(id=>state.admin.seenOrderIds.indexOf(id)===-1);
+    if(newOnes.length>0){
+      playNotificationSound();
+      toast('🔔 ມີອອເດີໃໝ່ເຂົ້າມາ '+newOnes.length+' ລາຍການ','🛎️');
+      if(state.admin.page==='orders') renderAdminOrders();
+      if(state.admin.page==='dashboard') renderAdminDashboard();
+    }
+    state.admin.seenOrderIds = ids;
+  }catch(e){}
 }
 function adminEntry(){
   if(state.admin.token){ showAdmin(); } else { openAdminLogin(); }
@@ -1358,6 +1464,16 @@ function renderAdminSettings(){
   '<div class="field"><label>ທີ່ຢູ່</label><input id="st-addr" value="'+s.address+'"></div>'+
   '</div></div>'+
 
+  '<div class="a-panel"><h4>🏦 ຂໍ້ມູນຊຳລະເງິນ (ໂອນ/QR)</h4>'+
+  '<div class="grid-2">'+
+  '<div class="field"><label>ຊື່ທະນາຄານ</label><input id="st-bankname" value="'+(s.bankName||'')+'"></div>'+
+  '<div class="field"><label>ຊື່ບັນຊີ</label><input id="st-bankholder" value="'+(s.bankAccountHolder||'')+'"></div>'+
+  '</div>'+
+  '<div class="field"><label>ເລກບັນຊີ</label><input id="st-bankacc" value="'+(s.bankAccountNumber||'')+'"></div>'+
+  '<div class="field"><label>ຮູບ QR (URL)</label><input id="st-bankqr" value="'+(s.bankQrUrl||'')+'"></div>'+
+  '<div class="field"><label>ຫຼື ອັບໂຫລດຮູບ QR</label><input type="file" accept="image/*" onchange="handleQrUpload(this)"><div id="qr-upload-status" style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;"></div></div>'+
+  (s.bankQrUrl? '<img src="'+s.bankQrUrl+'" style="width:120px;height:120px;object-fit:contain;border-radius:12px;border:1px solid var(--line);">' : '')+
+  '</div>'+
   '<div class="a-panel"><h4>🎨 ຮູບແບບສີ (Theme Presets)</h4>'+
   '<div class="grid-3" id="preset-grid">'+Object.keys(PRESETS).map(name=>{
     const pr = PRESETS[name];
@@ -1414,6 +1530,23 @@ function updateFontPreview(){
   document.getElementById('fp-display').style.fontFamily = pair.display;
   document.getElementById('fp-body').style.fontFamily = pair.body;
 }
+
+function handleQrUpload(input){
+  const file = input.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('qr-upload-status');
+  statusEl.textContent = 'ກຳລັງອັບໂຫລດ...';
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    try{
+      const res = await api.uploadSlip(e.target.result, file.name, file.type);
+      document.getElementById('st-bankqr').value = res.url;
+      statusEl.textContent = '✅ ອັບໂຫລດສຳເລັດ — ກົດ "ບັນທຶກການຕັ້ງຄ່າ" ເພື່ອບັນທຶກ';
+    }catch(err){ statusEl.textContent='⚠️ ອັບໂຫລດບໍ່ສຳເລັດ'; console.error(err); }
+  };
+  reader.readAsDataURL(file);
+}
+
 function previewIcon(key){
   const v = document.getElementById('icon-in-'+key).value.trim();
   document.getElementById('icon-prev-'+key).innerHTML = v? '<span class="icon-emoji">'+v+'</span>' : DEFAULT_ICONS[key];
@@ -1445,7 +1578,8 @@ async function saveAllSettings(){
     darkMode: document.getElementById('st-dark').checked?'true':'false',
     fontPairing: val('st-font'),
     deliveryFeeDefault:val('st-delivery'), taxPercent:val('st-tax'), serviceFeePercent:val('st-service'),
-    themePreset: state.settings.themePreset||'Ivory Aurum'
+    themePreset: state.settings.themePreset||'Ivory Aurum',
+    bankName:val('st-bankname'), bankAccountNumber:val('st-bankacc'), bankAccountHolder:val('st-bankholder'), bankQrUrl:val('st-bankqr')
   };
   Object.keys(ICON_LABELS).forEach(function(key){
     newS['icon_'+key] = document.getElementById('icon-in-'+key).value.trim();
