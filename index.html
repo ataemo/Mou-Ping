@@ -275,6 +275,17 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .t-label{font-weight:700;font-size:13.5px;}
 .t-sub{font-size:11.5px;color:var(--ink-soft);}
 
+/* horizontal order-status stepper */
+.h-timeline{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding:6px 2px 4px;scrollbar-width:none;}
+.h-step{display:flex;flex-direction:column;align-items:center;flex:none;width:76px;position:relative;}
+.h-step:not(:last-child)::after{content:'';position:absolute;top:18px;left:calc(50% + 19px);width:calc(100% - 18px);height:3px;background:var(--line);z-index:0;}
+.h-step.done:not(:last-child)::after{background:var(--success);}
+.h-dot{width:37px;height:37px;border-radius:50%;background:var(--c-bg);border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:15px;position:relative;z-index:1;flex:none;}
+.h-step.done .h-dot{background:var(--success);border-color:var(--success);color:#fff;}
+.h-step.current .h-dot{background:var(--c-primary);border-color:var(--c-primary);color:#fff;animation:pulse 1.4s infinite;}
+.h-label{font-size:10px;font-weight:700;text-align:center;margin-top:6px;color:var(--ink-soft);line-height:1.25;}
+.h-step.done .h-label,.h-step.current .h-label{color:var(--c-text);}
+
 /* bottom nav */
 #bottom-nav{
   position:fixed;bottom:0;left:0;right:0;background:var(--glass);backdrop-filter:blur(14px);border-top:1px solid var(--line);
@@ -696,6 +707,15 @@ function playNotificationSound(){
   }catch(e){}
 }
 
+
+
+function imgFallback(img){
+  const a = document.createElement('a');
+  a.href = img.src; a.target = '_blank'; a.rel='noopener';
+  a.textContent = '📎 ຮູບບໍ່ຂຶ້ນ — ກົດເພື່ອເປີດ';
+  a.style.cssText = 'display:inline-block;font-size:12px;color:var(--c-primary);font-weight:700;text-decoration:underline;';
+  img.replaceWith(a);
+}
 function toast(msg, icon){
   const wrap = document.getElementById('toast-wrap');
   const t = document.createElement('div');
@@ -1020,11 +1040,11 @@ function renderCheckout(){
       '<div>📋 '+(s.bankAccountNumber||'-')+'</div>'+
       '<div>👤 '+(s.bankAccountHolder||'-')+'</div>'+
     '</div>'+
-    (s.bankQrUrl? '<div style="text-align:center;margin:14px 0;"><img src="'+s.bankQrUrl+'" style="width:190px;height:190px;object-fit:contain;border-radius:14px;border:1px solid var(--line);"></div>' : '')+
+    (s.bankQrUrl? '<div style="text-align:center;margin:14px 0;"><img src="'+s.bankQrUrl+'" style="width:190px;height:190px;object-fit:contain;border-radius:14px;border:1px solid var(--line);" onerror="imgFallback(this)"></div>' : '')+
     '<div class="field" style="margin-top:6px;"><label>📎 ອັບໂຫລດ Slip ການໂອນ</label>'+
     '<input type="file" accept="image/*" id="co-slip" onchange="handleSlipUpload(this)">'+
     '<div id="co-slip-status" style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;"></div>'+
-    (checkoutState.slipUrl? '<img src="'+checkoutState.slipUrl+'" style="width:100%;border-radius:12px;margin-top:8px;border:1px solid var(--line);">' : '')+
+    (checkoutState.slipUrl? '<img src="'+checkoutState.slipUrl+'" style="width:100%;border-radius:12px;margin-top:8px;border:1px solid var(--line);" onerror="imgFallback(this)">' : '')+
     '</div></div>'
   ) : '';
   document.getElementById('checkout-body').innerHTML =
@@ -1093,8 +1113,8 @@ async function submitOrder(){
    ORDER TRACKING (customer)
    ═══════════════════════════════════════════════════════════════ */
 const STATUS_STEPS = [
-  {k:'PENDING', l:'ລໍຖ້າຢືນຢັນ'}, {k:'CONFIRMED', l:'ຢືນຢັນແລ້ວ'}, {k:'PREPARING', l:'ກຳລັງກຽມ'},
-  {k:'READY', l:'ພ້ອມສົ່ງ/ຮັບ'}, {k:'OUT_FOR_DELIVERY', l:'ກຳລັງຈັດສົ່ງ'}, {k:'DELIVERED', l:'ຮັບເອົາແລ້ວ'}, {k:'COMPLETED', l:'ສຳເລັດ'}
+  {k:'PENDING', l:'ລໍຖ້າຢືນຢັນ', ico:'📝'}, {k:'CONFIRMED', l:'ຢືນຢັນແລ້ວ', ico:'✅'}, {k:'PREPARING', l:'ກຳລັງກຽມ', ico:'🔥'},
+  {k:'READY', l:'ພ້ອມສົ່ງ/ຮັບ', ico:'📦'}, {k:'OUT_FOR_DELIVERY', l:'ກຳລັງຈັດສົ່ງ', ico:'🛵'}, {k:'DELIVERED', l:'ຮັບເອົາແລ້ວ', ico:'📬'}, {k:'COMPLETED', l:'ສຳເລັດ', ico:'🎉'}
 ];
 function openTrackSheet(){
   const savedPhone = state.customer.phone || '';
@@ -1144,11 +1164,12 @@ async function refreshTrackedOrders(showLoading){
         '</div>'+
         '<p style="font-size:11.5px;color:var(--ink-soft);margin:0 0 10px;">'+new Date(o.date).toLocaleString('lo-LA')+' · '+money(o.total)+'</p>'+
         (cancelled? '<p style="color:var(--c-secondary);font-weight:700;">❌ ອອເດີນີ້ຖືກຍົກເລີກ</p>' :
-        '<ul class="timeline">'+STATUS_STEPS.map((s,i)=>{
+        '<div class="h-timeline">'+STATUS_STEPS.map((s,i)=>{
           const cls = i<idx?'done':(i===idx?'current':'');
-          return '<li class="'+cls+'"><div class="t-dot">'+(cls==='done'?'<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>':'')+'</div><div><div class="t-label">'+s.l+'</div></div></li>';
-        }).join('')+'</ul>')+
-        (o.slipUrl? '<div style="margin-top:10px;"><div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;">🧾 ຫຼັກຖານການໂອນ</div><img src="'+o.slipUrl+'" style="width:100%;border-radius:10px;border:1px solid var(--line);"></div>' : '')+
+          const iconHtml = cls==='done'?'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>':s.ico;
+          return '<div class="h-step '+cls+'"><div class="h-dot">'+iconHtml+'</div><div class="h-label">'+s.l+'</div></div>';
+        }).join('')+'</div>')+
+        (o.slipUrl? '<div style="margin-top:10px;"><div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;">🧾 ຫຼັກຖານການໂອນ</div><img src="'+o.slipUrl+'" style="width:100%;border-radius:10px;border:1px solid var(--line);" onerror="imgFallback(this)"></div>' : '')+
         '<button class="btn-ghost" style="width:100%;margin-top:10px;" onclick="toggleOrderItems(\''+o.orderId+'\')">📋 ເບິ່ງລາຍການສັ່ງຊື້</button>'+
         '<div id="items-'+o.orderId+'" style="display:none;margin-top:8px;">'+
           o.items.map(it=>'<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line);"><span>'+it.name+' x'+it.qty+'</span><span class="num">'+money(it.price*it.qty)+'</span></div>').join('')+
@@ -1491,7 +1512,7 @@ function renderAdminSettings(){
   '<div class="field"><label>ເລກບັນຊີ</label><input id="st-bankacc" value="'+(s.bankAccountNumber||'')+'"></div>'+
   '<div class="field"><label>ຮູບ QR (URL)</label><input id="st-bankqr" value="'+(s.bankQrUrl||'')+'"></div>'+
   '<div class="field"><label>ຫຼື ອັບໂຫລດຮູບ QR</label><input type="file" accept="image/*" onchange="handleQrUpload(this)"><div id="qr-upload-status" style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;"></div></div>'+
-  (s.bankQrUrl? '<img src="'+s.bankQrUrl+'" style="width:120px;height:120px;object-fit:contain;border-radius:12px;border:1px solid var(--line);">' : '')+
+  (s.bankQrUrl? '<img src="'+s.bankQrUrl+'" style="width:120px;height:120px;object-fit:contain;border-radius:12px;border:1px solid var(--line);" onerror="imgFallback(this)">' : '')+
   '</div>'+
   '<div class="a-panel"><h4>🎨 ຮູບແບບສີ (Theme Presets)</h4>'+
   '<div class="grid-3" id="preset-grid">'+Object.keys(PRESETS).map(name=>{
