@@ -422,7 +422,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <button class="btn-ghost" onclick="openAccountSheet();closeHamburger();" style="text-align:left;">👤 ບັນຊີຂອງຂ້ອຍ</button>
       <button class="btn-ghost" onclick="toggleDarkMode();closeHamburger();" style="text-align:left;">🌓 ໂໝດມືດ / ສະຫວ່າງ</button>
       <div class="gilt-divider"><div class="ln"></div><div class="gem"></div><div class="ln"></div></div>
-      <button class="btn-primary" onclick="openAdminLogin();closeHamburger();">🔐 ເຂົ້າລະບົບຫຼັງບ້ານ (Admin)</button>
+      <button class="btn-primary" onclick="adminEntry();closeHamburger();">🔐 ເຂົ້າລະບົບຫຼັງບ້ານ (Admin)</button>
     </div>
   </div>
 </div>
@@ -430,7 +430,14 @@ table.a-table tr:hover td{background:var(--c-bg);}
 <!-- ══════════════ MAIN CUSTOMER VIEW ══════════════ -->
 <main id="view-customer">
 
-  <div id="hero"><div id="hero-dots"></div></div>
+  <div id="hero">
+    <div class="slide active">
+      <img src="https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=1200">
+      <div class="eyebrow">ໝູປີ້ງ ອອນລາຍ</div>
+      <div class="txt"><h2>ຍິນດີຕ້ອນຮັບ</h2><p>ເລືອກເມນູທີ່ທ່ານມັກ</p></div>
+    </div>
+    <div id="hero-dots"></div>
+  </div>
 
   <div class="section">
     <div class="section-head"><h3>🍢 ໝວດໝູ່</h3></div>
@@ -530,6 +537,9 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
     <h2 id="admin-page-title">Dashboard</h2>
+    <button class="icon-btn" onclick="viewStorefront()" title="ເບິ່ງໜ້າຮ້ານ" style="width:32px;height:32px;">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    </button>
     <button class="icon-btn" onclick="refreshAdminCurrentView()" title="Refresh" style="width:32px;height:32px;">
       <svg class="ico" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.5 15"/></svg>
     </button>
@@ -615,7 +625,7 @@ const state = {
   cart: JSON.parse(localStorage.getItem('pk_cart')||'[]'),
   activeCategory:'all',
   heroIdx:0, heroTimer:null,
-  admin:{ token: sessionStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null },
+  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null },
   customer: JSON.parse(localStorage.getItem('pk_customer')||'{}')
 };
 
@@ -1052,19 +1062,27 @@ async function doAdminLogin(){
     const res = await api.adminLogin(pw);
     if(res.success){
       state.admin.token = res.token;
-      sessionStorage.setItem('pk_admin_token', res.token);
+      localStorage.setItem('pk_admin_token', res.token);
       closeSheet('login');
       showAdmin();
     } else { toast('ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ','⚠️'); }
   }catch(e){ toast('ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ','⚠️'); }
 }
 function adminLogout(){
-  state.admin.token=null; sessionStorage.removeItem('pk_admin_token');
+  state.admin.token=null; localStorage.removeItem('pk_admin_token');
   document.getElementById('admin-root').classList.remove('show');
 }
 function showAdmin(){
   document.getElementById('admin-root').classList.add('show');
   gotoAdminPage('dashboard');
+}
+function viewStorefront(){
+  document.getElementById('admin-root').classList.remove('show');
+  syncPublicData();
+  toast('ກຳລັງເບິ່ງໜ້າຮ້ານ — ກົດເມນູ ☰ ເພື່ອກັບໄປ Admin','🏠');
+}
+function adminEntry(){
+  if(state.admin.token){ showAdmin(); } else { openAdminLogin(); }
 }
 
 /* ── admin nav ─────────────────────────────────────────────── */
@@ -1420,6 +1438,7 @@ document.addEventListener('input', e=>{
   if(e.target && e.target.id && e.target.id.startsWith('st-color')) previewTheme();
 });
 
+applyAllIcons();
 init();
 </script>
 </body>
