@@ -404,6 +404,47 @@ table.a-table tr:hover td{background:var(--c-bg);}
 .slip-remove-btn{margin-top:12px;background:#FBDADA;color:var(--danger);border:none;border-radius:100px;padding:9px 20px;font-weight:800;font-size:12px;}
 .slip-remove-btn:active{transform:scale(.96);}
 
+/* ── ໜ້າອໍເດີ (redesigned) ─────────────────────── */
+.ord-toolbar{display:flex;flex-direction:column;gap:12px;margin-bottom:16px;}
+.ord-search{position:relative;}
+.ord-search input{width:100%;padding:12px 16px 12px 40px;border-radius:14px;border:1.5px solid var(--line);background:var(--c-surface);color:var(--c-text);font-size:14px;box-shadow:var(--shadow-soft);}
+.ord-search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--ink-soft);}
+.ord-filters{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.ord-chip{flex:none;padding:9px 16px;border-radius:100px;border:1.5px solid var(--line);background:var(--c-surface);font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:.15s;}
+.ord-chip.active{background:var(--c-primary);border-color:var(--c-primary);color:#fff;}
+.slip-thumb{width:46px;height:46px;border-radius:10px;object-fit:cover;cursor:pointer;border:1px solid var(--line);box-shadow:var(--shadow-soft);}
+.slip-thumb-empty{width:46px;height:46px;border-radius:10px;background:var(--c-bg);border:1px dashed var(--line);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--ink-soft);text-align:center;}
+.ord-action-icons{display:flex;gap:6px;}
+.ord-icon-btn{width:33px;height:33px;border-radius:10px;border:1px solid var(--line);background:var(--c-bg);display:flex;align-items:center;justify-content:center;color:var(--c-text);}
+.ord-icon-btn svg{width:16px;height:16px;}
+.ord-icon-btn.view{color:#1D5FC7;}
+.ord-icon-btn.print{color:var(--success);}
+.ord-icon-btn.del{color:var(--danger);}
+.lightbox-overlay{position:fixed;inset:0;background:rgba(10,7,5,.88);z-index:900;display:none;align-items:center;justify-content:center;padding:20px;}
+.lightbox-overlay.show{display:flex;}
+.lightbox-overlay img{max-width:100%;max-height:88vh;border-radius:14px;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.lightbox-close{position:absolute;top:18px;right:18px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;border:none;font-size:20px;display:flex;align-items:center;justify-content:center;}
+.od-row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+.od-row .od-label{color:var(--ink-soft);}
+.od-row .od-value{font-weight:700;text-align:right;}
+.od-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);}
+.od-item .od-item-img{width:38px;height:38px;border-radius:10px;background:var(--c-bg);display:flex;align-items:center;justify-content:center;font-size:16px;flex:none;}
+.od-item .od-item-name{flex:1;font-size:13px;font-weight:600;}
+.od-item .od-item-price{font-family:var(--font-num);font-weight:700;color:var(--c-primary);font-size:13px;}
+.receipt-card{background:#fff;border-radius:18px;padding:24px 22px;box-shadow:var(--shadow-card);color:#241C15;}
+.receipt-card .rc-logo{width:64px;height:64px;border-radius:16px;object-fit:cover;margin:0 auto 10px;display:block;}
+.receipt-card h3{text-align:center;margin:0 0 2px;font-family:var(--font-display);}
+.receipt-card .rc-sub{text-align:center;font-size:12px;color:var(--ink-soft);margin-bottom:14px;}
+.receipt-card .rc-dashed{border-top:1px dashed var(--line);margin:12px 0;}
+.receipt-card table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.receipt-card table th{text-align:left;font-size:11px;color:var(--ink-soft);padding-bottom:6px;border-bottom:1px solid var(--line);}
+.receipt-card table td{padding:6px 0;border-bottom:1px solid var(--line);}
+.receipt-card .rc-total-row{display:flex;justify-content:space-between;font-weight:800;font-size:16px;margin-top:10px;}
+.receipt-card .rc-bank{background:var(--c-bg);border-radius:14px;padding:12px 14px;margin-top:14px;font-size:12.5px;line-height:1.8;}
+.receipt-card .rc-qr{text-align:center;margin-top:14px;}
+.receipt-card .rc-qr img{width:150px;height:150px;object-fit:contain;margin:0 auto;}
+.receipt-card .rc-thanks{text-align:center;font-size:11.5px;color:var(--ink-soft);margin-top:12px;}
+
 /* login card */
 .login-card{max-width:340px;margin:auto;background:var(--c-surface);border-radius:24px;padding:30px 26px;box-shadow:var(--shadow-pop);text-align:center;border:1px solid var(--line);}
 .login-card .ico{font-size:38px;margin-bottom:10px;}
@@ -675,7 +716,7 @@ const state = {
   cart: JSON.parse(localStorage.getItem('pk_cart')||'[]'),
   activeCategory:'all',
   heroIdx:0, heroTimer:null,
-  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null },
+  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'' },
   customer: JSON.parse(localStorage.getItem('pk_customer')||'{}'),
   _catJson:'', _prodJson:'', _banJson:''
 };
@@ -705,6 +746,8 @@ const api = {
   getOrders: (token) => callApi('getOrders', {token}),
   updateOrderStatus: (token, orderId, status) => callApi('updateOrderStatus', {token, orderId, status}),
   updatePaymentStatus: (token, orderId, status) => callApi('updatePaymentStatus', {token, orderId, status}),
+  updateOrderTracking: (token, orderId, trackingNumber) => callApi('updateOrderTracking', {token, orderId, trackingNumber}),
+  deleteOrder: (token, orderId) => callApi('deleteOrder', {token, orderId}),
   saveProduct: (token, product) => callApi('saveProduct', {token, product}),
   deleteProduct: (token, id) => callApi('deleteProduct', {token, id}),
   saveCategory: (token, category) => callApi('saveCategory', {token, category}),
@@ -1421,31 +1464,203 @@ function ordersSkeletonHTML(){
   return '<div class="a-title-row"><div class="skel" style="width:180px;height:24px;border-radius:8px;"></div></div>'+
     '<div class="a-panel skel" style="height:320px;"></div>';
 }
+
+const ORDER_FILTER_TABS = [
+  {k:'all', l:'ທັງໝົດ'}, {k:'PENDING', l:'ລໍຖ້າ'}, {k:'CONFIRMED', l:'ຢືນຢັນ'}, {k:'PREPARING', l:'ກຽມ'},
+  {k:'READY', l:'ພ້ອມ'}, {k:'OUT_FOR_DELIVERY', l:'ຈັດສົ່ງ'}, {k:'DELIVERED', l:'ສຳເລັດ'}, {k:'CANCELLED', l:'ຍົກເລີກ'}
+];
+
+function filterOrdersList(orders){
+  let list = orders;
+  if(state.admin.orderFilter !== 'all') list = list.filter(o=>o.orderStatus===state.admin.orderFilter);
+  const q = (state.admin.orderSearchQuery||'').trim().toLowerCase();
+  if(q) list = list.filter(o=>
+    String(o.orderId).toLowerCase().includes(q) ||
+    String(o.customerName).toLowerCase().includes(q) ||
+    String(o.phone).toLowerCase().includes(q)
+  );
+  return list;
+}
+function setOrderFilter(k){ state.admin.orderFilter = k; renderAdminOrders(); }
+function searchOrdersInput(v){ state.admin.orderSearchQuery = v; renderOrdersTableOnly(); }
+function renderOrdersTableOnly(){
+  const holder = document.getElementById('ord-table-holder');
+  if(holder) holder.innerHTML = buildOrdersTableOnlyHTML(filterOrdersList(state.admin.orders));
+}
+
 function buildOrdersTableHTML(orders){
-  return '<div class="a-title-row"><h2>ອອເດີທັງໝົດ ('+orders.length+')</h2></div>'+
-    '<div class="a-panel" style="padding:0;overflow-x:auto;"><table class="a-table"><thead><tr>'+
-    '<th>ລະຫັດ</th><th>ລູກຄ້າ</th><th>ວັນທີ</th><th>ຍອດລວມ</th><th>ຊຳລະ</th><th>ສະຖານະ</th><th></th></tr></thead><tbody>'+
+  return '<div class="ord-toolbar">'+
+    '<div class="ord-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>'+
+    '<input type="text" placeholder="ຄົ້ນຫາ ລະຫັດ / ຊື່ / ເບີໂທ..." value="'+(state.admin.orderSearchQuery||'')+'" oninput="searchOrdersInput(this.value)"></div>'+
+    '<div class="ord-filters">'+ORDER_FILTER_TABS.map(t=>
+      '<div class="ord-chip '+(state.admin.orderFilter===t.k?'active':'')+'" onclick="setOrderFilter(\''+t.k+'\')">'+t.l+'</div>'
+    ).join('')+'</div></div>'+
+    '<div id="ord-table-holder">'+buildOrdersTableOnlyHTML(filterOrdersList(orders))+'</div>'+
+    '<div id="slip-lightbox" class="lightbox-overlay" onclick="closeSlipLightbox(event)"><button class="lightbox-close" onclick="closeSlipLightbox(event)">✕</button><img id="slip-lightbox-img" src=""></div>'+
+    '<div id="order-detail-holder"></div>'+
+    '<div id="receipt-modal-holder"></div>';
+}
+
+function buildOrdersTableOnlyHTML(orders){
+  if(orders.length===0){
+    return '<div class="a-panel"><div class="empty-state"><div class="ico">📦</div><h4>ບໍ່ພົບອອເດີ</h4><p>ລອງປ່ຽນຄຳຄົ້ນຫາ ຫຼື ໝວດສະຖານະ</p></div></div>';
+  }
+  return '<div class="a-panel" style="padding:0;overflow-x:auto;"><table class="a-table"><thead><tr>'+
+    '<th>ລະຫັດ</th><th>ລູກຄ້າ</th><th>ຍອດ</th><th>SLIP</th><th>ສະຖານະ</th><th>ວັນທີ</th><th>ຈັດການ</th></tr></thead><tbody>'+
     orders.map(o=>
-      '<tr><td class="num">'+o.orderId+'</td><td>'+o.customerName+'<br><span style="font-size:11px;color:var(--ink-soft);">'+o.phone+'</span></td>'+
-      '<td style="font-size:12px;">'+new Date(o.date).toLocaleString('lo-LA')+'</td>'+
+      '<tr><td class="num" style="color:#1D5FC7;font-weight:700;cursor:pointer;" onclick="openOrderDetailModal(\''+o.orderId+'\')">'+o.orderId+'</td>'+
+      '<td>'+o.customerName+'<br><span style="font-size:11px;color:var(--ink-soft);">'+o.phone+'</span></td>'+
       '<td class="num">'+money(o.total)+'</td>'+
-      '<td><span class="pill '+o.paymentStatus+'">'+o.paymentStatus+'</span></td>'+
+      '<td>'+(o.slipUrl?
+        '<img class="slip-thumb" src="'+o.slipUrl+'" referrerpolicy="no-referrer" onclick="openSlipLightbox(\''+o.slipUrl+'\')" onerror="this.outerHTML=\'<div class=&quot;slip-thumb-empty&quot;>ຮູບບໍ່ຂຶ້ນ</div>\'">'
+        : '<div class="slip-thumb-empty">ບໍ່ມີ</div>')+'</td>'+
       '<td><select onchange="changeOrderStatus(\''+o.orderId+'\',this.value)" style="padding:6px;border-radius:9px;border:1px solid var(--line);background:var(--c-bg);color:var(--c-text);">'+
         STATUS_STEPS.concat([{k:'CANCELLED',l:'ຍົກເລີກ'}]).map(s=>'<option value="'+s.k+'" '+(o.orderStatus===s.k?'selected':'')+'>'+s.l+'</option>').join('')+
       '</select></td>'+
-      '<td><button class="btn-sm" onclick="viewOrderDetail(\''+o.orderId+'\')">ລາຍລະອຽດ</button></td></tr>'
+      '<td style="font-size:12px;">'+new Date(o.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</td>'+
+      '<td><div class="ord-action-icons">'+
+        '<button class="ord-icon-btn view" title="ລາຍລະອຽດ" onclick="openOrderDetailModal(\''+o.orderId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>'+
+        '<button class="ord-icon-btn print" title="ພິມບິນ" onclick="openReceiptModal(\''+o.orderId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg></button>'+
+        '<button class="ord-icon-btn del" title="ລຶບ" onclick="removeOrder(\''+o.orderId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg></button>'+
+      '</div></td></tr>'
     ).join('')+
     '</tbody></table></div>';
 }
+
 async function changeOrderStatus(orderId, status){
-  await api.updateOrderStatus(state.admin.token, orderId, status);
+  state.admin.orders = await api.updateOrderStatus(state.admin.token, orderId, status);
   toast('ອັບເດດສະຖານະແລ້ວ','✅');
+  renderOrdersTableOnly();
 }
-function viewOrderDetail(orderId){
+
+async function removeOrder(orderId){
+  if(!confirm('ຢືນຢັນລຶບອອເດີ '+orderId+' ນີ້?')) return;
+  state.admin.orders = await api.deleteOrder(state.admin.token, orderId);
+  toast('ລຶບອອເດີແລ້ວ','🗑️');
+  renderOrdersTableOnly();
+}
+
+/* ── slip lightbox ─────────────────────────────────────────── */
+function openSlipLightbox(url){
+  document.getElementById('slip-lightbox-img').src = url;
+  document.getElementById('slip-lightbox').classList.add('show');
+}
+function closeSlipLightbox(e){
+  if(e) e.stopPropagation();
+  document.getElementById('slip-lightbox').classList.remove('show');
+}
+
+/* ── order detail modal ───────────────────────────────────── */
+function openOrderDetailModal(orderId){
   const o = state.admin.orders.find(x=>x.orderId===orderId);
   if(!o) return;
-  alert('ອອເດີ '+o.orderId+'\\nລູກຄ້າ: '+o.customerName+' ('+o.phone+')\\nທີ່ຢູ່: '+o.address+'\\nໝາຍເຫດ: '+(o.note||'-')+'\\n\\nລາຍການ:\\n'+
-    o.items.map(i=>'- '+i.name+' x'+i.qty+' = '+money(i.price*i.qty)).join('\\n')+'\\n\\nລວມ: '+money(o.total));
+  const label = (STATUS_STEPS.find(s=>s.k===o.orderStatus)||{}).l || o.orderStatus;
+  document.getElementById('order-detail-holder').innerHTML =
+    '<div class="overlay show" onclick="closeOrderDetailModal()"></div>'+
+    '<div class="sheet show" style="position:fixed;">'+
+    '<div class="sheet-handle"></div>'+
+    '<div class="sheet-head"><h3>📦 ລາຍລະອຽດອໍເດີ</h3><button class="sheet-close" onclick="closeOrderDetailModal()">✕</button></div>'+
+    '<div class="sheet-body">'+
+      '<div class="od-row"><span class="od-label">ເລກອໍເດີ</span><span class="od-value" style="color:#1D5FC7;">'+o.orderId+'</span></div>'+
+      '<div class="od-row"><span class="od-label">ວັນທີ</span><span class="od-value">'+new Date(o.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</span></div>'+
+      '<div class="od-row"><span class="od-label">ຊື່ລູກຄ້າ</span><span class="od-value">'+o.customerName+'</span></div>'+
+      '<div class="od-row"><span class="od-label">ເບີໂທ</span><span class="od-value">'+o.phone+'</span></div>'+
+      '<div class="od-row"><span class="od-label">ທີ່ຢູ່</span><span class="od-value">'+(o.address||'-')+'</span></div>'+
+      '<div class="od-row"><span class="od-label">ສະຖານະ</span><span class="pill '+o.orderStatus+'">'+label+'</span></div>'+
+      (o.note? '<div class="od-row"><span class="od-label">ໝາຍເຫດ</span><span class="od-value">'+o.note+'</span></div>' : '')+
+      '<h4 style="margin:16px 0 6px;font-size:13.5px;">🧾 ລາຍການສິນຄ້າ</h4>'+
+      o.items.map(it=>
+        '<div class="od-item"><div class="od-item-img">🍖</div><div class="od-item-name">'+it.name+' <span style="color:var(--ink-soft);">x'+it.qty+'</span></div><div class="od-item-price">'+money(it.price*it.qty)+'</div></div>'
+      ).join('')+
+      '<div class="od-row" style="margin-top:6px;"><span class="od-label">ຄ່າສົ່ງ</span><span class="od-value">'+money(o.deliveryFee)+'</span></div>'+
+      '<div class="od-row total" style="font-size:16px;"><span class="od-label" style="font-weight:800;color:var(--c-text);">ລວມທັງໝົດ</span><span class="od-value" style="color:var(--c-primary);">'+money(o.total)+'</span></div>'+
+      '<h4 style="margin:18px 0 8px;font-size:13.5px;">🔄 ອັບເດດສະຖານະ</h4>'+
+      '<div style="display:flex;gap:8px;">'+
+        '<select id="od-status-select" style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:var(--c-bg);color:var(--c-text);">'+
+          STATUS_STEPS.concat([{k:'CANCELLED',l:'ຍົກເລີກ'}]).map(s=>'<option value="'+s.k+'" '+(o.orderStatus===s.k?'selected':'')+'>'+s.l+'</option>').join('')+
+        '</select>'+
+        '<button class="btn-sm primary" onclick="updateOrderStatusFromDetail(\''+o.orderId+'\')">ບັນທຶກ</button>'+
+      '</div>'+
+      '<h4 style="margin:18px 0 8px;font-size:13.5px;">🚚 Tracking Number</h4>'+
+      '<div style="display:flex;gap:8px;">'+
+        '<input id="od-tracking-input" value="'+(o.trackingNumber||'')+'" placeholder="ໃສ່ Tracking Number..." style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:var(--c-bg);color:var(--c-text);">'+
+        '<button class="btn-sm primary" onclick="saveTrackingNumber(\''+o.orderId+'\')">ບັນທຶກ</button>'+
+      '</div>'+
+      (o.slipUrl? '<h4 style="margin:18px 0 8px;font-size:13.5px;">🧾 Slip ການໂອນ</h4><img src="'+o.slipUrl+'" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;border:1px solid var(--line);cursor:pointer;" onclick="openSlipLightbox(\''+o.slipUrl+'\')" onerror="imgFallback(this)">' : '')+
+    '</div></div>';
+}
+function closeOrderDetailModal(){ document.getElementById('order-detail-holder').innerHTML=''; }
+async function updateOrderStatusFromDetail(orderId){
+  const status = document.getElementById('od-status-select').value;
+  state.admin.orders = await api.updateOrderStatus(state.admin.token, orderId, status);
+  toast('ອັບເດດສະຖານະແລ້ວ','✅');
+  renderOrdersTableOnly();
+  closeOrderDetailModal();
+}
+async function saveTrackingNumber(orderId){
+  const v = document.getElementById('od-tracking-input').value.trim();
+  state.admin.orders = await api.updateOrderTracking(state.admin.token, orderId, v);
+  toast('ບັນທຶກ Tracking Number ແລ້ວ','✅');
+  renderOrdersTableOnly();
+}
+
+/* ── receipt / print modal ───────────────────────────────────── */
+function buildReceiptHTML(o){
+  const s = state.settings;
+  return '<div class="receipt-card" id="receipt-print-area">'+
+    (s.logoUrl? '<img class="rc-logo" src="'+s.logoUrl+'">' : '<div class="rc-logo" style="background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;font-size:26px;">🍖</div>')+
+    '<h3>'+(s.storeName||'')+'</h3>'+
+    '<div class="rc-sub">📞 '+(s.phone||'-')+' | 📍 '+(s.address||'-')+'</div>'+
+    '<div class="rc-dashed"></div>'+
+    '<div style="font-size:12.5px;"><b>ເລກອໍເດີ:</b> '+o.orderId+'<br><b>ວັນທີ:</b> '+new Date(o.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'<br><b>ລູກຄ້າ:</b> '+o.customerName+' | '+o.phone+
+    (o.address? '<br><b>ທີ່ຢູ່:</b> '+o.address : '')+'</div>'+
+    '<div class="rc-dashed"></div>'+
+    '<table><thead><tr><th>ສິນຄ້າ</th><th>ຈຳນວນ</th><th>ລາຄາ</th><th>ລວມ</th></tr></thead><tbody>'+
+    o.items.map(it=>'<tr><td>'+it.name+'</td><td>×'+it.qty+'</td><td>'+money(it.price)+'</td><td>'+money(it.price*it.qty)+'</td></tr>').join('')+
+    '</tbody></table>'+
+    '<div class="rc-dashed"></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:12.5px;"><span>ຄ່າສິນຄ້າ</span><span>'+money(o.subtotal)+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:12.5px;"><span>ຄ່າສົ່ງ</span><span>'+money(o.deliveryFee)+'</span></div>'+
+    '<div class="rc-total-row"><span>ລວມທັງໝົດ</span><span>'+money(o.total)+'</span></div>'+
+    (o.paymentMethod!=='cash'? '<div class="rc-bank">'+
+      '🏦 ຂໍ້ມູນໂອນເງິນ<br>ທະນາຄານ: '+(s.bankName||'-')+'<br>ຊື່ບັນຊີ: '+(s.bankAccountHolder||'-')+'<br>ເລກບັນຊີ: '+(s.bankAccountNumber||'-')+
+    '</div>' : '')+
+    (s.bankQrUrl? '<div class="rc-qr"><div style="font-size:11.5px;color:var(--ink-soft);margin-bottom:6px;">ສະແກນເພື່ອຊຳລະ</div><img src="'+s.bankQrUrl+'" referrerpolicy="no-referrer"></div>' : '')+
+    '<div class="rc-thanks">ຂອບໃຈທີ່ໃຊ້ບໍລິການ '+(s.storeName||'')+' 🙏</div>'+
+  '</div>';
+}
+function openReceiptModal(orderId){
+  const o = state.admin.orders.find(x=>x.orderId===orderId);
+  if(!o) return;
+  document.getElementById('receipt-modal-holder').innerHTML =
+    '<div class="overlay show" onclick="closeReceiptModal()"></div>'+
+    '<div class="sheet show" style="position:fixed;">'+
+    '<div class="sheet-handle"></div>'+
+    '<div class="sheet-head"><h3>🧾 ຕົວຢ່າງໃບບິນ</h3><button class="sheet-close" onclick="closeReceiptModal()">✕</button></div>'+
+    '<div class="sheet-body">'+buildReceiptHTML(o)+
+    '<button class="btn-primary" style="margin-top:16px;" onclick="doPrintReceipt(\''+orderId+'\')">🖨️ ພິມບິນ</button>'+
+    '</div></div>';
+}
+function closeReceiptModal(){ document.getElementById('receipt-modal-holder').innerHTML=''; }
+function doPrintReceipt(orderId){
+  const o = state.admin.orders.find(x=>x.orderId===orderId);
+  if(!o) return;
+  const w = window.open('', '_blank', 'width=420,height=700');
+  w.document.write('<html><head><title>ໃບບິນ '+o.orderId+'</title><meta charset="UTF-8">'+
+    '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;600;700;800&display=swap" rel="stylesheet">'+
+    '<style>body{font-family:"Noto Sans Lao",sans-serif;background:#fff;margin:0;padding:16px;color:#241C15;}'+
+    'table{width:100%;border-collapse:collapse;font-size:12.5px;} td,th{padding:6px 0;border-bottom:1px solid #eee;text-align:left;}'+
+    'img.rc-logo{width:64px;height:64px;border-radius:16px;object-fit:cover;display:block;margin:0 auto 10px;}'+
+    'h3{text-align:center;margin:0 0 2px;} .rc-sub{text-align:center;font-size:12px;color:#8A7C6C;margin-bottom:14px;}'+
+    '.rc-dashed{border-top:1px dashed #ccc;margin:12px 0;} .rc-total-row{display:flex;justify-content:space-between;font-weight:800;font-size:16px;margin-top:10px;}'+
+    '.rc-bank{background:#f7f4ee;border-radius:14px;padding:12px 14px;margin-top:14px;font-size:12.5px;line-height:1.8;}'+
+    '.rc-qr{text-align:center;margin-top:14px;} .rc-qr img{width:150px;height:150px;object-fit:contain;}'+
+    '.rc-thanks{text-align:center;font-size:11.5px;color:#8A7C6C;margin-top:12px;}'+
+    '@media print{ body{padding:0;} }</style></head><body>'+
+    buildReceiptHTML(o)+
+    '</body></html>');
+  w.document.close();
+  w.onload = function(){ setTimeout(()=>{ w.print(); }, 400); };
 }
 
 /* ── products admin ────────────────────────────────────────── */
