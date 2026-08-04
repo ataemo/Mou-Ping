@@ -1052,7 +1052,7 @@ function renderCartBody(){
 /* ═══════════════════════════════════════════════════════════════
    CHECKOUT
    ═══════════════════════════════════════════════════════════════ */
-let checkoutState = {orderType:'delivery', payment:'cash', slipUrl:''};
+let checkoutState = {orderType:'delivery', payment:'cash', slipUrl:'', slipBase64:'', slipFileName:'', slipMimeType:''};
 function openCheckout(){
   if(state.cart.length===0){ toast('ກະຕ່າຍັງຫວ່າງເປົ່າ','⚠️'); return; }
   closeSheet('cart');
@@ -1075,8 +1075,8 @@ function renderCheckout(){
       '<div class="qr-card-wrap"><div class="qr-card"><img src="'+s.bankQrUrl+'" referrerpolicy="no-referrer" onerror="imgFallback(this)"></div></div>'
       : '')+
     '<div class="field" style="margin-top:6px;"><label>📎 ອັບໂຫລດ Slip ການໂອນ</label>'+
-    (checkoutState.slipUrl?
-      '<div class="slip-preview-wrap"><img src="'+checkoutState.slipUrl+'" referrerpolicy="no-referrer" onerror="imgFallback(this)"></div>'+
+    (checkoutState.slipBase64?
+      '<div class="slip-preview-wrap"><img src="'+checkoutState.slipBase64+'"></div>'+
       '<div style="text-align:center;"><button type="button" class="slip-remove-btn" onclick="removeSlip()">🗑️ ລຶບຮູບ / ອັບໂຫລດໃໝ່</button></div>'
       :
       '<div class="slip-dropzone" onclick="document.getElementById(\'co-slip\').click()">'+
@@ -1111,21 +1111,23 @@ function renderCheckout(){
 function handleSlipUpload(input){
   const file = input.files[0];
   if(!file) return;
-  const statusEl = document.getElementById('co-slip-status');
-  statusEl.textContent = 'ກຳລັງອັບໂຫລດ...';
   const reader = new FileReader();
-  reader.onload = async function(e){
-    try{
-      const res = await api.uploadSlip(e.target.result, file.name, file.type);
-      checkoutState.slipUrl = res.url;
-      renderCheckout();
-    }catch(err){ statusEl.textContent = '⚠️ ອັບໂຫລດບໍ່ສຳເລັດ ລອງໃໝ່'; console.error(err); }
+  reader.onload = function(e){
+    // ເກັບໄວ້ຊົ່ວຄາວໃນເຄື່ອງເທົ່ານັ້ນ — ຍັງບໍ່ອັບໂຫລດເຂົ້າ Drive ຈົນກວ່າຈະກົດຢືນຢັນສັ່ງຊື້
+    checkoutState.slipBase64 = e.target.result;
+    checkoutState.slipFileName = file.name;
+    checkoutState.slipMimeType = file.type;
+    checkoutState.slipUrl = ''; // ຣີເຊັດ url ເກົ່າ ຖ້າມີ
+    renderCheckout();
   };
   reader.readAsDataURL(file);
 }
 
 function removeSlip(){
   checkoutState.slipUrl = '';
+  checkoutState.slipBase64 = '';
+  checkoutState.slipFileName = '';
+  checkoutState.slipMimeType = '';
   renderCheckout();
 }
 
@@ -1137,24 +1139,44 @@ async function submitOrder(){
   const phone = document.getElementById('co-phone').value.trim();
   const address = document.getElementById('co-address')?.value.trim()||'';
   if(!name || !phone){ toast('ກະລຸນາປ້ອນຊື່ ແລະ ເບີໂທ','⚠️'); return; }
+
+  const submitBtn = document.querySelector('#checkout-body .btn-primary');
+  if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'ກຳລັງດຳເນີນການ...'; }
+
+  // ອັບໂຫລດ Slip ເຂົ້າ Drive ຕອນນີ້ເທົ່ານັ້ນ (ຫຼັງກົດຢືນຢັນ)
+  let uploadedSlipUrl = '';
+  if(checkoutState.slipBase64){
+    try{
+      const res = await api.uploadSlip(checkoutState.slipBase64, checkoutState.slipFileName, checkoutState.slipMimeType);
+      uploadedSlipUrl = res.url;
+    }catch(err){
+      toast('ອັບໂຫລດ Slip ບໍ່ສຳເລັດ ລອງໃໝ່','⚠️'); console.error(err);
+      if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = 'ຢືນຢັນສັ່ງຊື້ 🛵'; }
+      return;
+    }
+  }
+
   const t = cartTotals();
   const orderInput = {
     customerName:name, phone:phone, address:address,
     orderType:checkoutState.orderType,
     items: state.cart.map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty})),
     subtotal:t.subtotal, discount:0, deliveryFee:t.deliveryFee, serviceFee:t.serviceFee, tax:t.tax, total:t.total,
-    paymentMethod:checkoutState.payment, slipUrl:checkoutState.slipUrl||'', note:document.getElementById('co-note').value.trim(), branch:'Main'
+    paymentMethod:checkoutState.payment, slipUrl:uploadedSlipUrl, note:document.getElementById('co-note').value.trim(), branch:'Main'
   };
   try{
     const res = await api.createOrder(orderInput);
     state.customer = {name:name, phone:phone, address:address};
     localStorage.setItem('pk_customer', JSON.stringify(state.customer));
     state.cart = []; saveCart();
-    checkoutState.slipUrl = '';
+    checkoutState = {orderType:'delivery', payment:'cash', slipUrl:'', slipBase64:'', slipFileName:'', slipMimeType:''};
     closeSheet('checkout');
     toast('ສັ່ງຊື້ສຳເລັດ! ລະຫັດ '+res.orderId,'🎉');
     showOrderConfirmation(res.orderId);
-  }catch(e){ toast('ເກີດຂໍ້ຜິດພາດ ລອງໃໝ່ອີກຄັ້ງ','⚠️'); console.error(e); }
+  }catch(e){
+    toast('ເກີດຂໍ້ຜິດພາດ ລອງໃໝ່ອີກຄັ້ງ','⚠️'); console.error(e);
+    if(submitBtn){ submitBtn.disabled = false; submitBtn.textContent = 'ຢືນຢັນສັ່ງຊື້ 🛵'; }
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════════
