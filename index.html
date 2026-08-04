@@ -1071,11 +1071,22 @@ function renderCheckout(){
       '<div>📋 '+(s.bankAccountNumber||'-')+'</div>'+
       '<div>👤 '+(s.bankAccountHolder||'-')+'</div>'+
     '</div>'+
-    (s.bankQrUrl? '<div style="text-align:center;margin:14px 0;"><img src="'+s.bankQrUrl+'" referrerpolicy="no-referrer" style="width:190px;height:190px;object-fit:contain;border-radius:14px;border:1px solid var(--line);" onerror="imgFallback(this)"></div>' : '')+
+    (s.bankQrUrl?
+      '<div class="qr-card-wrap"><div class="qr-card"><img src="'+s.bankQrUrl+'" referrerpolicy="no-referrer" onerror="imgFallback(this)"></div></div>'
+      : '')+
     '<div class="field" style="margin-top:6px;"><label>📎 ອັບໂຫລດ Slip ການໂອນ</label>'+
-    '<input type="file" accept="image/*" id="co-slip" onchange="handleSlipUpload(this)">'+
+    (checkoutState.slipUrl?
+      '<div class="slip-preview-wrap"><img src="'+checkoutState.slipUrl+'" referrerpolicy="no-referrer" onerror="imgFallback(this)"></div>'+
+      '<div style="text-align:center;"><button type="button" class="slip-remove-btn" onclick="removeSlip()">🗑️ ລຶບຮູບ / ອັບໂຫລດໃໝ່</button></div>'
+      :
+      '<div class="slip-dropzone" onclick="document.getElementById(\'co-slip\').click()">'+
+        '<div class="slip-camera">📸</div>'+
+        '<div class="slip-hint-main">ກົດເພື່ອເລືອກ Slip / ຖ່າຍວາງຮູບ</div>'+
+        '<div class="slip-hint-sub">JPG, PNG ຂະໜາດບໍ່ເກີນ 5MB</div>'+
+      '</div>'
+    )+
+    '<input type="file" accept="image/*" id="co-slip" style="display:none" onchange="handleSlipUpload(this)">'+
     '<div id="co-slip-status" style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;"></div>'+
-    (checkoutState.slipUrl? '<img src="'+checkoutState.slipUrl+'" referrerpolicy="no-referrer" style="width:100%;border-radius:12px;margin-top:8px;border:1px solid var(--line);" onerror="imgFallback(this)">' : '')+
     '</div></div>'
   ) : '';
   document.getElementById('checkout-body').innerHTML =
@@ -1112,6 +1123,12 @@ function handleSlipUpload(input){
   };
   reader.readAsDataURL(file);
 }
+
+function removeSlip(){
+  checkoutState.slipUrl = '';
+  renderCheckout();
+}
+
 function setOrderType(v){ checkoutState.orderType=v; renderCheckout(); }
 function setPayment(v){ checkoutState.payment=v; renderCheckout(); }
 
@@ -1147,6 +1164,8 @@ const STATUS_STEPS = [
   {k:'PENDING', l:'ລໍຖ້າຢືນຢັນ', ico:'📝'}, {k:'CONFIRMED', l:'ຢືນຢັນແລ້ວ', ico:'✅'}, {k:'PREPARING', l:'ກຳລັງກຽມ', ico:'🔥'},
   {k:'READY', l:'ພ້ອມສົ່ງ/ຮັບ', ico:'📦'}, {k:'OUT_FOR_DELIVERY', l:'ກຳລັງຈັດສົ່ງ', ico:'🛵'}, {k:'DELIVERED', l:'ຮັບເອົາແລ້ວ', ico:'📬'}, {k:'COMPLETED', l:'ສຳເລັດ', ico:'🎉'}
 ];
+let trackExpandedIds = new Set();
+
 function openTrackSheet(){
   const savedPhone = state.customer.phone || '';
   document.getElementById('track-body').innerHTML =
@@ -1202,15 +1221,18 @@ async function refreshTrackedOrders(showLoading){
         }).join('')+'</div>')+
         (o.slipUrl? '<div style="margin-top:10px;background:var(--c-bg);border:1px solid var(--line);border-radius:14px;padding:12px;"><div style="font-size:12px;font-weight:800;color:var(--c-primary);margin-bottom:8px;">🧾 Slip ການໂອນ</div><img src="'+o.slipUrl+'" referrerpolicy="no-referrer" style="width:100%;border-radius:10px;border:1px solid var(--line);" onerror="imgFallback(this)"></div>' : '')+
         '<button class="btn-ghost" style="width:100%;margin-top:10px;" onclick="toggleOrderItems(\''+o.orderId+'\')">📋 ເບິ່ງລາຍການສັ່ງຊື້</button>'+
-        '<div id="items-'+o.orderId+'" style="display:none;margin-top:8px;">'+
+        '<div id="items-'+o.orderId+'" style="display:'+(trackExpandedIds.has(o.orderId)?'block':'none')+';margin-top:8px;">'+
           o.items.map(it=>'<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line);"><span>'+it.name+' x'+it.qty+'</span><span class="num">'+money(it.price*it.qty)+'</span></div>').join('')+
+          '<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:800;padding:8px 0 0;margin-top:4px;border-top:1px dashed var(--line);"><span>ລວມທັງໝົດ</span><span class="num" style="color:var(--c-primary);">'+money(o.total)+'</span></div>'+
         '</div></div>';
     }).join('');
   }catch(e){ if(showLoading) box.innerHTML='<p>ເກີດຂໍ້ຜິດພາດ</p>'; console.error(e); }
 }
 function toggleOrderItems(orderId){
+  if(trackExpandedIds.has(orderId)) trackExpandedIds.delete(orderId);
+  else trackExpandedIds.add(orderId);
   const el = document.getElementById('items-'+orderId);
-  if(el) el.style.display = el.style.display==='none'?'block':'none';
+  if(el) el.style.display = trackExpandedIds.has(orderId) ? 'block' : 'none';
 }
 
 /* ═══════════════════════════════════════════════════════════════
