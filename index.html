@@ -164,7 +164,7 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .cat-pill.active{background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));border-color:transparent;color:#fff;box-shadow:0 10px 22px -8px rgba(181,82,42,.55);transform:translateY(-2px);}
 
 /* ── product grid ───────────────────────────────────────────── */
-#product-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;padding:6px 16px 22px;}
+#product-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;padding:6px 16px 22px;transition:opacity .3s ease;}
 .pcard{
   background:var(--c-surface);border-radius:var(--radius-m);overflow:hidden;box-shadow:var(--shadow-card);
   display:flex;flex-direction:column;position:relative;cursor:pointer;border:1px solid var(--line);transition:transform .18s, box-shadow .18s;
@@ -626,7 +626,8 @@ const state = {
   activeCategory:'all',
   heroIdx:0, heroTimer:null,
   admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null },
-  customer: JSON.parse(localStorage.getItem('pk_customer')||'{}')
+  customer: JSON.parse(localStorage.getItem('pk_customer')||'{}'),
+  _catJson:'', _prodJson:'', _banJson:''
 };
 
 /* ── API ຜ່ານ fetch() ໄປຫາ Apps Script Web App ─────────────────── */
@@ -694,6 +695,9 @@ async function init(){
     renderCategories();
     renderProducts();
     updateCartBadge();
+    state._catJson = JSON.stringify(state.categories);
+    state._prodJson = JSON.stringify(state.products);
+    state._banJson = JSON.stringify(state.banners);
     // gentle live-sync polling for the storefront
     setInterval(syncPublicData, 30000);
     if(state.admin.token){ showAdmin(); }
@@ -705,8 +709,27 @@ async function init(){
 async function syncPublicData(){
   try{
     const data = await api.getInitialData();
-    state.settings=data.settings; state.categories=data.categories; state.products=data.products; state.banners=data.banners;
-    renderCategories(); renderProducts(); renderHero();
+    state.settings = data.settings;
+
+    const newCatJson = JSON.stringify(data.categories);
+    if(newCatJson !== state._catJson){
+      state.categories = data.categories; state._catJson = newCatJson;
+      renderCategories();
+    }
+
+    const newProdJson = JSON.stringify(data.products);
+    if(newProdJson !== state._prodJson){
+      state.products = data.products; state._prodJson = newProdJson;
+      const grid = document.getElementById('product-grid');
+      grid.style.opacity = '0';
+      setTimeout(()=>{ renderProducts(); grid.style.opacity = '1'; }, 220);
+    }
+
+    const newBanJson = JSON.stringify(data.banners);
+    if(newBanJson !== state._banJson){
+      state.banners = data.banners; state._banJson = newBanJson;
+      renderHero();
+    }
   }catch(e){}
 }
 
