@@ -394,6 +394,10 @@ table.a-table tr:hover td{background:var(--c-bg);}
 .login-card h3{margin:0 0 4px;font-family:var(--font-display);}
 .login-card p{font-size:12.5px;color:var(--ink-soft);margin:0 0 20px;}
 
+/* skeleton loading placeholders */
+.skel{background:linear-gradient(110deg, var(--porcelain-2) 8%, #efe9df 18%, var(--porcelain-2) 33%);background-size:200% 100%;animation:heroShimmer 1.3s linear infinite;border-radius:12px;}
+.kpi-card.skel,.a-panel.skel,.cat-pill.skel,.pcard.skel{border:none;box-shadow:none;}
+
 /* tablet / desktop tweaks for CUSTOMER site */
 @media(min-width:720px){
   #product-grid{grid-template-columns:repeat(4,1fr);max-width:1100px;margin:0 auto;padding:6px 24px 30px;}
@@ -461,13 +465,24 @@ table.a-table tr:hover td{background:var(--c-bg);}
   <div class="section">
     <div class="section-head"><h3>🍢 ໝວດໝູ່</h3></div>
   </div>
-  <div id="category-row"></div>
+  <div id="category-row">
+    <div class="cat-pill skel" style="height:82px;"></div>
+    <div class="cat-pill skel" style="height:82px;"></div>
+    <div class="cat-pill skel" style="height:82px;"></div>
+    <div class="cat-pill skel" style="height:82px;"></div>
+    <div class="cat-pill skel" style="height:82px;"></div>
+  </div>
 
   <div class="section">
     <div class="section-head"><h3 id="grid-title">🔥 ເມນູແນະນຳ</h3></div>
     <div class="gilt-divider"><div class="ln"></div><div class="gem"></div><div class="ln"></div></div>
   </div>
-  <div id="product-grid"></div>
+  <div id="product-grid">
+    <div class="pcard skel" style="height:230px;"></div>
+    <div class="pcard skel" style="height:230px;"></div>
+    <div class="pcard skel" style="height:230px;"></div>
+    <div class="pcard skel" style="height:230px;"></div>
+  </div>
 </main>
 
 <!-- ══════════════ SEARCH SHEET ══════════════ -->
@@ -1040,11 +1055,11 @@ function renderCheckout(){
       '<div>📋 '+(s.bankAccountNumber||'-')+'</div>'+
       '<div>👤 '+(s.bankAccountHolder||'-')+'</div>'+
     '</div>'+
-    (s.bankQrUrl? '<div style="text-align:center;margin:14px 0;"><img src="'+s.bankQrUrl+'" style="width:190px;height:190px;object-fit:contain;border-radius:14px;border:1px solid var(--line);" onerror="imgFallback(this)"></div>' : '')+
+    (s.bankQrUrl? '<div style="text-align:center;margin:14px 0;"><img src="'+s.bankQrUrl+'" referrerpolicy="no-referrer" style="width:190px;height:190px;object-fit:contain;border-radius:14px;border:1px solid var(--line);" onerror="imgFallback(this)"></div>' : '')+
     '<div class="field" style="margin-top:6px;"><label>📎 ອັບໂຫລດ Slip ການໂອນ</label>'+
     '<input type="file" accept="image/*" id="co-slip" onchange="handleSlipUpload(this)">'+
     '<div id="co-slip-status" style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;"></div>'+
-    (checkoutState.slipUrl? '<img src="'+checkoutState.slipUrl+'" style="width:100%;border-radius:12px;margin-top:8px;border:1px solid var(--line);" onerror="imgFallback(this)">' : '')+
+    (checkoutState.slipUrl? '<img src="'+checkoutState.slipUrl+'" referrerpolicy="no-referrer" style="width:100%;border-radius:12px;margin-top:8px;border:1px solid var(--line);" onerror="imgFallback(this)">' : '')+
     '</div></div>'
   ) : '';
   document.getElementById('checkout-body').innerHTML =
@@ -1169,7 +1184,7 @@ async function refreshTrackedOrders(showLoading){
           const iconHtml = cls==='done'?'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>':s.ico;
           return '<div class="h-step '+cls+'"><div class="h-dot">'+iconHtml+'</div><div class="h-label">'+s.l+'</div></div>';
         }).join('')+'</div>')+
-        (o.slipUrl? '<div style="margin-top:10px;"><div style="font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:6px;">🧾 ຫຼັກຖານການໂອນ</div><img src="'+o.slipUrl+'" style="width:100%;border-radius:10px;border:1px solid var(--line);" onerror="imgFallback(this)"></div>' : '')+
+        (o.slipUrl? '<div style="margin-top:10px;background:var(--c-bg);border:1px solid var(--line);border-radius:14px;padding:12px;"><div style="font-size:12px;font-weight:800;color:var(--c-primary);margin-bottom:8px;">🧾 Slip ການໂອນ</div><img src="'+o.slipUrl+'" referrerpolicy="no-referrer" style="width:100%;border-radius:10px;border:1px solid var(--line);" onerror="imgFallback(this)"></div>' : '')+
         '<button class="btn-ghost" style="width:100%;margin-top:10px;" onclick="toggleOrderItems(\''+o.orderId+'\')">📋 ເບິ່ງລາຍການສັ່ງຊື້</button>'+
         '<div id="items-'+o.orderId+'" style="display:none;margin-top:8px;">'+
           o.items.map(it=>'<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line);"><span>'+it.name+' x'+it.qty+'</span><span class="num">'+money(it.price*it.qty)+'</span></div>').join('')+
@@ -1269,12 +1284,29 @@ function refreshAdminCurrentView(){ gotoAdminPage(state.admin.page); toast('ອ�
 /* ── dashboard ─────────────────────────────────────────────── */
 async function renderAdminDashboard(){
   const main = document.getElementById('admin-main');
-  main.innerHTML = '<p>ກຳລັງໂຫຼດ...</p>';
+  const cacheKey = 'pk_cache_admin_stats';
+  const cached = localStorage.getItem(cacheKey);
+  if(cached){
+    try{ main.innerHTML = buildDashboardHTML(JSON.parse(cached)); }catch(e){ main.innerHTML = dashboardSkeletonHTML(); }
+  } else {
+    main.innerHTML = dashboardSkeletonHTML();
+  }
   try{
     const s = await api.getDashboardStats(state.admin.token);
+    localStorage.setItem(cacheKey, JSON.stringify(s));
+    main.innerHTML = buildDashboardHTML(s);
+  }catch(e){ if(!cached) main.innerHTML='<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; console.error(e); }
+}
+function dashboardSkeletonHTML(){
+  return '<div class="kpi-grid">'+
+    '<div class="kpi-card skel" style="height:78px;"></div>'.repeat(4)+
+    '</div>'+
+    '<div class="grid-2"><div class="a-panel skel" style="height:220px;"></div><div class="a-panel skel" style="height:220px;"></div></div>'+
+    '<div class="grid-2"><div class="a-panel skel" style="height:150px;"></div><div class="a-panel skel" style="height:150px;"></div></div>';
+}
+function buildDashboardHTML(s){
     const maxDay = Math.max(1, ...Object.values(s.last7));
-    main.innerHTML =
-      '<div class="kpi-grid">'+
+    return '<div class="kpi-grid">'+
         kpi('ອອເດີມື້ນີ້', s.todayOrders, '', 'orange')+
         kpi('ຍອດຂາຍມື້ນີ້', money(s.todaySales), '', 'chili')+
         kpi('ກຳໄລເບື້ອງຕົ້ນມື້ນີ້', money(s.todayGrossProfit), '', 'herb')+
@@ -1302,7 +1334,6 @@ async function renderAdminDashboard(){
           (s.lowStock.length? s.lowStock.map(p=>'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;"><span>'+p.name+'</span><span class="num" style="color:var(--c-secondary);font-weight:700;">'+p.stock+'</span></div>').join('') : '<p style="font-size:12px;color:var(--success);">✅ ສະຕັອກທັງໝົດປົກກະຕິ</p>')+
         '</div>'+
       '</div>';
-  }catch(e){ main.innerHTML='<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; console.error(e); }
 }
 function kpi(label,val,extra,cls){
   return '<div class="kpi-card"><div class="lbl">'+label+'</div><div class="val num '+cls+'">'+val+'</div></div>';
@@ -1311,11 +1342,27 @@ function kpi(label,val,extra,cls){
 /* ── orders admin ──────────────────────────────────────────── */
 async function renderAdminOrders(){
   const main = document.getElementById('admin-main');
-  main.innerHTML = '<p>ກຳລັງໂຫຼດ...</p>';
-  const orders = await api.getOrders(state.admin.token);
-  state.admin.orders = orders;
-  main.innerHTML =
-    '<div class="a-title-row"><h2>ອອເດີທັງໝົດ ('+orders.length+')</h2></div>'+
+  const cacheKey = 'pk_cache_admin_orders';
+  const cached = localStorage.getItem(cacheKey);
+  if(cached){
+    try{ const orders = JSON.parse(cached); state.admin.orders = orders; main.innerHTML = buildOrdersTableHTML(orders); }
+    catch(e){ main.innerHTML = ordersSkeletonHTML(); }
+  } else {
+    main.innerHTML = ordersSkeletonHTML();
+  }
+  try{
+    const orders = await api.getOrders(state.admin.token);
+    localStorage.setItem(cacheKey, JSON.stringify(orders));
+    state.admin.orders = orders;
+    main.innerHTML = buildOrdersTableHTML(orders);
+  }catch(e){ if(!cached) main.innerHTML = '<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; console.error(e); }
+}
+function ordersSkeletonHTML(){
+  return '<div class="a-title-row"><div class="skel" style="width:180px;height:24px;border-radius:8px;"></div></div>'+
+    '<div class="a-panel skel" style="height:320px;"></div>';
+}
+function buildOrdersTableHTML(orders){
+  return '<div class="a-title-row"><h2>ອອເດີທັງໝົດ ('+orders.length+')</h2></div>'+
     '<div class="a-panel" style="padding:0;overflow-x:auto;"><table class="a-table"><thead><tr>'+
     '<th>ລະຫັດ</th><th>ລູກຄ້າ</th><th>ວັນທີ</th><th>ຍອດລວມ</th><th>ຊຳລະ</th><th>ສະຖານະ</th><th></th></tr></thead><tbody>'+
     orders.map(o=>
@@ -1512,7 +1559,7 @@ function renderAdminSettings(){
   '<div class="field"><label>ເລກບັນຊີ</label><input id="st-bankacc" value="'+(s.bankAccountNumber||'')+'"></div>'+
   '<div class="field"><label>ຮູບ QR (URL)</label><input id="st-bankqr" value="'+(s.bankQrUrl||'')+'"></div>'+
   '<div class="field"><label>ຫຼື ອັບໂຫລດຮູບ QR</label><input type="file" accept="image/*" onchange="handleQrUpload(this)"><div id="qr-upload-status" style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;"></div></div>'+
-  (s.bankQrUrl? '<img src="'+s.bankQrUrl+'" style="width:120px;height:120px;object-fit:contain;border-radius:12px;border:1px solid var(--line);" onerror="imgFallback(this)">' : '')+
+  (s.bankQrUrl? '<img src="'+s.bankQrUrl+'" referrerpolicy="no-referrer" style="width:120px;height:120px;object-fit:contain;border-radius:12px;border:1px solid var(--line);" onerror="imgFallback(this)">' : '')+
   '</div>'+
   '<div class="a-panel"><h4>🎨 ຮູບແບບສີ (Theme Presets)</h4>'+
   '<div class="grid-3" id="preset-grid">'+Object.keys(PRESETS).map(name=>{
