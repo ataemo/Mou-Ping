@@ -390,7 +390,6 @@ table.a-table tr:hover td{background:var(--c-bg);}
 </head>
 <body data-dark="false">
 
-<div id="loader"><div class="ember-spin"></div><p>ກຳລັງໂຫຼດຮ້ານ...</p></div>
 <div id="toast-wrap"></div>
 <div class="overlay" id="overlay"></div>
 
@@ -685,12 +684,11 @@ async function init(){
     renderCategories();
     renderProducts();
     updateCartBadge();
-    document.getElementById('loader').classList.add('hide');
     // gentle live-sync polling for the storefront
     setInterval(syncPublicData, 30000);
     if(state.admin.token){ showAdmin(); }
   }catch(e){
-    document.getElementById('loader').innerHTML = '<p style="color:#fff">ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ. ກະລຸນາໂຫຼດໃໝ່.</p>';
+    toast('ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ ກະລຸນາໂຫຼດໃໝ່','⚠️');
     console.error(e);
   }
 }
