@@ -130,6 +130,16 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .icon-btn:hover{background:rgba(255,255,255,.14);}
 .icon-btn:active{transform:scale(.93);}
 .badge-dot{position:absolute;top:-4px;right:-4px;background:var(--c-accent);color:var(--charcoal);font-size:10px;font-weight:800;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;font-family:var(--font-num);box-shadow:0 0 0 2px var(--c-header);}
+/* ເອົາໄອຄອນອໍເດີ+ກະຕ່າອອກຈາກ header ໃນໂໝດມືຖື (ຊ້ຳກັບ bottom-nav) */
+@media(max-width:719px){
+  #btn-orders, #btn-cart{ display:none; }
+}
+.nav-badge{
+  position:absolute;top:2px;right:20px;background:var(--c-accent);color:var(--charcoal);
+  font-size:10px;font-weight:800;min-width:16px;height:16px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;padding:0 4px;
+  font-family:var(--font-num);box-shadow:0 0 0 2px var(--glass);
+}
 
 /* ── hero slider ────────────────────────────────────────────── */
 #hero{position:relative;margin:14px;border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-card);aspect-ratio:16/10;
@@ -247,6 +257,22 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .qty-row{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
 .qty-btn{width:38px;height:38px;border-radius:12px;border:1.5px solid var(--line);background:var(--c-bg);font-size:18px;display:flex;align-items:center;justify-content:center;font-weight:700;}
 .qty-val{font-size:17px;font-weight:700;min-width:24px;text-align:center;font-family:var(--font-num);}
+.pd-options{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;}
+.pd-options-title{font-size:12.5px;font-weight:800;color:var(--ink-soft);margin-bottom:2px;}
+.opt-chip{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--c-bg);cursor:pointer;transition:.15s;}
+.opt-chip.selected{border-color:var(--c-accent);background:color-mix(in srgb, var(--c-accent) 10%, var(--c-bg));}
+.opt-chip .opt-check{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;flex:none;background:var(--c-surface);}
+.opt-chip.selected .opt-check{background:var(--c-accent);border-color:var(--c-accent);color:var(--charcoal);}
+.opt-chip .opt-check svg{width:13px;height:13px;opacity:0;}
+.opt-chip.selected .opt-check svg{opacity:1;}
+.opt-chip .opt-name{flex:1;font-size:13px;font-weight:700;margin:0 10px;}
+.opt-chip .opt-price{font-size:12.5px;font-weight:800;color:var(--c-primary);font-family:var(--font-num);}
+.ci-extra{font-size:11px;color:var(--ink-soft);margin-top:4px;line-height:1.5;}
+.od-item-extra{font-size:11px;color:var(--ink-soft);margin-top:3px;line-height:1.5;}
+.pf-opt-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+.pf-opt-row input{flex:1;}
+.pf-opt-row input.pf-opt-price{max-width:110px;flex:none;}
+.pf-opt-remove{width:34px;height:34px;border-radius:10px;border:none;background:#FBDADA;color:var(--danger);flex:none;font-weight:800;}
 .btn-primary{
   background:linear-gradient(135deg,var(--c-primary),color-mix(in srgb, var(--c-primary) 65%, var(--c-accent)));color:#fff;border:none;border-radius:15px;
   padding:14px;font-weight:800;font-size:14.5px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
@@ -265,6 +291,9 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .cart-item .ci-price{font-size:12px;color:var(--c-primary);font-weight:700;font-family:var(--font-num);}
 .cart-item .ci-qty{display:flex;align-items:center;gap:8px;margin-top:6px;}
 .mini-qty-btn{width:25px;height:25px;border-radius:8px;border:1px solid var(--line);background:var(--c-bg);display:flex;align-items:center;justify-content:center;font-size:14px;}
+.ci-del-btn{margin-left:auto;background:none;border:none;color:var(--danger);width:27px;height:27px;display:flex;align-items:center;justify-content:center;border-radius:8px;flex:none;}
+.ci-del-btn svg{width:15px;height:15px;}
+.ci-del-btn:active{background:#FBDADA;transform:scale(.92);}
 .summary-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;color:var(--ink-soft);}
 .summary-row.total{font-size:16.5px;font-weight:800;color:var(--c-text);border-top:1px dashed var(--line);margin-top:6px;padding-top:11px;}
 .summary-row .num{font-family:var(--font-num);}
@@ -710,6 +739,7 @@ function applyAllIcons(){
   document.getElementById('nav-menu').innerHTML = iconHtml('grid')+'<span>ເມນູ</span>';
   document.getElementById('nav-orders').innerHTML = iconHtml('orders')+'<span>ອອເດີ</span>';
   document.getElementById('nav-cart').innerHTML = iconHtml('cart')+'<span>ກະຕ່າ</span>';
+  document.getElementById('nav-cart').innerHTML = iconHtml('cart')+'<span class="nav-badge" id="nav-cart-badge" style="display:none;">0</span><span>ກະຕ່າ</span>';
   document.getElementById('nav-account').innerHTML = iconHtml('account')+'<span>ບັນຊີ</span>';
   const sb = {dashboard:'dashboard', orders:'a_orders', products:'a_products', categories:'a_categories', banners:'a_banners', settings:'a_settings'};
   const labels = {dashboard:'Dashboard', orders:'ອອເດີ', products:'ສິນຄ້າ', categories:'ໝວດໝູ່', banners:'Banner', settings:'ຮ້ານ &amp; ໂຕນຮັບ'};
@@ -1042,26 +1072,55 @@ function setNav(el){ document.querySelectorAll('.nav-btn').forEach(b=>b.classLis
 /* ═══════════════════════════════════════════════════════════════
    PRODUCT DETAIL
    ═══════════════════════════════════════════════════════════════ */
-let pdQty = 1, pdProduct = null;
+let pdQty = 1, pdProduct = null, pdSelectedOptions = [], pdNote = '';
+let pfOptionsList = [];
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function openProductDetail(id){
   pdProduct = state.products.find(p=>p.id===id);
   if(!pdProduct) return;
-  pdQty = 1;
+  pdQty = 1; pdSelectedOptions = []; pdNote = '';
   renderPD();
   openSheet('pd');
 }
 function renderPD(){
   const p = pdProduct;
   const promo = Number(p.promoPrice)>0 && Number(p.promoPrice)<Number(p.regularPrice);
+  const basePrice = promo? Number(p.promoPrice): Number(p.regularPrice);
+  let opts = []; try{ opts = JSON.parse(p.options||'[]'); }catch(e){ opts=[]; }
+  const optSum = pdSelectedOptions.reduce((s,o)=>s+Number(o.price||0),0);
+  const unitPrice = basePrice + optSum;
   document.getElementById('pd-body').innerHTML =
     '<div class="pd-gallery"><img src="'+p.image+'"></div>'+
     '<h2 class="pd-title">'+p.name+'</h2>'+
     '<p class="pd-desc">'+(p.description||'')+'</p>'+
-    '<div class="pd-price"><span class="now">'+money(promo?p.promoPrice:p.regularPrice)+'</span>'+(promo?'<span class="old">'+money(p.regularPrice)+'</span>':'')+'</div>'+
+    '<div class="pd-price"><span class="now">'+money(unitPrice)+'</span>'+(promo?'<span class="old">'+money(p.regularPrice)+'</span>':'')+'</div>'+
+    (opts.length? '<div class="pd-options"><div class="pd-options-title">✨ ຕົວເລືອກເພີ່ມເຕີມ</div>'+
+      opts.map((o,i)=>{
+        const sel = pdSelectedOptions.some(s=>s.name===o.name);
+        return '<div class="opt-chip '+(sel?'selected':'')+'" onclick="pdToggleOption('+i+')">'+
+          '<div class="opt-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></div>'+
+          '<div class="opt-name">'+o.name+'</div>'+
+          '<div class="opt-price">+'+money(o.price)+'</div>'+
+        '</div>';
+      }).join('')+
+    '</div>' : '')+
+    '<div class="field"><label>📝 ໝາຍເຫດ (ລະບຸຄວາມຕ້ອງການ)</label><textarea id="pd-note" placeholder="ເຊັ່ນ: ບໍ່ເອົາຜັກ, ເຜັດໜ້ອຍ..." oninput="pdNote=this.value">'+escapeHtml(pdNote)+'</textarea></div>'+
     '<div class="qty-row"><button class="qty-btn" onclick="pdChangeQty(-1)">−</button><span class="qty-val" id="pd-qty-val">'+pdQty+'</span><button class="qty-btn" onclick="pdChangeQty(1)">+</button>'+
     '<span style="font-size:12px;color:var(--ink-soft);margin-left:auto;">ຄົງເຫຼືອ: '+p.stock+' '+(p.unit||'')+'</span></div>'+
-    '<div style="display:flex;gap:10px;"><button class="btn-secondary" onclick="addToCart(pdProduct,pdQty);closeSheet(\'pd\')">ໃສ່ກະຕ່າ</button>'+
-    '<button class="btn-primary" onclick="addToCart(pdProduct,pdQty);closeSheet(\'pd\');openCart();">ສັ່ງເລີຍ</button></div>';
+    '<div style="display:flex;gap:10px;"><button class="btn-secondary" onclick="pdAddToCart(false)">ໃສ່ກະຕ່າ</button>'+
+    '<button class="btn-primary" onclick="pdAddToCart(true)">ສັ່ງເລີຍ</button></div>';
+}
+function pdToggleOption(i){
+  let opts = []; try{ opts = JSON.parse(pdProduct.options||'[]'); }catch(e){ opts=[]; }
+  const o = opts[i];
+  const idx = pdSelectedOptions.findIndex(s=>s.name===o.name);
+  if(idx>-1) pdSelectedOptions.splice(idx,1); else pdSelectedOptions.push({name:o.name, price:Number(o.price)||0});
+  renderPD();
+}
+function pdAddToCart(goToCart){
+  addToCart(pdProduct, pdQty, pdSelectedOptions, pdNote);
+  closeSheet('pd');
+  if(goToCart) openCart();
 }
 function pdChangeQty(d){
   pdQty = Math.max(1, Math.min(Number(pdProduct.stock)||99, pdQty+d));
@@ -1072,7 +1131,7 @@ function quickAdd(id){
   if(p){ addToCart(p,1); toast(p.name+' ໃສ່ກະຕ່າແລ້ວ','🛒'); rerenderCardQty(id); }
 }
 function cartQtyFor(id){
-  const item = state.cart.find(i=>i.id===id);
+  const item = state.cart.find(i=>i.id===id && !i._optKey && !i.note);
   return item ? item.qty : 0;
 }
 function gridIncrease(id){
@@ -1084,10 +1143,10 @@ function gridIncrease(id){
   rerenderCardQty(id);
 }
 function gridDecrease(id){
-  const item = state.cart.find(i=>i.id===id);
+  const item = state.cart.find(i=>i.id===id && !i._optKey && !i.note);
   if(!item) return;
   item.qty -= 1;
-  if(item.qty<=0) state.cart = state.cart.filter(i=>i.id!==id);
+  if(item.qty<=0) state.cart = state.cart.filter(i=>i!==item);
   saveCart();
   rerenderCardQty(id);
 }
@@ -1136,10 +1195,14 @@ function draftVal(id, fallback){
 
 function openCart(){ renderCartBody(); openSheet('cart'); }
 
-function cartItemRowHtml(i){
+function cartItemRowHtml(i, idx){
+  const extra = [];
+  if(i.options && i.options.length) extra.push('✨ '+i.options.map(o=>o.name+' (+'+money(o.price)+')').join(', '));
+  if(i.note) extra.push('📝 '+escapeHtml(i.note));
   return '<div class="cart-item"><img src="'+i.image+'"><div class="ci-body"><div class="ci-name">'+i.name+'</div><div class="ci-price num">'+money(i.price)+'</div>'+
-    '<div class="ci-qty"><button class="mini-qty-btn" onclick="changeCartQty(\''+i.id+'\',-1)">−</button><span class="num">'+i.qty+'</span><button class="mini-qty-btn" onclick="changeCartQty(\''+i.id+'\',1)">+</button>'+
-    '<button style="margin-left:auto;background:none;border:none;color:var(--c-secondary);font-size:11px;" onclick="removeCartItem(\''+i.id+'\')">ລຶບ</button></div></div></div>';
+    (extra.length? '<div class="ci-extra">'+extra.join('<br>')+'</div>' : '')+
+    '<div class="ci-qty"><button class="mini-qty-btn" onclick="changeCartQty('+idx+',-1)">−</button><span class="num">'+i.qty+'</span><button class="mini-qty-btn" onclick="changeCartQty('+idx+',1)">+</button>'+
+    '<button class="ci-del-btn" onclick="removeCartItem('+idx+')" title="ລຶບ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg></button></div></div></div>';
 }
 
 function checkoutFormHtml(){
@@ -1206,39 +1269,47 @@ function initAddressSelectors(){
   if(provSel && provSel.value) onProvinceChange();
 }
 
-function cartSummaryHtml(t){
+function cartTotalsHtml(t){
   return '<div class="gilt-divider" style="margin:16px 0 10px;"><div class="ln"></div><div class="gem"></div><div class="ln"></div></div>'+
     '<div class="summary-row"><span>ລວມຍ່ອຍ</span><span class="num">'+money(t.subtotal)+'</span></div>'+
     '<div class="summary-row"><span>ຄ່າສົ່ງ</span><span class="num">'+money(t.deliveryFee)+'</span></div>'+
     (t.serviceFee?'<div class="summary-row"><span>ຄ່າບໍລິການ</span><span class="num">'+money(t.serviceFee)+'</span></div>':'')+
     (t.tax?'<div class="summary-row"><span>ພາສີ</span><span class="num">'+money(t.tax)+'</span></div>':'')+
-    '<div class="summary-row total"><span>ລວມທັງໝົດ</span><span class="num">'+money(t.total)+'</span></div>'+
-    '<button class="btn-primary" style="margin-top:14px;" onclick="submitOrder()">ຢືນຢັນສັ່ງຊື້ 🛵</button>';
+    '<div class="summary-row total"><span>ລວມທັງໝົດ</span><span class="num">'+money(t.total)+'</span></div>';
+}
+function submitButtonHtml(){
+  return '<button class="btn-primary" style="margin-top:16px;" onclick="submitOrder()">ຢືນຢັນສັ່ງຊື້ 🛵</button>';
 }
 
 function saveCart(){ localStorage.setItem('pk_cart', JSON.stringify(state.cart)); updateCartBadge(); }
 function updateCartBadge(){
   const count = state.cart.reduce((s,i)=>s+i.qty,0);
   const badge = document.getElementById('cart-badge');
-  if(!badge) return;
-  if(count>0){ badge.style.display='flex'; badge.textContent=count; } else { badge.style.display='none'; }
+  const navBadge = document.getElementById('nav-cart-badge');
+  if(badge){ badge.style.display = count>0 ? 'flex' : 'none'; badge.textContent = count; }
+  if(navBadge){ navBadge.style.display = count>0 ? 'flex' : 'none'; navBadge.textContent = count; }
 }
-function addToCart(p, qty){
+function addToCart(p, qty, options, note){
+  options = options || []; note = note || '';
   const promo = Number(p.promoPrice)>0 && Number(p.promoPrice)<Number(p.regularPrice);
-  const price = promo? Number(p.promoPrice): Number(p.regularPrice);
-  const existing = state.cart.find(i=>i.id===p.id);
-  if(existing){ existing.qty += qty; } else { state.cart.push({id:p.id, name:p.name, image:p.image, price:price, qty:qty}); }
+  const basePrice = promo? Number(p.promoPrice): Number(p.regularPrice);
+  const optSum = options.reduce((s,o)=>s+Number(o.price||0),0);
+  const unitPrice = basePrice + optSum;
+  const optKey = options.map(o=>o.name).sort().join('|');
+  const existing = state.cart.find(i=>i.id===p.id && (i._optKey||'')===optKey && (i.note||'')===note);
+  if(existing){ existing.qty += qty; }
+  else { state.cart.push({id:p.id, name:p.name, image:p.image, price:unitPrice, qty:qty, options:options, note:note, _optKey:optKey}); }
   saveCart();
 }
-function changeCartQty(id, d){
+function changeCartQty(idx, d){
   captureCheckoutDraft();
-  const item = state.cart.find(i=>i.id===id);
+  const item = state.cart[idx];
   if(!item) return;
   item.qty += d;
-  if(item.qty<=0) state.cart = state.cart.filter(i=>i.id!==id);
+  if(item.qty<=0) state.cart.splice(idx,1);
   saveCart(); renderCartBody();
 }
-function removeCartItem(id){ captureCheckoutDraft(); state.cart = state.cart.filter(i=>i.id!==id); saveCart(); renderCartBody(); }
+function removeCartItem(idx){ captureCheckoutDraft(); state.cart.splice(idx,1); saveCart(); renderCartBody(); }
 
 function cartTotals(){
   const subtotal = state.cart.reduce((s,i)=>s+i.price*i.qty,0);
@@ -1257,9 +1328,10 @@ function renderCartBody(){
   }
   const t = cartTotals();
   body.innerHTML =
-    state.cart.map(i=>cartItemRowHtml(i)).join('') +
+    state.cart.map((i,idx)=>cartItemRowHtml(i,idx)).join('') +
+    cartTotalsHtml(t) +
     checkoutFormHtml() +
-    cartSummaryHtml(t);
+    submitButtonHtml();
   initAddressSelectors();
 }
 
@@ -1321,7 +1393,7 @@ async function submitOrder(){
   const orderInput = {
     customerName:name, phone:phone, address:address,
     orderType:checkoutState.orderType,
-    items: state.cart.map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty})),
+    items: state.cart.map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty,options:i.options||[],note:i.note||''})),
     subtotal:t.subtotal, discount:0, deliveryFee:t.deliveryFee, serviceFee:t.serviceFee, tax:t.tax, total:t.total,
     paymentMethod:checkoutState.payment, slipUrl:uploadedSlipUrl,
     note:document.getElementById('co-note').value.trim(), branch:'Main'
@@ -1406,7 +1478,15 @@ async function refreshTrackedOrders(showLoading){
         (o.slipUrl? '<div style="margin-top:10px;background:var(--c-bg);border:1px solid var(--line);border-radius:14px;padding:12px;"><div style="font-size:12px;font-weight:800;color:var(--c-primary);margin-bottom:8px;">🧾 Slip ການໂອນ</div><img src="'+o.slipUrl+'" referrerpolicy="no-referrer" style="width:100%;border-radius:10px;border:1px solid var(--line);" onerror="imgFallback(this)"></div>' : '')+
         '<button class="btn-ghost" style="width:100%;margin-top:10px;" onclick="toggleOrderItems(\''+o.orderId+'\')">📋 ເບິ່ງລາຍການສັ່ງຊື້</button>'+
         '<div id="items-'+o.orderId+'" style="display:'+(trackExpandedIds.has(o.orderId)?'block':'none')+';margin-top:8px;">'+
-          o.items.map(it=>'<div style="display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;border-bottom:1px solid var(--line);"><span>'+it.name+' x'+it.qty+'</span><span class="num">'+money(it.price*it.qty)+'</span></div>').join('')+
+          o.items.map(function(it){
+            const extra=[];
+            if(it.options && it.options.length) extra.push('✨ '+it.options.map(function(op){return op.name;}).join(', '));
+            if(it.note) extra.push('📝 '+it.note);
+            return '<div style="padding:4px 0;border-bottom:1px solid var(--line);">'+
+              '<div style="display:flex;justify-content:space-between;font-size:12.5px;"><span>'+it.name+' x'+it.qty+'</span><span class="num">'+money(it.price*it.qty)+'</span></div>'+
+              (extra.length? '<div style="font-size:10.5px;color:var(--ink-soft);margin-top:2px;">'+extra.join(' · ')+'</div>' : '')+
+            '</div>';
+          }).join('')+
           '<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:800;padding:8px 0 0;margin-top:4px;border-top:1px dashed var(--line);"><span>ລວມທັງໝົດ</span><span class="num" style="color:var(--c-primary);">'+money(o.total)+'</span></div>'+
         '</div></div>';
     }).join('');
@@ -1689,9 +1769,17 @@ function openOrderDetailModal(orderId){
       '<div class="od-row"><span class="od-label">ສະຖານະ</span><span class="pill '+o.orderStatus+'">'+label+'</span></div>'+
       (o.note? '<div class="od-row"><span class="od-label">ໝາຍເຫດ</span><span class="od-value">'+o.note+'</span></div>' : '')+
       '<h4 style="margin:16px 0 6px;font-size:13.5px;">🧾 ລາຍການສິນຄ້າ</h4>'+
-      o.items.map(it=>
-        '<div class="od-item"><div class="od-item-img">🍖</div><div class="od-item-name">'+it.name+' <span style="color:var(--ink-soft);">x'+it.qty+'</span></div><div class="od-item-price">'+money(it.price*it.qty)+'</div></div>'
-      ).join('')+
+      o.items.map(function(it){
+        const extra=[];
+        if(it.options && it.options.length) extra.push('✨ '+it.options.map(function(op){return op.name+' (+'+money(op.price)+')';}).join(', '));
+        if(it.note) extra.push('📝 '+it.note);
+        return '<div class="od-item" style="align-items:flex-start;">'+
+          '<div class="od-item-img">🍖</div>'+
+          '<div class="od-item-name">'+it.name+' <span style="color:var(--ink-soft);">x'+it.qty+'</span>'+
+          (extra.length? '<div class="od-item-extra">'+extra.join('<br>')+'</div>' : '')+
+          '</div>'+
+          '<div class="od-item-price">'+money(it.price*it.qty)+'</div></div>';
+      }).join('')+
       '<div class="od-row" style="margin-top:6px;"><span class="od-label">ຄ່າສົ່ງ</span><span class="od-value">'+money(o.deliveryFee)+'</span></div>'+
       '<div class="od-row total" style="font-size:16px;"><span class="od-label" style="font-weight:800;color:var(--c-text);">ລວມທັງໝົດ</span><span class="od-value" style="color:var(--c-primary);">'+money(o.total)+'</span></div>'+
       '<h4 style="margin:18px 0 8px;font-size:13.5px;">🔄 ອັບເດດສະຖານະ</h4>'+
@@ -1736,7 +1824,12 @@ function buildReceiptHTML(o){
     (o.address? '<br><b>ທີ່ຢູ່:</b> '+o.address : '')+'</div>'+
     '<div class="rc-dashed"></div>'+
     '<table><thead><tr><th>ສິນຄ້າ</th><th>ຈຳນວນ</th><th>ລາຄາ</th><th>ລວມ</th></tr></thead><tbody>'+
-    o.items.map(it=>'<tr><td>'+it.name+'</td><td>×'+it.qty+'</td><td>'+money(it.price)+'</td><td>'+money(it.price*it.qty)+'</td></tr>').join('')+
+    o.items.map(function(it){
+      const extra=[];
+      if(it.options && it.options.length) extra.push('✨ '+it.options.map(function(op){return op.name+' (+'+money(op.price)+')';}).join(', '));
+      if(it.note) extra.push('📝 '+it.note);
+      return '<tr><td>'+it.name+(extra.length?'<br><span style="font-size:10.5px;color:#8A7C6C;font-weight:400;">'+extra.join('<br>')+'</span>':'')+'</td><td>×'+it.qty+'</td><td>'+money(it.price)+'</td><td>'+money(it.price*it.qty)+'</td></tr>';
+    }).join('')+
     '</tbody></table>'+
     '<div class="rc-dashed"></div>'+
     '<div style="display:flex;justify-content:space-between;font-size:12.5px;"><span>ຄ່າສິນຄ້າ</span><span>'+money(o.subtotal)+'</span></div>'+
@@ -1800,7 +1893,8 @@ async function renderAdminProducts(){
   }).join('');
 }
 function openProductForm(p){
-  p = p || {id:'',sku:'',name:'',categoryId:state.categories[0]?.id||'',description:'',image:'',regularPrice:0,promoPrice:0,costPrice:0,stock:0,minStock:5,unit:'ຈານ',badgeNew:false,badgeBestSeller:false,badgePromotion:false,status:'active',sortOrder:state.products.length+1};
+  p = p || {id:'',sku:'',name:'',categoryId:state.categories[0]?.id||'',description:'',image:'',regularPrice:0,promoPrice:0,costPrice:0,stock:0,minStock:5,unit:'ຈານ',badgeNew:false,badgeBestSeller:false,badgePromotion:false,status:'active',sortOrder:state.products.length+1,options:'[]'};
+  try{ pfOptionsList = JSON.parse(p.options||'[]'); }catch(e){ pfOptionsList = []; }
   const holder = document.getElementById('product-form-holder');
   holder.innerHTML = '<div class="overlay show" onclick="this.nextElementSibling.remove();this.remove();"></div>'+
   '<div class="sheet show" style="position:fixed;">'+
@@ -1827,10 +1921,29 @@ function openProductForm(p){
       '<label class="seg-btn" style="display:flex;gap:5px;align-items:center;justify-content:center;"><input type="checkbox" id="pf-new" '+(p.badgeNew?'checked':'')+'> ໃໝ່</label>'+
       '<label class="seg-btn" style="display:flex;gap:5px;align-items:center;justify-content:center;"><input type="checkbox" id="pf-best" '+(p.badgeBestSeller?'checked':'')+'> ຂາຍດີ</label>'+
     '</div></div>'+
+    '<div class="field"><label>✨ ຕົວເລືອກເພີ່ມເຕີມ (ລູກຄ້າເລືອກເພີ່ມໄດ້)</label>'+
+    '<div id="pf-options-holder"></div>'+
+    '<button type="button" class="btn-ghost" style="width:100%;" onclick="addPfOption()">+ ເພີ່ມຕົວເລືອກ</button>'+
+    '</div>'+
     '<div class="field"><label>ສະຖານະ</label><select id="pf-status"><option value="active" '+(p.status==='active'?'selected':'')+'>ເປີດຂາຍ</option><option value="inactive" '+(p.status==='inactive'?'selected':'')+'>ປິດຂາຍ</option></select></div>'+
     '<button class="btn-primary" onclick="submitProductForm(\''+p.id+'\')">ບັນທຶກ</button>'+
   '</div></div>';
+  renderPfOptions();
 }
+function renderPfOptions(){
+  const holder = document.getElementById('pf-options-holder');
+  if(!holder) return;
+  if(pfOptionsList.length===0){ holder.innerHTML='<p style="font-size:11.5px;color:var(--ink-soft);margin:0 0 8px;">ຍັງບໍ່ມີຕົວເລືອກ — ກົດ "ເພີ່ມຕົວເລືອກ" ຂ້າງລຸ່ມ</p>'; return; }
+  holder.innerHTML = pfOptionsList.map((o,i)=>
+    '<div class="pf-opt-row">'+
+      '<input placeholder="ຊື່ຕົວເລືອກ ເຊັ່ນ: ເພີ່ມໄຂ່ດາວ" value="'+(o.name||'')+'" oninput="pfOptionsList['+i+'].name=this.value">'+
+      '<input class="pf-opt-price" type="number" placeholder="ລາຄາ" value="'+(o.price||0)+'" oninput="pfOptionsList['+i+'].price=Number(this.value)||0">'+
+      '<button type="button" class="pf-opt-remove" onclick="removePfOption('+i+')">✕</button>'+
+    '</div>'
+  ).join('');
+}
+function addPfOption(){ pfOptionsList.push({name:'',price:0}); renderPfOptions(); }
+function removePfOption(i){ pfOptionsList.splice(i,1); renderPfOptions(); }
 function closeProductForm(){ document.getElementById('product-form-holder').innerHTML=''; }
 async function submitProductForm(id){
   const p = {
@@ -1838,7 +1951,8 @@ async function submitProductForm(id){
     regularPrice:Number(val('pf-price'))||0, promoPrice:Number(val('pf-promo'))||0, costPrice:Number(val('pf-cost'))||0,
     stock:Number(val('pf-stock'))||0, minStock:Number(val('pf-minstock'))||0, unit:val('pf-unit'),
     badgeNew:document.getElementById('pf-new').checked, badgeBestSeller:document.getElementById('pf-best').checked, badgePromotion:false,
-    status:val('pf-status'), sortOrder:state.products.length+1
+    status:val('pf-status'), sortOrder:state.products.length+1,
+    options: JSON.stringify(pfOptionsList.filter(o=>o.name && o.name.trim()))
   };
   state.products = await api.saveProduct(state.admin.token, p);
   closeProductForm(); renderAdminProducts(); toast('ບັນທຶກສິນຄ້າແລ້ວ','✅');
