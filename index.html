@@ -171,10 +171,10 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .section-head .see-all{font-size:12px;color:var(--c-primary);font-weight:700;}
 
 /* ── categories ─────────────────────────────────────────────── */
-#category-row{display:flex;gap:10px;overflow-x:auto;padding:6px 16px 14px;scrollbar-width:none;}
+#category-row,#category-row-menu{display:flex;gap:10px;overflow-x:auto;padding:6px 16px 14px;scrollbar-width:none;}
 .cat-pill{
-  flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;
-  width:70px;padding:12px 4px 9px;border-radius:18px;background:var(--c-surface);
+  flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  width:74px;min-height:100px;padding:16px 4px;border-radius:18px;background:var(--c-surface);
   border:1px solid var(--line);cursor:pointer;transition:.18s;box-shadow:var(--shadow-soft);
 }
 .cat-pill .ico{font-size:22px;}
@@ -182,7 +182,7 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .cat-pill.active{background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));border-color:transparent;color:#fff;box-shadow:0 10px 22px -8px rgba(181,82,42,.55);transform:translateY(-2px);}
 
 /* ── product grid ───────────────────────────────────────────── */
-#product-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;padding:6px 16px 22px;transition:opacity .3s ease;}
+#product-grid,#product-grid-menu{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;padding:6px 16px 22px;transition:opacity .3s ease;}
 .pcard{
   background:var(--c-surface);border-radius:var(--radius-m);overflow:hidden;box-shadow:var(--shadow-card);
   display:flex;flex-direction:column;position:relative;cursor:pointer;border:1px solid var(--line);transition:transform .18s, box-shadow .18s;
@@ -211,8 +211,8 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
   margin-top:6px;width:35px;height:35px;border-radius:12px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));color:#fff;border:none;
   display:flex;align-items:center;justify-content:center;position:absolute;right:11px;bottom:11px;box-shadow:0 8px 18px -6px rgba(181,82,42,.6);
 }
-.pcard .addbtn svg{width:16px;height:16px;}
-.pcard .addbtn{width:40px;height:40px;background:linear-gradient(135deg,var(--c-accent),#F0C875);color:var(--charcoal);box-shadow:0 10px 22px -8px rgba(199,154,73,.65);}
+.pcard .addbtn svg{width:13px;height:13px;}
+.pcard .addbtn{width:30px;height:30px;border-radius:10px;background:linear-gradient(135deg,var(--c-accent),#F0C875);color:var(--charcoal);box-shadow:0 8px 16px -6px rgba(199,154,73,.65);}
 .qty-stepper{position:absolute;right:11px;bottom:11px;display:flex;align-items:center;gap:9px;
   background:var(--c-surface);border:1.5px solid var(--c-accent);border-radius:100px;padding:6px 11px;
   box-shadow:0 10px 22px -8px rgba(0,0,0,.3);z-index:2;}
@@ -506,8 +506,8 @@ table.a-table tr:hover td{background:var(--c-bg);}
 
 /* tablet / desktop tweaks for CUSTOMER site */
 @media(min-width:720px){
-  #product-grid{grid-template-columns:repeat(4,1fr);max-width:1100px;margin:0 auto;padding:6px 24px 30px;}
-  #category-row{max-width:1100px;margin:0 auto;padding:6px 24px 14px;}
+  #product-grid,#product-grid-menu{grid-template-columns:repeat(4,1fr);max-width:1100px;margin:0 auto;padding:6px 24px 30px;}
+  #category-row,#category-row-menu{max-width:1100px;margin:0 auto;padding:6px 24px 14px;}
   #hero{max-width:1100px;margin:14px auto;aspect-ratio:21/8;}
   .section{max-width:1100px;margin:0 auto;padding-left:24px;padding-right:24px;}
   #bottom-nav{display:none;}
@@ -546,7 +546,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
   <div class="sheet-head"><h3>ເມນູ</h3><button class="sheet-close" onclick="closeHamburger()">✕</button></div>
   <div class="sheet-body">
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <button class="btn-ghost" onclick="scrollToId('hero');closeHamburger();" style="text-align:left;">🏠 ໜ້າຫຼັກ</button>
+      <button class="btn-ghost" onclick="closeMenuPage();scrollToId('hero');closeHamburger();" style="text-align:left;">🏠 ໜ້າຫຼັກ</button>
       <button class="btn-ghost" onclick="openTrackSheet();closeHamburger();" style="text-align:left;">📦 ຕິດຕາມອອເດີ</button>
       <button class="btn-ghost" onclick="openAccountSheet();closeHamburger();" style="text-align:left;">👤 ບັນຊີຂອງຂ້ອຍ</button>
       <button class="btn-ghost" onclick="toggleDarkMode();closeHamburger();" style="text-align:left;">🌓 ໂໝດມືດ / ສະຫວ່າງ</button>
@@ -589,6 +589,20 @@ table.a-table tr:hover td{background:var(--c-bg);}
     <div class="pcard skel" style="height:230px;"></div>
     <div class="pcard skel" style="height:230px;"></div>
   </div>
+</main>
+
+<!-- ══════════════ MENU VIEW (ໜ້າເມນູແຍກຕ່າງຫາກ) ══════════════ -->
+<main id="view-menu" style="display:none;">
+  <div class="section" style="padding-top:16px;">
+    <div class="section-head"><h3>🍽️ ໝວດໝູ່ອາຫານ</h3></div>
+  </div>
+  <div id="category-row-menu"></div>
+
+  <div class="section">
+    <div class="section-head"><h3 id="grid-title-menu">ເມນູທັງໝົດ</h3></div>
+    <div class="gilt-divider"><div class="ln"></div><div class="gem"></div><div class="ln"></div></div>
+  </div>
+  <div id="product-grid-menu"></div>
 </main>
 
 <!-- ══════════════ SEARCH SHEET ══════════════ -->
@@ -665,8 +679,8 @@ table.a-table tr:hover td{background:var(--c-bg);}
 
 <!-- ══════════════ BOTTOM NAV (mobile) ══════════════ -->
 <nav id="bottom-nav">
-  <button class="nav-btn active" onclick="setNav(this);scrollToId('hero')" id="nav-home"><span>ໜ້າຫຼັກ</span></button>
-  <button class="nav-btn" onclick="setNav(this);scrollToId('product-grid')" id="nav-menu"><span>ເມນູ</span></button>
+  <button class="nav-btn active" onclick="setNav(this);closeMenuPage();scrollToId('hero')" id="nav-home"><span>ໜ້າຫຼັກ</span></button>
+  <button class="nav-btn" onclick="setNav(this);openMenuPage()" id="nav-menu"><span>ເມນູ</span></button>
   <button class="nav-btn" onclick="setNav(this);openTrackSheet()" id="nav-orders"><span>ອອເດີ</span></button>
   <button class="nav-btn" onclick="setNav(this);openCart()" id="nav-cart"><span>ກະຕ່າ</span></button>
   <button class="nav-btn" onclick="setNav(this);openAccountSheet()" id="nav-account"><span>ບັນຊີ</span></button>
@@ -793,6 +807,7 @@ const state = {
   cart: JSON.parse(localStorage.getItem('pk_cart')||'[]'),
   wishlist: JSON.parse(localStorage.getItem('pk_wishlist')||'[]'),
   activeCategory:'all',
+  menuActiveCategory:'all',
   heroIdx:0, heroTimer:null,
   admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'' },
   customer: JSON.parse(localStorage.getItem('pk_customer')||'{}'),
@@ -1059,6 +1074,55 @@ function renderProducts(){
 }
 function openSearch(){ openSheet('search'); setTimeout(()=>document.getElementById('search-input').focus(),300); }
 
+/* ═══════════ ໜ້າເມນູແຍກຕ່າງຫາກ (Full Menu Page) ═══════════ */
+function openMenuPage(){
+  document.getElementById('view-customer').style.display = 'none';
+  document.getElementById('view-menu').style.display = 'block';
+  renderMenuCategories();
+  renderMenuProducts();
+  window.scrollTo({top:0, behavior:'instant'});
+}
+function closeMenuPage(){
+  document.getElementById('view-menu').style.display = 'none';
+  document.getElementById('view-customer').style.display = 'block';
+}
+function renderMenuCategories(){
+  const row = document.getElementById('category-row-menu');
+  const cats = (state.categories||[]).filter(c=>c.status==='active').sort((a,b)=>a.sortOrder-b.sortOrder);
+  let html = '<div class="cat-pill '+(state.menuActiveCategory==='all'?'active':'')+'" onclick="selectMenuCategory(\'all\')"><div class="ico">🍽️</div><span>ທັງໝົດ</span></div>';
+  cats.forEach(c=>{
+    html += '<div class="cat-pill '+(state.menuActiveCategory===c.id?'active':'')+'" onclick="selectMenuCategory(\''+c.id+'\')"><div class="ico">'+(c.icon||'🍢')+'</div><span>'+c.name+'</span></div>';
+  });
+  row.innerHTML = html;
+}
+function selectMenuCategory(id){ state.menuActiveCategory=id; renderMenuCategories(); renderMenuProducts(); }
+function renderMenuProducts(){
+  const grid = document.getElementById('product-grid-menu');
+  let list = (state.products||[]).filter(p=>p.status==='active');
+  if(state.menuActiveCategory!=='all') list = list.filter(p=>p.categoryId===state.menuActiveCategory);
+  list = list.sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
+
+  document.getElementById('grid-title-menu').textContent = state.menuActiveCategory==='all'? 'ເມນູທັງໝົດ' : (state.categories.find(c=>c.id===state.menuActiveCategory)?.name||'ເມນູ');
+
+  if(list.length===0){
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="ico">🍢</div><h4>ບໍ່ພົບເມນູ</h4><p>ລອງເລືອກໝວດໝູ່ອື່ນ</p></div>';
+    return;
+  }
+  grid.innerHTML = list.map(p=>{
+    const promo = Number(p.promoPrice)>0 && Number(p.promoPrice)<Number(p.regularPrice);
+    const out = Number(p.stock)<=0;
+    let badges='';
+    if(p.badgeNew===true||p.badgeNew==='TRUE') badges+='<span class="pbadge new">ໃໝ່</span>';
+    if(p.badgeBestSeller===true||p.badgeBestSeller==='TRUE') badges+='<span class="pbadge best">ຂາຍດີ</span>';
+    if(promo) badges+='<span class="pbadge promo">ໂປຣໂມຊັ່ນ</span>';
+    return '<div class="pcard '+(out?'out':'')+'" onclick="openProductDetail(\''+p.id+'\')">'+
+      '<div class="imgwrap"><img loading="lazy" src="'+p.image+'"><div class="pbadges">'+badges+'</div>'+wishlistBtnHtml(p.id,'menu-')+(out?'':qtyAreaHtml(p.id,'menu-'))+'</div>'+
+      '<div class="body"><div class="pname">'+p.name+'</div>'+
+      '<div class="prices">'+(promo?'<span class="price-old num">'+money(p.regularPrice)+'</span>':'')+'<span class="price-now num">'+money(promo?p.promoPrice:p.regularPrice)+'</span></div></div>'+
+      '</div>';
+  }).join('');
+}
+
 /* ═══════════════════════════════════════════════════════════════
    SHEET / MODAL PLUMBING
    ═══════════════════════════════════════════════════════════════ */
@@ -1164,19 +1228,23 @@ function gridDecrease(id){
   rerenderCardQty(id);
 }
 function rerenderCardQty(id){
-  const holder = document.getElementById('qty-area-'+id);
-  if(holder) holder.outerHTML = qtyAreaHtml(id);
+  ['', 'menu-'].forEach(function(ctx){
+    const holder = document.getElementById('qty-area-'+ctx+id);
+    if(holder) holder.outerHTML = qtyAreaHtml(id, ctx);
+  });
 }
-function qtyAreaHtml(id){
+function qtyAreaHtml(id, ctx){
+  ctx = ctx || '';
   const p = state.products.find(x=>x.id===id);
   const qty = cartQtyFor(id);
+  const elId = 'qty-area-'+ctx+id;
   if(qty > 0){
-    return '<div class="qty-stepper" id="qty-area-'+id+'" onclick="event.stopPropagation()">'+
+    return '<div class="qty-stepper" id="'+elId+'" onclick="event.stopPropagation()">'+
       '<button onclick="gridDecrease(\''+id+'\')">−</button>'+
       '<span class="qv num">'+qty+'</span>'+
       '<button onclick="gridIncrease(\''+id+'\')">+</button></div>';
   }
-  return '<button class="addbtn" id="qty-area-'+id+'" onclick="event.stopPropagation();gridIncrease(\''+id+'\')">'+
+  return '<button class="addbtn" id="'+elId+'" onclick="event.stopPropagation();gridIncrease(\''+id+'\')">'+
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>';
 }
 function isWishlisted(id){ return state.wishlist.indexOf(id) > -1; }
@@ -1184,12 +1252,15 @@ function toggleWishlist(id){
   const idx = state.wishlist.indexOf(id);
   if(idx>-1){ state.wishlist.splice(idx,1); } else { state.wishlist.push(id); toast('ເພີ່ມໃນລາຍການທີ່ຖືກໃຈແລ້ວ','❤️'); }
   localStorage.setItem('pk_wishlist', JSON.stringify(state.wishlist));
-  const btn = document.getElementById('wish-'+id);
-  if(btn) btn.classList.toggle('active', isWishlisted(id));
+  ['', 'menu-'].forEach(function(ctx){
+    const btn = document.getElementById('wish-'+ctx+id);
+    if(btn) btn.classList.toggle('active', isWishlisted(id));
+  });
 }
-function wishlistBtnHtml(id){
+function wishlistBtnHtml(id, ctx){
+  ctx = ctx || '';
   const active = isWishlisted(id);
-  return '<button class="wishlist-btn '+(active?'active':'')+'" id="wish-'+id+'" onclick="event.stopPropagation();toggleWishlist(\''+id+'\')">'+
+  return '<button class="wishlist-btn '+(active?'active':'')+'" id="wish-'+ctx+id+'" onclick="event.stopPropagation();toggleWishlist(\''+id+'\')">'+
     '<svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>';
 }
 
@@ -1573,13 +1644,13 @@ function toggleOrderItems(orderId){
 function openAccountSheet(){
   const c = state.customer;
   const avatarHtml = c.avatar
-    ? '<img src="'+c.avatar+'" style="width:66px;height:66px;border-radius:20px;object-fit:cover;box-shadow:0 10px 24px -8px rgba(0,0,0,.3);">'
-    : '<div style="width:66px;height:66px;border-radius:20px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;box-shadow:0 10px 24px -8px rgba(0,0,0,.3);">👤</div>';
+    ? '<img src="'+c.avatar+'" style="width:110px;height:110px;border-radius:28px;object-fit:cover;box-shadow:0 12px 28px -8px rgba(0,0,0,.35);">'
+    : '<div style="width:110px;height:110px;border-radius:28px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;font-size:44px;color:#fff;box-shadow:0 12px 28px -8px rgba(0,0,0,.35);">👤</div>';
 
   const avatarBlock =
-    '<div style="position:relative;width:66px;margin:0 auto 10px;">'+
+    '<div style="position:relative;width:110px;margin:0 auto 12px;">'+
       avatarHtml+
-      '<button onclick="document.getElementById(\'avatar-input\').click()" style="position:absolute;bottom:-4px;right:-4px;width:26px;height:26px;border-radius:50%;background:var(--c-accent);border:2px solid var(--c-surface);display:flex;align-items:center;justify-content:center;font-size:12px;">📷</button>'+
+      '<button onclick="document.getElementById(\'avatar-input\').click()" style="position:absolute;bottom:0px;right:0px;width:36px;height:36px;border-radius:50%;background:var(--c-accent);border:3px solid var(--c-surface);display:flex;align-items:center;justify-content:center;font-size:16px;">📷</button>'+
       '<input type="file" accept="image/*" id="avatar-input" style="display:none" onchange="handleAvatarUpload(this)">'+
     '</div>';
 
