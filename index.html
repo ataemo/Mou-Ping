@@ -182,21 +182,34 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .pcard .imgwrap{position:relative;aspect-ratio:1/1;overflow:hidden;background:var(--porcelain-2);}
 .pcard .imgwrap img{width:100%;height:100%;object-fit:cover;transition:transform .4s;}
 .pcard:hover .imgwrap img{transform:scale(1.06);}
-.pbadges{position:absolute;top:9px;left:9px;display:flex;flex-direction:column;gap:5px;}
-.pbadge{font-size:9.5px;font-weight:800;padding:4px 8px;border-radius:100px;color:#fff;letter-spacing:.03em;backdrop-filter:blur(4px);}
-.pbadge.new{background:rgba(110,143,92,.92);}
-.pbadge.best{background:rgba(199,154,73,.95);color:var(--charcoal);}
-.pbadge.promo{background:rgba(140,47,59,.92);}
+.pbadges{position:absolute;top:10px;left:10px;display:flex;flex-direction:column;gap:6px;z-index:2;}
+.pbadge{font-size:11.5px;font-weight:900;padding:6px 13px 6px 11px;border-radius:100px;letter-spacing:.02em;
+  display:flex;align-items:center;gap:4px;box-shadow:0 6px 14px -4px rgba(0,0,0,.4);border:1.5px solid rgba(255,255,255,.5);}
+.pbadge.new{background:linear-gradient(135deg,#8FC97C,#4E8A5C);color:#fff;}
+.pbadge.best{background:linear-gradient(135deg,#FFE08A,#E8AE55);color:#4A2C02;}
+.pbadge.promo{background:linear-gradient(135deg,#FF6B6B,#C23A4B);color:#fff;}
+.pbadge::before{font-size:12px;}
+.pbadge.new::before{content:'✨';}
+.pbadge.best::before{content:'⭐';}
+.pbadge.promo::before{content:'🔥';}
 .pcard .body{padding:11px 11px 13px;display:flex;flex-direction:column;gap:5px;flex:1;}
 .pcard .pname{font-size:13.5px;font-weight:700;line-height:1.32;min-height:35px;}
-.pcard .prices{display:flex;align-items:baseline;gap:6px;margin-top:2px;}
-.pcard .price-now{font-family:var(--font-num);font-weight:800;color:var(--c-primary);font-size:15px;}
-.pcard .price-old{font-family:var(--font-num);font-size:11px;color:var(--ink-soft);text-decoration:line-through;}
+.pcard .prices{display:flex;flex-direction:column;gap:1px;margin-top:4px;}
+.pcard .price-now{font-family:var(--font-num);font-weight:900;color:var(--c-secondary);font-size:19px;line-height:1.1;}
+.pcard .price-old{font-family:var(--font-num);font-size:12.5px;color:var(--ink-soft);text-decoration:line-through;order:-1;}
 .pcard .addbtn{
   margin-top:6px;width:35px;height:35px;border-radius:12px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));color:#fff;border:none;
   display:flex;align-items:center;justify-content:center;position:absolute;right:11px;bottom:11px;box-shadow:0 8px 18px -6px rgba(181,82,42,.6);
 }
 .pcard .addbtn svg{width:16px;height:16px;}
+.pcard .addbtn{width:40px;height:40px;background:linear-gradient(135deg,var(--c-accent),#F0C875);color:var(--charcoal);box-shadow:0 10px 22px -8px rgba(199,154,73,.65);}
+.qty-stepper{position:absolute;right:11px;bottom:11px;display:flex;align-items:center;gap:9px;
+  background:var(--c-surface);border:1.5px solid var(--c-accent);border-radius:100px;padding:6px 11px;
+  box-shadow:0 10px 22px -8px rgba(0,0,0,.3);z-index:2;}
+.qty-stepper button{width:22px;height:22px;border-radius:50%;border:none;background:var(--c-accent);
+  color:var(--charcoal);font-weight:900;font-size:15px;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;}
+.qty-stepper button:active{transform:scale(.9);}
+.qty-stepper .qv{font-weight:800;font-size:13.5px;min-width:14px;text-align:center;font-family:var(--font-num);}
 .pcard.out .imgwrap::after{content:'ໝົດ';position:absolute;inset:0;background:rgba(20,13,9,.6);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;letter-spacing:.05em;}
 
 /* ── modal / sheet base ─────────────────────────────────────── */
@@ -966,8 +979,8 @@ function renderProducts(){
     return '<div class="pcard '+(out?'out':'')+'" onclick="openProductDetail(\''+p.id+'\')">'+
       '<div class="imgwrap"><img loading="lazy" src="'+p.image+'"><div class="pbadges">'+badges+'</div></div>'+
       '<div class="body"><div class="pname">'+p.name+'</div>'+
-      '<div class="prices"><span class="price-now num">'+money(promo?p.promoPrice:p.regularPrice)+'</span>'+(promo?'<span class="price-old num">'+money(p.regularPrice)+'</span>':'')+'</div></div>'+
-      (out?'':'<button class="addbtn" onclick="event.stopPropagation();quickAdd(\''+p.id+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>')+
+      '<div class="prices">'+(promo?'<span class="price-old num">'+money(p.regularPrice)+'</span>':'')+'<span class="price-now num">'+money(promo?p.promoPrice:p.regularPrice)+'</span></div></div>'+
+      (out?'':qtyAreaHtml(p.id))+
       '</div>';
   }).join('');
 }
@@ -1026,7 +1039,43 @@ function pdChangeQty(d){
 }
 function quickAdd(id){
   const p = state.products.find(x=>x.id===id);
-  if(p){ addToCart(p,1); toast(p.name+' ໃສ່ກະຕ່າແລ້ວ','🛒'); }
+  if(p){ addToCart(p,1); toast(p.name+' ໃສ່ກະຕ່າແລ້ວ','🛒'); rerenderCardQty(id); }
+}
+function cartQtyFor(id){
+  const item = state.cart.find(i=>i.id===id);
+  return item ? item.qty : 0;
+}
+function gridIncrease(id){
+  const p = state.products.find(x=>x.id===id);
+  if(!p) return;
+  const cur = cartQtyFor(id);
+  if(Number(p.stock) > 0 && cur >= Number(p.stock)){ toast('ສິນຄ້າໃນສະຕັອກບໍ່ພຽງພໍ','⚠️'); return; }
+  addToCart(p,1);
+  rerenderCardQty(id);
+}
+function gridDecrease(id){
+  const item = state.cart.find(i=>i.id===id);
+  if(!item) return;
+  item.qty -= 1;
+  if(item.qty<=0) state.cart = state.cart.filter(i=>i.id!==id);
+  saveCart();
+  rerenderCardQty(id);
+}
+function rerenderCardQty(id){
+  const holder = document.getElementById('qty-area-'+id);
+  if(holder) holder.outerHTML = qtyAreaHtml(id);
+}
+function qtyAreaHtml(id){
+  const p = state.products.find(x=>x.id===id);
+  const qty = cartQtyFor(id);
+  if(qty > 0){
+    return '<div class="qty-stepper" id="qty-area-'+id+'" onclick="event.stopPropagation()">'+
+      '<button onclick="gridDecrease(\''+id+'\')">−</button>'+
+      '<span class="qv num">'+qty+'</span>'+
+      '<button onclick="gridIncrease(\''+id+'\')">+</button></div>';
+  }
+  return '<button class="addbtn" id="qty-area-'+id+'" onclick="event.stopPropagation();gridIncrease(\''+id+'\')">'+
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></button>';
 }
 
 /* ═══════════════════════════════════════════════════════════════
