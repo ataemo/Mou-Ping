@@ -116,7 +116,7 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
   box-shadow:0 8px 24px rgba(0,0,0,.24);
   border-bottom:1px solid color-mix(in srgb, var(--c-accent) 35%, transparent);
 }
-.brand{display:flex;align-items:center;gap:10px;flex:1;min-width:0;}
+.brand{display:flex;align-items:center;gap:10px;flex:none;min-width:0;}
 .brand img.logo{width:40px;height:40px;border-radius:12px;object-fit:cover;background:var(--c-primary);box-shadow:0 0 0 1.5px rgba(199,154,73,.4);}
 .brand .logo-fallback{width:40px;height:40px;border-radius:12px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;font-size:19px;flex:none;box-shadow:0 0 0 1.5px rgba(199,154,73,.4);}
 .brand-text{min-width:0;}
@@ -142,7 +142,7 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 }
 .desktop-nav{display:none;}
 @media(min-width:720px){
-  .desktop-nav{display:flex;align-items:center;gap:6px;margin:0 10px;flex:none;}
+  .desktop-nav{display:flex;align-items:center;justify-content:center;gap:6px;margin:0 10px;flex:1;}
   .dnav-btn{display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:100px;border:none;
     background:rgba(255,255,255,.08);color:var(--c-header-text);font-weight:700;font-size:13px;
     white-space:nowrap;transition:.15s;}
