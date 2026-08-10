@@ -645,6 +645,10 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <h3>ເຂົ້າສູ່ລະບົບແອັດມິນ</h3>
       <p>ປ້ອນລະຫັດຜ່ານເພື່ອຈັດການຮ້ານ</p>
       <div class="field"><input type="password" id="admin-pw" placeholder="ລະຫັດຜ່ານ" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
+      <div style="display:flex;align-items:center;gap:10px;margin:2px 0 16px;text-align:left;">
+        <label class="switch"><input type="checkbox" id="admin-remember" checked><span class="slider"></span></label>
+        <span style="font-size:12px;font-weight:600;color:var(--ink-soft);">ຈື່ຈຳ 30 ວັນ — ປິດໄວ້ = ອອກອັດຕະໂນມັດພາຍໃນ 12 ຊົ່ວໂມງ</span>
+      </div>
       <button class="btn-primary" onclick="doAdminLogin()">ເຂົ້າສູ່ລະບົບ</button>
       <p style="margin-top:10px;font-size:11px;">ລະຫັດຜ່ານເລີ່ມຕົ້ນ: 1234 (ປ່ຽນໄດ້ໃນ Settings)</p>
     </div>
@@ -1537,7 +1541,6 @@ async function refreshTrackedOrders(showLoading){
           const iconHtml = cls==='done'?'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>':s.ico;
           return '<div class="h-step '+cls+'"><div class="h-dot">'+iconHtml+'</div><div class="h-label">'+s.l+'</div></div>';
         }).join('')+'</div>')+
-        (o.slipUrl? '<div style="margin-top:10px;background:var(--c-bg);border:1px solid var(--line);border-radius:14px;padding:12px;"><div style="font-size:12px;font-weight:800;color:var(--c-primary);margin-bottom:8px;">🧾 Slip ການໂອນ</div><img src="'+o.slipUrl+'" referrerpolicy="no-referrer" style="width:100%;border-radius:10px;border:1px solid var(--line);" onerror="imgFallback(this)"></div>' : '')+
         '<button class="btn-ghost" style="width:100%;margin-top:10px;" onclick="toggleOrderItems(\''+o.orderId+'\')">📋 ເບິ່ງລາຍການສັ່ງຊື້</button>'+
         '<div id="items-'+o.orderId+'" style="display:'+(trackExpandedIds.has(o.orderId)?'block':'none')+';margin-top:8px;">'+
           o.items.map(function(it){
@@ -1550,7 +1553,9 @@ async function refreshTrackedOrders(showLoading){
             '</div>';
           }).join('')+
           '<div style="display:flex;justify-content:space-between;font-size:13px;font-weight:800;padding:8px 0 0;margin-top:4px;border-top:1px dashed var(--line);"><span>ລວມທັງໝົດ</span><span class="num" style="color:var(--c-primary);">'+money(o.total)+'</span></div>'+
-        '</div></div>';
+        '</div>'+
+        (o.slipUrl? '<div style="margin-top:10px;background:var(--c-bg);border:1px solid var(--line);border-radius:14px;padding:12px;"><div style="font-size:12px;font-weight:800;color:var(--c-primary);margin-bottom:8px;">🧾 Slip ການໂອນ</div><img src="'+o.slipUrl+'" referrerpolicy="no-referrer" style="width:100%;border-radius:10px;border:1px solid var(--line);" onerror="imgFallback(this)"></div>' : '')+
+      '</div>';
     }).join('');
   }catch(e){ if(showLoading) box.innerHTML='<p>ເກີດຂໍ້ຜິດພາດ</p>'; console.error(e); }
 }
@@ -1599,19 +1604,27 @@ function handleAvatarUpload(input){
   const reader = new FileReader();
   reader.onload = function(e){
     const img = new Image();
-    img.onload = function(){
-      const maxSize = 300;
+    img.onload = async function(){
+      // resize ໃຫ້ບໍ່ໃຫຍ່ເກີນໄປກ່ອນອັບໂຫລດ (ປະຫຍັດ Drive + ໄວຂຶ້ນ)
+      const maxSize = 400;
       let w = img.width, h = img.height;
       if(w > h){ if(w > maxSize){ h = Math.round(h*maxSize/w); w = maxSize; } }
       else { if(h > maxSize){ w = Math.round(w*maxSize/h); h = maxSize; } }
       const canvas = document.createElement('canvas');
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
-      state.customer.avatar = dataUrl;
-      localStorage.setItem('pk_customer', JSON.stringify(state.customer));
-      toast('ອັບເດດຮູບໂປຣໄຟລ໌ແລ້ວ','📷');
-      openAccountSheet();
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+      toast('ກຳລັງອັບໂຫລດຮູບ...','⏳');
+      try{
+        const res = await api.uploadSlip(dataUrl, 'avatar_'+(state.customer.phone||Date.now())+'.jpg', 'image/jpeg');
+        state.customer.avatar = res.url;
+        localStorage.setItem('pk_customer', JSON.stringify(state.customer));
+        toast('ອັບເດດຮູບໂປຣໄຟລ໌ແລ້ວ','📷');
+        openAccountSheet();
+      }catch(err){
+        toast('ອັບໂຫລດຮູບບໍ່ສຳເລັດ ລອງໃໝ່','⚠️'); console.error(err);
+      }
     };
     img.src = e.target.result;
   };
@@ -1624,13 +1637,15 @@ function handleAvatarUpload(input){
 function openAdminLogin(){ openSheet('login'); }
 async function doAdminLogin(){
   const pw = document.getElementById('admin-pw').value;
+  const remember = document.getElementById('admin-remember').checked;
   try{
-    const res = await api.adminLogin(pw);
+    const res = await api.adminLogin(pw, remember);
     if(res.success){
       state.admin.token = res.token;
       localStorage.setItem('pk_admin_token', res.token);
       closeSheet('login');
       showAdmin();
+      toast(remember? 'ເຂົ້າສູ່ລະບົບແລ້ວ (ຈື່ຈຳ 30 ວັນ)' : 'ເຂົ້າສູ່ລະບົບແລ້ວ (ອອກອັດຕະໂນມັດ 12 ຊົ່ວໂມງ)', '🔓');
     } else { toast('ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ','⚠️'); }
   }catch(e){ toast('ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ','⚠️'); }
 }
@@ -1669,7 +1684,16 @@ async function checkNewOrders(){
       if(state.admin.page==='dashboard') renderAdminDashboard();
     }
     state.admin.seenOrderIds = ids;
-  }catch(e){}
+  }catch(e){
+    if(String(e.message||'').indexOf('UNAUTHORIZED') > -1){ handleSessionExpired(); }
+  }
+}
+function handleSessionExpired(){
+  state.admin.token=null; localStorage.removeItem('pk_admin_token');
+  document.getElementById('admin-root').classList.remove('show');
+  stopAdminOrderPoll();
+  toast('⏰ ໝົດເວລາເຂົ້າສູ່ລະບົບ ກະລຸນາເຂົ້າສູ່ລະບົບໃໝ່','⏰');
+  openAdminLogin();
 }
 function adminEntry(){
   if(state.admin.token){ showAdmin(); } else { openAdminLogin(); }
