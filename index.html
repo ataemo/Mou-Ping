@@ -140,6 +140,16 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
   display:flex;align-items:center;justify-content:center;padding:0 4px;
   font-family:var(--font-num);box-shadow:0 0 0 2px var(--glass);
 }
+.desktop-nav{display:none;}
+@media(min-width:720px){
+  .desktop-nav{display:flex;align-items:center;gap:6px;margin:0 10px;flex:none;}
+  .dnav-btn{display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:100px;border:none;
+    background:rgba(255,255,255,.08);color:var(--c-header-text);font-weight:700;font-size:13px;
+    white-space:nowrap;transition:.15s;}
+  .dnav-btn:hover{background:rgba(255,255,255,.16);}
+  .dnav-btn.active{background:var(--c-accent);color:var(--charcoal);}
+  .dnav-btn.dnav-admin{background:color-mix(in srgb, var(--c-accent) 22%, transparent);border:1px solid var(--c-accent);}
+}
 
 /* ── hero slider ────────────────────────────────────────────── */
 #hero{position:relative;margin:14px;border-radius:var(--radius-xl);overflow:hidden;box-shadow:var(--shadow-card);aspect-ratio:16/10;
@@ -173,8 +183,8 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 /* ── categories ─────────────────────────────────────────────── */
 #category-row,#category-row-menu{display:flex;gap:10px;overflow-x:auto;padding:6px 16px 14px;scrollbar-width:none;}
 .cat-pill{
-  flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  width:74px;min-height:60px;padding:16px 4px;border-radius:18px;background:var(--c-surface);
+  flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  width:78px;aspect-ratio:1/1;padding:8px;border-radius:18px;background:var(--c-surface);
   border:1px solid var(--line);cursor:pointer;transition:.18s;box-shadow:var(--shadow-soft);
 }
 .cat-pill .ico{font-size:22px;}
@@ -531,6 +541,13 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <div class="tag" id="hdr-tag">ປີ້ງສົດ ທຸກຊີ້ນ ທຸກອອເດີ</div>
     </div>
   </div>
+  <nav class="desktop-nav" id="desktop-nav">
+    <button class="dnav-btn active" id="dnav-home" onclick="dnavSelect(this);closeMenuPage();scrollToId('hero')">🏠 <span>ໜ້າຫຼັກ</span></button>
+    <button class="dnav-btn" id="dnav-menu" onclick="dnavSelect(this);openMenuPage()">🍽️ <span>ເມນູ</span></button>
+    <button class="dnav-btn" id="dnav-orders" onclick="dnavSelect(this);openTrackSheet()">📦 <span>ຕິດຕາມ</span></button>
+    <button class="dnav-btn" id="dnav-account" onclick="dnavSelect(this);openAccountSheet()">👤 <span>ບັນຊີ</span></button>
+    <button class="dnav-btn dnav-admin" id="dnav-admin" style="display:none;" onclick="adminEntry()">⚡ <span>Admin</span></button>
+  </nav>
   <button class="icon-btn" onclick="openSearch()" aria-label="search" id="btn-search"></button>
   <button class="icon-btn" onclick="openTrackSheet()" aria-label="orders" id="btn-orders"></button>
   <button class="icon-btn" onclick="openCart()" aria-label="cart" id="btn-cart">
@@ -924,7 +941,10 @@ async function init(){
       await syncPublicData(); // ຂໍ້ມູນເກົ່າໂຊວ໌ຢູ່ແລ້ວ, ອັນນີ້ຈະປຽບທຽບ ແລະ ອັບເດດງຽບໆຖ້າມີການປ່ຽນແປງ
     }
     setInterval(syncPublicData, 30000);
-    if(state.admin.token){ showAdmin(); }
+    updateAdminNavButton();
+    // ເປີດ Admin ອັດຕະໂນມັດສະເພາະຄັ້ງທຳອິດຫຼັງ login ເທົ່ານັ້ນ —
+    // ຖ້າ user ເລືອກ "ເບິ່ງໜ້າຮ້ານ" ໄປແລ້ວ, ຄັ້ງຕໍ່ໄປ (ແມ່ນແຕ່ refresh) ຈະບໍ່ເດັ້ງກັບໄປ Admin ເອງ
+    if(state.admin.token && localStorage.getItem('pk_last_view')!=='storefront'){ showAdmin(); }
   }catch(e){
     if(!cached){ toast('ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ ກະລຸນາໂຫຼດໃໝ່','⚠️'); }
     console.error(e);
@@ -1145,6 +1165,11 @@ function closeHamburger(){
 }
 function scrollToId(id){ document.getElementById(id).scrollIntoView({behavior:'smooth', block:'start'}); }
 function setNav(el){ document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); }
+function dnavSelect(el){ document.querySelectorAll('.dnav-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); }
+function updateAdminNavButton(){
+  const btn = document.getElementById('dnav-admin');
+  if(btn) btn.style.display = state.admin.token ? 'flex' : 'none';
+}
 
 /* ═══════════════════════════════════════════════════════════════
    PRODUCT DETAIL
@@ -1723,19 +1748,25 @@ async function doAdminLogin(){
 }
 function adminLogout(){
   state.admin.token=null; localStorage.removeItem('pk_admin_token');
+  localStorage.removeItem('pk_last_view');
   document.getElementById('admin-root').classList.remove('show');
   stopAdminOrderPoll();
+  updateAdminNavButton();
 }
 function showAdmin(){
   document.getElementById('admin-root').classList.add('show');
+  localStorage.setItem('pk_last_view','admin');
+  updateAdminNavButton();
   gotoAdminPage('dashboard');
   startAdminOrderPoll();
 }
 function viewStorefront(){
   document.getElementById('admin-root').classList.remove('show');
+  localStorage.setItem('pk_last_view','storefront');
+  updateAdminNavButton();
   syncPublicData();
   stopAdminOrderPoll();
-  toast('ກຳລັງເບິ່ງໜ້າຮ້ານ — ກົດເມນູ ☰ ເພື່ອກັບໄປ Admin','🏠');
+  toast('ກຳລັງເບິ່ງໜ້າຮ້ານ — ກົດປຸ່ມ ⚡ Admin ດ້ານເທິງ ຫຼື ເມນູ ☰ ເພື່ອກັບໄປ Admin','🏠');
 }
 function startAdminOrderPoll(){
   stopAdminOrderPoll();
