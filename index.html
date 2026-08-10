@@ -452,6 +452,36 @@ table.a-table tr:hover td{background:var(--c-bg);}
 .icon-edit-row .preview{width:38px;height:38px;border-radius:11px;background:var(--c-bg);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;border:1px solid var(--line);}
 .icon-edit-row .lbl{flex:1;font-size:12.5px;font-weight:600;}
 .icon-edit-row input{width:66px;text-align:center;padding:8px;border-radius:10px;border:1.5px solid var(--line);background:var(--c-bg);color:var(--c-text);font-size:16px;}
+/* sidebar outside-click overlay */
+#admin-sidebar-overlay{position:fixed;inset:0;background:rgba(10,7,5,.45);z-index:840;display:none;}
+#admin-sidebar-overlay.show{display:block;}
+@media(min-width:721px){ #admin-sidebar-overlay{display:none !important;} }
+
+/* product admin — responsive card grid (ແທນ table) */
+.padm-toolbar{display:flex;flex-direction:column;gap:12px;margin-bottom:16px;}
+.padm-search{position:relative;}
+.padm-search input{width:100%;padding:12px 16px 12px 40px;border-radius:14px;border:1.5px solid var(--line);background:var(--c-surface);color:var(--c-text);font-size:14px;box-shadow:var(--shadow-soft);}
+.padm-search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--ink-soft);}
+.padm-filters{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;align-items:center;}
+.padm-chip{flex:none;padding:9px 16px;border-radius:100px;border:1.5px solid var(--line);background:var(--c-surface);font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:.15s;}
+.padm-chip.active{background:var(--c-primary);border-color:var(--c-primary);color:#fff;}
+.padm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;}
+.padm-card{background:var(--c-surface);border-radius:18px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-card);display:flex;flex-direction:column;}
+.padm-card .padm-imgwrap{position:relative;aspect-ratio:1/1;background:var(--porcelain-2);overflow:hidden;}
+.padm-card .padm-imgwrap img{width:100%;height:100%;object-fit:cover;display:block;}
+.padm-stock-badge{position:absolute;top:8px;left:8px;font-size:10px;font-weight:800;padding:4px 9px;border-radius:100px;box-shadow:0 4px 10px -3px rgba(0,0,0,.4);z-index:2;}
+.padm-stock-badge.out{background:#FBDADA;color:var(--danger);}
+.padm-stock-badge.low{background:#FBEBD1;color:#946200;}
+.padm-card-body{padding:12px 13px 14px;display:flex;flex-direction:column;gap:6px;flex:1;}
+.padm-card .padm-name{font-size:13.5px;font-weight:700;line-height:1.3;min-height:35px;}
+.padm-card .padm-cat{font-size:11px;color:var(--ink-soft);font-weight:600;}
+.padm-card .padm-prices{display:flex;align-items:baseline;gap:7px;margin-top:2px;}
+.padm-card .padm-price-now{font-family:var(--font-num);font-weight:900;color:var(--c-secondary);font-size:16px;}
+.padm-card .padm-price-old{font-family:var(--font-num);font-size:11.5px;color:var(--ink-soft);text-decoration:line-through;}
+.padm-card .padm-margin{font-size:10.5px;color:var(--success);font-weight:700;}
+.padm-card .padm-stock-row{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+.padm-card .padm-actions{display:flex;gap:8px;margin-top:8px;}
+.padm-card .padm-actions button{flex:1;}
 
 /* ── QR ຢືນຢັນການສັ່ງຊື້ (ຈັດຢູ່ກາງ) ─────────────────────────── */
 .qr-card-wrap{display:flex;justify-content:center;margin:6px 0 16px;}
@@ -714,7 +744,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
      ══════════════════════════════════════════════════════════════ -->
 <div id="admin-root">
   <div id="admin-topbar">
-    <button class="icon-btn" onclick="document.getElementById('admin-sidebar').classList.toggle('open')" style="width:32px;height:32px;">
+    <button class="icon-btn" onclick="toggleAdminSidebar()" style="width:32px;height:32px;">
       <svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
     <h2 id="admin-page-title">Dashboard</h2>
@@ -729,6 +759,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
     </button>
   </div>
   <div id="admin-body">
+    <div id="admin-sidebar-overlay" onclick="closeAdminSidebar()"></div>
     <div id="admin-sidebar">
       <div class="a-nav-sec">ພາບລວມ</div>
       <div class="a-nav-item active" data-page="dashboard" onclick="gotoAdminPage('dashboard')" id="sb-dashboard">
@@ -832,7 +863,7 @@ const state = {
   activeCategory:'all',
   menuActiveCategory:'all',
   heroIdx:0, heroTimer:null,
-  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'', dashRange:{preset:'7d', start:null, end:null}, charts:{line:null, pie:null} },
+  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'', dashRange:{preset:'7d', start:null, end:null}, charts:{line:null, pie:null}, productFilter:'all', productSearchQuery:'', productSort:'name' },
   customer: JSON.parse(localStorage.getItem('pk_customer')||'{}'),
   _catJson:'', _prodJson:'', _banJson:''
 };
@@ -1813,12 +1844,23 @@ const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເ
 function gotoAdminPage(page){
   state.admin.page = page;
   document.querySelectorAll('.a-nav-item').forEach(el=>el.classList.toggle('active', el.dataset.page===page));
-  document.getElementById('admin-sidebar').classList.remove('open');
+  closeAdminSidebar();
   document.getElementById('admin-page-title').textContent = ADMIN_TITLES[page];
   const renderers = {dashboard:renderAdminDashboard, orders:renderAdminOrders, products:renderAdminProducts, categories:renderAdminCategories, banners:renderAdminBanners, settings:renderAdminSettings};
   renderers[page]();
 }
 function refreshAdminCurrentView(){ gotoAdminPage(state.admin.page); toast('ອັບເດດແລ້ວ','🔄'); }
+
+function toggleAdminSidebar(){
+  const sb = document.getElementById('admin-sidebar');
+  const ov = document.getElementById('admin-sidebar-overlay');
+  sb.classList.toggle('open');
+  ov.classList.toggle('show', sb.classList.contains('open'));
+}
+function closeAdminSidebar(){
+  document.getElementById('admin-sidebar').classList.remove('open');
+  document.getElementById('admin-sidebar-overlay').classList.remove('show');
+}
 
 /* ── dashboard (v2 — ມີໂຕກອງວັນທີ + ກາຟ) ─────────────────────── */
 function dashRangeFor(preset){
@@ -2214,22 +2256,83 @@ function doPrintReceipt(orderId){
   w.onload = function(){ setTimeout(()=>{ w.print(); }, 400); };
 }
 
-/* ── products admin ────────────────────────────────────────── */
-async function renderAdminProducts(){
+/* ── products admin (v2 — card grid, responsive, no more squished table images) ─── */
+function renderAdminProducts(){
   const main = document.getElementById('admin-main');
-  main.innerHTML =
-    '<div class="a-title-row"><h2>ສິນຄ້າ ('+state.products.length+')</h2><button class="btn-sm primary" onclick="openProductForm()">+ ເພີ່ມສິນຄ້າ</button></div>'+
-    '<div class="a-panel" style="padding:0;overflow-x:auto;"><table class="a-table"><thead><tr><th>ຮູບ</th><th>ຊື່</th><th>ໝວດ</th><th>ລາຄາ</th><th>ສະຕັອກ</th><th>ສະຖານະ</th><th></th></tr></thead><tbody id="prod-tbody"></tbody></table></div>'+
-    '<div id="product-form-holder"></div>';
-  document.getElementById('prod-tbody').innerHTML = state.products.map(p=>{
-    const cat = state.categories.find(c=>c.id===p.categoryId);
-    return '<tr><td><img src="'+p.image+'" style="width:42px;height:42px;border-radius:10px;object-fit:cover;"></td>'+
-      '<td>'+p.name+'</td><td>'+(cat?cat.name:'-')+'</td><td class="num">'+money(p.regularPrice)+'</td>'+
-      '<td class="num">'+p.stock+'</td><td><span class="pill '+(p.status==='active'?'active':'inactive')+'">'+p.status+'</span></td>'+
-      '<td><button class="btn-sm" onclick=\'openProductForm(JSON.parse(this.dataset.p))\' data-p=\''+JSON.stringify(p).replace(/'/g,"&apos;")+'\'>ແກ້ໄຂ</button> '+
-      '<button class="btn-sm danger" onclick="removeProduct(\''+p.id+'\')">ລຶບ</button></td></tr>';
-  }).join('');
+  main.innerHTML = buildProductsToolbarHTML() + '<div id="padm-grid-holder"></div>' + '<div id="product-form-holder"></div>';
+  renderProductsGridOnly();
 }
+function buildProductsToolbarHTML(){
+  const filters = [['all','ທັງໝົດ'],['active','ເປີດຂາຍ'],['inactive','ປິດຂາຍ'],['low','ໃກ້ໝົດ'],['out','ໝົດສະຕັອກ']];
+  const sortOpts = [['name','ຊື່ ກ-ຮ'],['price_desc','ລາຄາ ສູງ→ຕ່ຳ'],['price_asc','ລາຄາ ຕ່ຳ→ສູງ'],['stock_asc','ສະຕັອກ ໜ້ອຍ→ຫຼາຍ']];
+  return '<div class="a-title-row"><h2>ສິນຄ້າ ('+state.products.length+')</h2><button class="btn-sm primary" onclick="openProductForm()">+ ເພີ່ມສິນຄ້າ</button></div>'+
+    '<div class="padm-toolbar">'+
+      '<div class="padm-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>'+
+      '<input type="text" placeholder="ຄົ້ນຫາ ຊື່ / SKU..." value="'+(state.admin.productSearchQuery||'')+'" oninput="searchProductsInput(this.value)"></div>'+
+      '<div class="padm-filters">'+
+        filters.map(f=>'<div class="padm-chip '+(state.admin.productFilter===f[0]?'active':'')+'" onclick="setProductFilter(\''+f[0]+'\')">'+f[1]+'</div>').join('')+
+        '<select onchange="setProductSort(this.value)" style="flex:none;padding:9px 14px;border-radius:100px;border:1.5px solid var(--line);background:var(--c-surface);color:var(--ink-soft);font-size:12.5px;font-weight:700;">'+
+          sortOpts.map(o=>'<option value="'+o[0]+'" '+(state.admin.productSort===o[0]?'selected':'')+'>'+o[1]+'</option>').join('')+
+        '</select>'+
+      '</div>'+
+    '</div>';
+}
+function filterProductsList(){
+  let list = state.products.slice();
+  const f = state.admin.productFilter;
+  if(f==='active') list = list.filter(p=>p.status==='active');
+  else if(f==='inactive') list = list.filter(p=>p.status==='inactive');
+  else if(f==='low') list = list.filter(p=>Number(p.stock)>0 && Number(p.stock)<=Number(p.minStock||0));
+  else if(f==='out') list = list.filter(p=>Number(p.stock)<=0);
+  const q = (state.admin.productSearchQuery||'').trim().toLowerCase();
+  if(q) list = list.filter(p=>(p.name||'').toLowerCase().includes(q) || (p.sku||'').toLowerCase().includes(q));
+  const sort = state.admin.productSort||'name';
+  if(sort==='name') list.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+  else if(sort==='price_desc') list.sort((a,b)=>Number(b.regularPrice)-Number(a.regularPrice));
+  else if(sort==='price_asc') list.sort((a,b)=>Number(a.regularPrice)-Number(b.regularPrice));
+  else if(sort==='stock_asc') list.sort((a,b)=>Number(a.stock)-Number(b.stock));
+  return list;
+}
+function setProductFilter(f){ state.admin.productFilter=f; renderAdminProducts(); }
+function searchProductsInput(v){ state.admin.productSearchQuery=v; renderProductsGridOnly(); }
+function setProductSort(v){ state.admin.productSort=v; renderProductsGridOnly(); }
+function renderProductsGridOnly(){
+  const holder = document.getElementById('padm-grid-holder');
+  if(holder) holder.innerHTML = buildProductsGridHTML(filterProductsList());
+}
+function buildProductsGridHTML(list){
+  if(list.length===0){
+    return '<div class="a-panel"><div class="empty-state"><div class="ico">📦</div><h4>ບໍ່ພົບສິນຄ້າ</h4><p>ລອງປ່ຽນຄຳຄົ້ນຫາ ຫຼື ໝວດການກອງ</p></div></div>';
+  }
+  return '<div class="padm-grid">'+list.map(p=>{
+    const cat = state.categories.find(c=>c.id===p.categoryId);
+    const promo = Number(p.promoPrice)>0 && Number(p.promoPrice)<Number(p.regularPrice);
+    const stock = Number(p.stock)||0, minStock = Number(p.minStock)||0;
+    const out = stock<=0, low = !out && stock<=minStock;
+    const cost = Number(p.costPrice)||0;
+    const sellPrice = promo? Number(p.promoPrice) : Number(p.regularPrice);
+    const margin = sellPrice>0 && cost>0 ? Math.round(((sellPrice-cost)/sellPrice)*100) : null;
+    return '<div class="padm-card">'+
+      '<div class="padm-imgwrap">'+
+        (out? '<span class="padm-stock-badge out">ໝົດ</span>' : (low? '<span class="padm-stock-badge low">ໃກ້ໝົດ</span>' : ''))+
+        '<span class="pill '+(p.status==='active'?'active':'inactive')+'" style="position:absolute;top:8px;right:8px;z-index:2;">'+(p.status==='active'?'ເປີດ':'ປິດ')+'</span>'+
+        '<img src="'+p.image+'" loading="lazy" onerror="imgFallback(this)">'+
+      '</div>'+
+      '<div class="padm-card-body">'+
+        '<div class="padm-name">'+p.name+'</div>'+
+        '<div class="padm-cat">'+(cat?cat.icon+' '+cat.name:'ບໍ່ມີໝວດ')+(p.sku? ' · '+p.sku : '')+'</div>'+
+        '<div class="padm-prices"><span class="padm-price-now num">'+money(sellPrice)+'</span>'+(promo? '<span class="padm-price-old num">'+money(p.regularPrice)+'</span>':'')+'</div>'+
+        (margin!==null? '<div class="padm-margin">ກຳໄລ ~'+margin+'%</div>' : '')+
+        '<div class="padm-stock-row">ສະຕັອກ: <b style="color:'+(out?'var(--danger)':(low?'#946200':'var(--c-text)'))+'">'+stock+'</b> '+(p.unit||'')+'</div>'+
+        '<div class="padm-actions">'+
+          '<button class="btn-sm" onclick=\'openProductForm(JSON.parse(this.dataset.p))\' data-p=\''+JSON.stringify(p).replace(/'/g,"&apos;")+'\'>✏️ ແກ້ໄຂ</button>'+
+          '<button class="btn-sm danger" onclick="removeProduct(\''+p.id+'\')">🗑️ ລຶບ</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  }).join('')+'</div>';
+}
+
 function openProductForm(p){
   p = p || {id:'',sku:'',name:'',categoryId:state.categories[0]?.id||'',description:'',image:'',regularPrice:0,promoPrice:0,costPrice:0,stock:0,minStock:5,unit:'ຈານ',badgeNew:false,badgeBestSeller:false,badgePromotion:false,status:'active',sortOrder:state.products.length+1,options:'[]'};
   try{ pfOptionsList = JSON.parse(p.options||'[]'); }catch(e){ pfOptionsList = []; }
@@ -2244,7 +2347,15 @@ function openProductForm(p){
     '</div>'+
     '<div class="field"><label>ຊື່ສິນຄ້າ</label><input id="pf-name" value="'+p.name+'"></div>'+
     '<div class="field"><label>ຄຳອະທິບາຍ</label><textarea id="pf-desc">'+p.description+'</textarea></div>'+
-    '<div class="field"><label>URL ຮູບພາບ (ຫຼື Google Drive image URL)</label><input id="pf-image" value="'+p.image+'"></div>'+
+    '<div class="field"><label>ຮູບພາບສິນຄ້າ</label>'+
+      '<div id="pf-image-preview" style="width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:var(--c-bg);border:1px solid var(--line);margin-bottom:8px;">'+
+        (p.image? '<img src="'+p.image+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="imgFallback(this)">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:12px;">ຍັງບໍ່ມີຮູບ</div>')+
+      '</div>'+
+      '<input id="pf-image" value="'+p.image+'" placeholder="ວາງ URL ຮູບ ຫຼື ອັບໂຫລດຈາກເຄື່ອງລຸ່ມນີ້" oninput="previewPfImage(this.value)" style="margin-bottom:8px;">'+
+      '<input type="file" accept="image/*" id="pf-image-file" style="display:none" onchange="handlePfImageUpload(this)">'+
+      '<button type="button" class="btn-ghost" style="width:100%;" onclick="document.getElementById(\'pf-image-file\').click()">📷 ອັບໂຫລດຮູບຈາກເຄື່ອງ</button>'+
+      '<div id="pf-image-status" style="font-size:11px;color:var(--ink-soft);margin-top:6px;"></div>'+
+    '</div>'+
     '<div class="grid-3">'+
     '<div class="field"><label>ລາຄາປົກກະຕິ</label><input type="number" id="pf-price" value="'+p.regularPrice+'"></div>'+
     '<div class="field"><label>ລາຄາໂປຣ</label><input type="number" id="pf-promo" value="'+p.promoPrice+'"></div>'+
@@ -2267,6 +2378,27 @@ function openProductForm(p){
     '<button class="btn-primary" onclick="submitProductForm(\''+p.id+'\')">ບັນທຶກ</button>'+
   '</div></div>';
   renderPfOptions();
+}
+function previewPfImage(url){
+  const holder = document.getElementById('pf-image-preview');
+  if(!holder) return;
+  holder.innerHTML = url? '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="imgFallback(this)">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:12px;">ຍັງບໍ່ມີຮູບ</div>';
+}
+function handlePfImageUpload(input){
+  const file = input.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('pf-image-status');
+  statusEl.textContent = 'ກຳລັງອັບໂຫລດ...';
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    try{
+      const res = await api.uploadSlip(e.target.result, file.name, file.type);
+      document.getElementById('pf-image').value = res.url;
+      previewPfImage(res.url);
+      statusEl.textContent = '✅ ອັບໂຫລດສຳເລັດ';
+    }catch(err){ statusEl.textContent='⚠️ ອັບໂຫລດບໍ່ສຳເລັດ'; console.error(err); }
+  };
+  reader.readAsDataURL(file);
 }
 function renderPfOptions(){
   const holder = document.getElementById('pf-options-holder');
