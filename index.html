@@ -561,20 +561,12 @@ table.a-table tr:hover td{background:var(--c-bg);}
   <div class="sheet-body" id="pd-body"></div>
 </div>
 
-<!-- ══════════════ CART SHEET ══════════════ -->
+<!-- ══════════════ CART + CHECKOUT SHEET (merged) ══════════════ -->
 <div class="overlay" id="cart-overlay" onclick="closeSheet('cart')"></div>
 <div class="sheet" id="cart-sheet">
   <div class="sheet-handle"></div>
   <div class="sheet-head"><h3>ກະຕ່າສິນຄ້າ</h3><button class="sheet-close" onclick="closeSheet('cart')">✕</button></div>
   <div class="sheet-body" id="cart-body"></div>
-</div>
-
-<!-- ══════════════ CHECKOUT SHEET ══════════════ -->
-<div class="overlay" id="checkout-overlay" onclick="closeSheet('checkout')"></div>
-<div class="sheet" id="checkout-sheet">
-  <div class="sheet-handle"></div>
-  <div class="sheet-head"><h3>ຢືນຢັນການສັ່ງຊື້</h3><button class="sheet-close" onclick="closeSheet('checkout')">✕</button></div>
-  <div class="sheet-body" id="checkout-body"></div>
 </div>
 
 <!-- ══════════════ ORDER TRACK SHEET ══════════════ -->
@@ -1593,7 +1585,7 @@ function closeOrderDetailModal(){ document.getElementById('order-detail-holder')
 async function updateOrderStatusFromDetail(orderId){
   const status = document.getElementById('od-status-select').value;
   state.admin.orders = await api.updateOrderStatus(state.admin.token, orderId, status);
-  toast('ອັບເດດສະຖານະແລ້ວ','✅');
+  toast('ອັບເດດສะຖານະແລ້ວ','✅');
   renderOrdersTableOnly();
   closeOrderDetailModal();
 }
@@ -1875,7 +1867,7 @@ function renderAdminSettings(){
   '<div class="a-panel"><h4>🛵 ການສັ່ງຊື້ & ຄ່າທຳນຽມ</h4><div class="grid-3">'+
   '<div class="field"><label>ຄ່າສົ່ງເລີ່ມຕົ້ນ (₭)</label><input type="number" id="st-delivery" value="'+s.deliveryFeeDefault+'"></div>'+
   '<div class="field"><label>ພາສີ (%)</label><input type="number" id="st-tax" value="'+s.taxPercent+'"></div>'+
-  '<div class="field"><label>ຄ່າບໍລິການ (%)</label><input type="number" id="st-service" value="'+s.serviceFeePercent+'"></div>'+
+  '<div class="field"><label>ຄ่າບໍລິການ (%)</label><input type="number" id="st-service" value="'+s.serviceFeePercent+'"></div>'+
   '</div></div>'+
 
   '<div class="a-panel"><h4>🔐 ຄວາມປອດໄພ</h4>'+
