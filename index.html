@@ -835,6 +835,7 @@ const api = {
   saveSettings: (token, settings) => callApi('saveSettings', {token, settings}),
   getSettings: () => callApi('getSettings'),
   uploadSlip: (base64, fileName, mimeType) => callApi('uploadSlip', {base64, fileName, mimeType}),
+  uploadAvatar: (base64, fileName, mimeType) => callApi('uploadAvatar', {base64, fileName, mimeType}),
   getOrdersByPhone: (phone) => callApi('getOrdersByPhone', {phone})
 };
 
@@ -1617,7 +1618,7 @@ function handleAvatarUpload(input){
 
       toast('ກຳລັງອັບໂຫລດຮູບ...','⏳');
       try{
-        const res = await api.uploadSlip(dataUrl, 'avatar_'+(state.customer.phone||Date.now())+'.jpg', 'image/jpeg');
+        const res = await api.uploadAvatar(dataUrl, 'avatar_'+(state.customer.phone||Date.now())+'.jpg', 'image/jpeg');
         state.customer.avatar = res.url;
         localStorage.setItem('pk_customer', JSON.stringify(state.customer));
         toast('ອັບເດດຮູບໂປຣໄຟລ໌ແລ້ວ','📷');
