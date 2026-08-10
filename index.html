@@ -1843,7 +1843,7 @@ function showAdmin(){
   document.getElementById('admin-root').classList.add('show');
   localStorage.setItem('pk_last_view','admin');
   updateAdminNavButton();
-  gotoAdminPage('dashboard');
+  gotoAdminPage(localStorage.getItem('pk_admin_page') || 'dashboard'); // ກັບໄປໜ້າຫຼ້າສຸດ ບໍ່ໃຫ້ເດັ້ງໄປ Dashboard ທຸກເທື່ອ
   startAdminOrderPoll();
 }
 function viewStorefront(){
@@ -1868,39 +1868,46 @@ function updateOrdersPendingBadge(orders){
   if(dot) dot.style.display = pendingCount>0 ? 'flex' : 'none';
   if(dot) dot.textContent = pendingCount>9 ? '9+' : (pendingCount>0? String(pendingCount) : '');
 }
-async function changeOrderStatus(orderId, status){
-  state.admin.orders = await api.updateOrderStatus(state.admin.token, orderId, status);
-  updateOrdersPendingBadge(state.admin.orders);
-  toast('ອັບເດດສະຖານະແລ້ວ','✅');
-  renderOrdersTableOnly();
-}
 
-async function removeOrder(orderId){
-  if(!confirm('ຢືນຢັນລຶບອອເດີ '+orderId+' ນີ້?')) return;
-  state.admin.orders = await api.deleteOrder(state.admin.token, orderId);
-  updateOrdersPendingBadge(state.admin.orders);
-  toast('ລຶບອອເດີແລ້ວ','🗑️');
-  renderOrdersTableOnly();
-}
 async function checkNewOrders(){
   try{
     const orders = await api.getOrders(state.admin.token);
-    state.admin.orders = orders; // ເກັບໄວ້ໃຊ້ຊ້ຳ — ໜ້າອອເດີບໍ່ຕ້ອງຍິງ API ຊ້ຳອີກຮອບ
+    state.admin.orders = orders;
+    state.admin._ordersLoadedOnce = true;
+    localStorage.setItem('pk_cache_admin_orders', JSON.stringify(orders));
     updateOrdersPendingBadge(orders);
     const ids = orders.map(o=>o.orderId);
+
+    const changedExisting = orders.some(function(o){
+      return state.admin._lastOrdersMap && state.admin._lastOrdersMap[o.orderId] && state.admin._lastOrdersMap[o.orderId] !== o.orderStatus;
+    });
+
     if(state.admin.seenOrderIds===null){
       state.admin.seenOrderIds = ids;
+      state.admin._lastOrdersMap = {}; orders.forEach(function(o){ state.admin._lastOrdersMap[o.orderId]=o.orderStatus; });
       if(state.admin.page==='orders') renderOrdersTableOnly();
+      if(state.admin.page==='dashboard') renderDashboardFromCacheOrFetch();
       return;
     }
+
     const newOnes = ids.filter(id=>state.admin.seenOrderIds.indexOf(id)===-1);
     if(newOnes.length>0){
       playNotificationSound();
       toast('🔔 ມີອອເດີໃໝ່ເຂົ້າມາ '+newOnes.length+' ລາຍການ','🛎️');
+    }
+    if(newOnes.length>0 || changedExisting){
       if(state.admin.page==='orders') renderOrdersTableOnly();
-      if(state.admin.page==='dashboard') loadDashboardData(true); // ອັບເດດງຽບໆ ບໍ່ຣີເຊັດ toolbar
+      if(state.admin.page==='dashboard'){
+        const dc = document.getElementById('dash-content');
+        if(dc){
+          const stats = computeDashboardStatsClient(orders, state.products, state.categories, state.admin.dashRange.start, state.admin.dashRange.end);
+          dc.innerHTML = buildDashboardHTML(stats);
+          drawDashboardCharts(stats);
+        }
+      }
     }
     state.admin.seenOrderIds = ids;
+    state.admin._lastOrdersMap = {}; orders.forEach(function(o){ state.admin._lastOrdersMap[o.orderId]=o.orderStatus; });
   }catch(e){
     if(String(e.message||'').indexOf('UNAUTHORIZED') > -1){ handleSessionExpired(); }
   }
@@ -1920,13 +1927,18 @@ function adminEntry(){
 const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', settings:'ຮ້ານ & ໂຕນຮັບ'};
 function gotoAdminPage(page){
   state.admin.page = page;
+  localStorage.setItem('pk_admin_page', page); // ຈື່ໜ້າຫຼ້າສຸດ
   document.querySelectorAll('.a-nav-item').forEach(el=>el.classList.toggle('active', el.dataset.page===page));
   closeAdminSidebar();
   document.getElementById('admin-page-title').textContent = ADMIN_TITLES[page];
   const renderers = {dashboard:renderAdminDashboard, orders:renderAdminOrders, products:renderAdminProducts, categories:renderAdminCategories, banners:renderAdminBanners, settings:renderAdminSettings};
   renderers[page]();
 }
-function refreshAdminCurrentView(){ gotoAdminPage(state.admin.page); toast('ອັບເດດແລ້ວ','🔄'); }
+function refreshAdminCurrentView(){
+  state.admin._ordersLoadedOnce = false; // ບັງຄັບດຶງອອເດີໃໝ່ຈາກເຊີບເວີຄັ້ງໜຶ່ງ
+  gotoAdminPage(state.admin.page);
+  toast('ອັບເດດແລ້ວ','🔄');
+}
 
 function toggleAdminSidebar(){
   const sb = document.getElementById('admin-sidebar');
@@ -1959,7 +1971,38 @@ function renderAdminDashboard(){
     state.admin.dashRange = {preset:'7d', start:r.start, end:r.end};
   }
   main.innerHTML = dashboardToolbarHTML() + '<div id="dash-content">'+dashboardSkeletonHTML()+'</div>';
-  loadDashboardData();
+  renderDashboardFromCacheOrFetch();
+}
+
+async function renderDashboardFromCacheOrFetch(){
+  const content = document.getElementById('dash-content');
+  let orders = state.admin.orders;
+  if(!orders){
+    const cachedOrders = localStorage.getItem('pk_cache_admin_orders');
+    if(cachedOrders){ try{ orders = JSON.parse(cachedOrders); }catch(e){} }
+  }
+  if(orders){
+    const stats = computeDashboardStatsClient(orders, state.products, state.categories, state.admin.dashRange.start, state.admin.dashRange.end);
+    content.innerHTML = buildDashboardHTML(stats);
+    drawDashboardCharts(stats);
+  }
+  if(!state.admin._ordersLoadedOnce){
+    try{
+      const freshOrders = await api.getOrders(state.admin.token);
+      state.admin.orders = freshOrders;
+      state.admin._ordersLoadedOnce = true;
+      localStorage.setItem('pk_cache_admin_orders', JSON.stringify(freshOrders));
+      updateOrdersPendingBadge(freshOrders);
+      if(state.admin.page==='dashboard'){
+        const stats = computeDashboardStatsClient(freshOrders, state.products, state.categories, state.admin.dashRange.start, state.admin.dashRange.end);
+        content.innerHTML = buildDashboardHTML(stats);
+        drawDashboardCharts(stats);
+      }
+    }catch(e){
+      if(!orders) content.innerHTML = '<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>';
+      console.error(e);
+    }
+  }
 }
 
 function dashboardToolbarHTML(){
@@ -2113,23 +2156,132 @@ function kpi(label,val,extra,cls){
   return '<div class="kpi-card"><div class="lbl">'+label+'</div><div class="val num '+cls+'">'+val+'</div></div>';
 }
 
+/* ── dashboard: ຄິດໄລ່ stats ຈາກຂໍ້ມູນທີ່ໂຫຼດໄວ້ໃນເຄື່ອງ (ບໍ່ຍິງ API ໃໝ່) ─── */
+function computeDashboardStatsClient(orders, products, categories, startDate, endDate){
+  const costMap = {}, catNameOf = {}, catOfProduct = {};
+  products.forEach(function(p){ costMap[p.id] = Number(p.costPrice)||0; catOfProduct[p.id]=p.categoryId; });
+  categories.forEach(function(c){ catNameOf[c.id]=c.name; });
+
+  let end = endDate? new Date(endDate+'T23:59:59') : new Date();
+  let start = startDate? new Date(startDate+'T00:00:00') : new Date(end.getTime()-6*24*60*60*1000);
+  start = new Date(start.getFullYear(), start.getMonth(), start.getDate(), 0,0,0);
+  end = new Date(end.getFullYear(), end.getMonth(), end.getDate(), 23,59,59);
+
+  function fmt(d, kind){
+    const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+    return kind==='month'? (y+'-'+m) : (y+'-'+m+'-'+day);
+  }
+
+  const inRange = orders.filter(function(o){ const d=new Date(o.date); return d>=start && d<=end; });
+  const validOrders = inRange.filter(function(o){ return o.orderStatus!=='CANCELLED'; });
+
+  const dayMs = 24*60*60*1000;
+  const rangeDays = Math.max(1, Math.round((end-start)/dayMs)+1);
+  const useMonthly = rangeDays > 60;
+  const series = {};
+  if(useMonthly){
+    let cur = new Date(start.getFullYear(), start.getMonth(), 1);
+    const endMonth = new Date(end.getFullYear(), end.getMonth(), 1);
+    while(cur<=endMonth){ series[fmt(cur,'month')] = 0; cur.setMonth(cur.getMonth()+1); }
+  } else {
+    for(let i=0;i<rangeDays;i++){ series[fmt(new Date(start.getTime()+i*dayMs),'day')] = 0; }
+  }
+
+  const byStatus = {};
+  let totalSales=0, totalCost=0, totalItems=0;
+  const productAgg={}, categoryAgg={};
+  inRange.forEach(function(o){ byStatus[o.orderStatus]=(byStatus[o.orderStatus]||0)+1; });
+
+  validOrders.forEach(function(o){
+    const total = Number(o.total)||0;
+    totalSales += total;
+    const d = new Date(o.date);
+    const key = useMonthly? fmt(d,'month') : fmt(d,'day');
+    if(series.hasOwnProperty(key)) series[key]+=total;
+    (o.items||[]).forEach(function(it){
+      const qty = Number(it.qty)||0;
+      const rev = (Number(it.price)||0)*qty;
+      totalItems += qty;
+      totalCost += (costMap[it.id]||0)*qty;
+      if(!productAgg[it.id]) productAgg[it.id]={name:it.name, qty:0, revenue:0};
+      productAgg[it.id].qty += qty;
+      productAgg[it.id].revenue += rev;
+      const catId = catOfProduct[it.id];
+      const catName = (catId && catNameOf[catId])? catNameOf[catId] : 'ອື່ນໆ';
+      categoryAgg[catName] = (categoryAgg[catName]||0)+rev;
+    });
+  });
+
+  const productBreakdown = Object.keys(productAgg).map(function(id){
+    return {id:id, name:productAgg[id].name, qty:productAgg[id].qty, revenue:productAgg[id].revenue};
+  }).sort(function(a,b){return b.revenue-a.revenue;});
+
+  let pieData = productBreakdown.slice(0,7);
+  const restRevenue = productBreakdown.slice(7).reduce(function(s,p){return s+p.revenue;},0);
+  if(restRevenue>0) pieData.push({id:'other', name:'ອື່ນໆ', qty:0, revenue:restRevenue});
+
+  const categoryBreakdown = Object.keys(categoryAgg).map(function(name){
+    return {name:name, revenue:categoryAgg[name]};
+  }).sort(function(a,b){return b.revenue-a.revenue;});
+
+  const now = new Date();
+  const today = fmt(now,'day');
+  let todayOrders=0, todaySales=0;
+  orders.forEach(function(o){
+    if(o.orderStatus==='CANCELLED') return;
+    if(fmt(new Date(o.date),'day')===today){ todayOrders++; todaySales += Number(o.total)||0; }
+  });
+
+  return {
+    range:{start:fmt(start,'day'), end:fmt(end,'day'), monthly:useMonthly},
+    totalOrders: validOrders.length,
+    cancelledOrders: inRange.length - validOrders.length,
+    totalSales: totalSales, totalCost: totalCost, totalProfit: totalSales-totalCost,
+    avgOrderValue: validOrders.length? Math.round(totalSales/validOrders.length):0,
+    totalItemsSold: totalItems, byStatus: byStatus, series: series,
+    productBreakdown: productBreakdown, pieData: pieData, categoryBreakdown: categoryBreakdown,
+    todayOrders: todayOrders, todaySales: todaySales,
+    lowStock: products.filter(function(p){ return Number(p.stock)<=Number(p.minStock); })
+      .map(function(p){ return {name:p.name, stock:p.stock, minStock:p.minStock}; })
+  };
+}
+
+// ອັບເດດທັງ cache ອອເດີ + Dashboard (ຖ້າກຳລັງເປີດຢູ່) ໃນຄັ້ງດຽວ — ໃຊ້ທຸກຄັ້ງທີ່ມີການແກ້ໄຂອອເດີ
+function syncOrdersCacheAndDashboard(orders){
+  state.admin.orders = orders;
+  localStorage.setItem('pk_cache_admin_orders', JSON.stringify(orders));
+  updateOrdersPendingBadge(orders);
+  if(state.admin.page==='dashboard'){
+    const dc = document.getElementById('dash-content');
+    if(dc){
+      const stats = computeDashboardStatsClient(orders, state.products, state.categories, state.admin.dashRange.start, state.admin.dashRange.end);
+      dc.innerHTML = buildDashboardHTML(stats);
+      drawDashboardCharts(stats);
+    }
+  }
+  if(state.admin.page==='orders') renderOrdersTableOnly();
+  return orders;
+}
+
 /* ── orders admin ──────────────────────────────────────────── */
 async function renderAdminOrders(){
   const main = document.getElementById('admin-main');
-  const cacheKey = 'pk_cache_admin_orders';
-  const cached = localStorage.getItem(cacheKey);
-  if(cached){
-    try{ const orders = JSON.parse(cached); state.admin.orders = orders; main.innerHTML = buildOrdersTableHTML(orders); }
-    catch(e){ main.innerHTML = ordersSkeletonHTML(); }
-  } else {
-    main.innerHTML = ordersSkeletonHTML();
+  let orders = state.admin.orders;
+  if(!orders){
+    const cached = localStorage.getItem('pk_cache_admin_orders');
+    if(cached){ try{ orders = JSON.parse(cached); }catch(e){} }
   }
-  try{
-    const orders = await api.getOrders(state.admin.token);
-    localStorage.setItem(cacheKey, JSON.stringify(orders));
-    state.admin.orders = orders;
-    main.innerHTML = buildOrdersTableHTML(orders);
-  }catch(e){ if(!cached) main.innerHTML = '<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; console.error(e); }
+  main.innerHTML = orders ? buildOrdersTableHTML(orders) : ordersSkeletonHTML();
+  if(!state.admin._ordersLoadedOnce){
+    try{
+      const freshOrders = await api.getOrders(state.admin.token);
+      state.admin.orders = freshOrders;
+      state.admin._ordersLoadedOnce = true;
+      localStorage.setItem('pk_cache_admin_orders', JSON.stringify(freshOrders));
+      updateOrdersPendingBadge(freshOrders);
+      if(state.admin.page==='orders') main.innerHTML = buildOrdersTableHTML(freshOrders);
+    }catch(e){ if(!orders) main.innerHTML = '<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; console.error(e); }
+  }
 }
 function ordersSkeletonHTML(){
   return '<div class="a-title-row"><div class="skel" style="width:180px;height:24px;border-radius:8px;"></div></div>'+
@@ -2211,16 +2363,14 @@ function buildOrdersTableOnlyHTML(orders){
 }
 
 async function changeOrderStatus(orderId, status){
-  state.admin.orders = await api.updateOrderStatus(state.admin.token, orderId, status);
+  syncOrdersCacheAndDashboard(await api.updateOrderStatus(state.admin.token, orderId, status));
   toast('ອັບເດດສະຖານະແລ້ວ','✅');
-  renderOrdersTableOnly();
 }
 
 async function removeOrder(orderId){
   if(!confirm('ຢືນຢັນລຶບອອເດີ '+orderId+' ນີ້?')) return;
-  state.admin.orders = await api.deleteOrder(state.admin.token, orderId);
+  syncOrdersCacheAndDashboard(await api.deleteOrder(state.admin.token, orderId));
   toast('ລຶບອອເດີແລ້ວ','🗑️');
-  renderOrdersTableOnly();
 }
 
 /* ── slip lightbox ─────────────────────────────────────────── */
@@ -2283,17 +2433,14 @@ function openOrderDetailModal(orderId){
 function closeOrderDetailModal(){ document.getElementById('order-detail-holder').innerHTML=''; }
 async function updateOrderStatusFromDetail(orderId){
   const status = document.getElementById('od-status-select').value;
-  state.admin.orders = await api.updateOrderStatus(state.admin.token, orderId, status);
-  updateOrdersPendingBadge(state.admin.orders);
+  syncOrdersCacheAndDashboard(await api.updateOrderStatus(state.admin.token, orderId, status));
   toast('ອັບເດດສະຖານະແລ້ວ','✅');
-  renderOrdersTableOnly();
   closeOrderDetailModal();
 }
 async function saveTrackingNumber(orderId){
   const v = document.getElementById('od-tracking-input').value.trim();
-  state.admin.orders = await api.updateOrderTracking(state.admin.token, orderId, v);
+  syncOrdersCacheAndDashboard(await api.updateOrderTracking(state.admin.token, orderId, v));
   toast('ບັນທຶກ Tracking Number ແລ້ວ','✅');
-  renderOrdersTableOnly();
 }
 
 /* ── receipt / print modal ───────────────────────────────────── */
