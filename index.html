@@ -173,11 +173,11 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 /* ── categories ─────────────────────────────────────────────── */
 #category-row{display:flex;gap:10px;overflow-x:auto;padding:6px 16px 14px;scrollbar-width:none;}
 .cat-pill{
-  flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
-  width:70px;min-height:108px;padding:16px 4px;border-radius:18px;background:var(--c-surface);
+  flex:none;display:flex;flex-direction:column;align-items:center;gap:6px;
+  width:70px;padding:12px 4px 9px;border-radius:18px;background:var(--c-surface);
   border:1px solid var(--line);cursor:pointer;transition:.18s;box-shadow:var(--shadow-soft);
 }
-.cat-pill .ico{font-size:26px;}
+.cat-pill .ico{font-size:22px;}
 .cat-pill span{font-size:11px;text-align:center;font-weight:700;line-height:1.2;}
 .cat-pill.active{background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));border-color:transparent;color:#fff;box-shadow:0 10px 22px -8px rgba(181,82,42,.55);transform:translateY(-2px);}
 
@@ -211,8 +211,8 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
   margin-top:6px;width:35px;height:35px;border-radius:12px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));color:#fff;border:none;
   display:flex;align-items:center;justify-content:center;position:absolute;right:11px;bottom:11px;box-shadow:0 8px 18px -6px rgba(181,82,42,.6);
 }
-.pcard .addbtn svg{width:13px;height:13px;}
-.pcard .addbtn{width:30px;height:30px;background:linear-gradient(135deg,var(--c-accent),#F0C875);color:var(--charcoal);box-shadow:0 10px 22px -8px rgba(199,154,73,.65);}
+.pcard .addbtn svg{width:16px;height:16px;}
+.pcard .addbtn{width:40px;height:40px;background:linear-gradient(135deg,var(--c-accent),#F0C875);color:var(--charcoal);box-shadow:0 10px 22px -8px rgba(199,154,73,.65);}
 .qty-stepper{position:absolute;right:11px;bottom:11px;display:flex;align-items:center;gap:9px;
   background:var(--c-surface);border:1.5px solid var(--c-accent);border-radius:100px;padding:6px 11px;
   box-shadow:0 10px 22px -8px rgba(0,0,0,.3);z-index:2;}
@@ -546,7 +546,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
   <div class="sheet-head"><h3>ເມນູ</h3><button class="sheet-close" onclick="closeHamburger()">✕</button></div>
   <div class="sheet-body">
     <div style="display:flex;flex-direction:column;gap:10px;">
-      <button class="btn-ghost" onclick="showHomeView();closeHamburger();" style="text-align:left;">🏠 ໜ້າຫຼັກ</button>
+      <button class="btn-ghost" onclick="scrollToId('hero');closeHamburger();" style="text-align:left;">🏠 ໜ້າຫຼັກ</button>
       <button class="btn-ghost" onclick="openTrackSheet();closeHamburger();" style="text-align:left;">📦 ຕິດຕາມອອເດີ</button>
       <button class="btn-ghost" onclick="openAccountSheet();closeHamburger();" style="text-align:left;">👤 ບັນຊີຂອງຂ້ອຍ</button>
       <button class="btn-ghost" onclick="toggleDarkMode();closeHamburger();" style="text-align:left;">🌓 ໂໝດມືດ / ສະຫວ່າງ</button>
@@ -567,14 +567,6 @@ table.a-table tr:hover td{background:var(--c-bg);}
     </div>
     <div id="hero-dots"></div>
   </div>
-
-  <div class="section" style="padding-top:10px;">
-    <button class="btn-primary" onclick="showMenuView()">🍢 ເບິ່ງເມນູທັງໝົດ →</button>
-  </div>
-
-</main>
-
-<div id="view-menu" style="display:none;">
 
   <div class="section">
     <div class="section-head"><h3>🍢 ໝວດໝູ່</h3></div>
@@ -597,8 +589,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
     <div class="pcard skel" style="height:230px;"></div>
     <div class="pcard skel" style="height:230px;"></div>
   </div>
-
-</div>
+</main>
 
 <!-- ══════════════ SEARCH SHEET ══════════════ -->
 <div class="overlay" id="search-overlay" onclick="closeSheet('search')"></div>
@@ -674,8 +665,8 @@ table.a-table tr:hover td{background:var(--c-bg);}
 
 <!-- ══════════════ BOTTOM NAV (mobile) ══════════════ -->
 <nav id="bottom-nav">
-  <button class="nav-btn active" onclick="setNav(this);showHomeView()" id="nav-home"><span>ໜ້າຫຼັກ</span></button>
-  <button class="nav-btn" onclick="setNav(this);showMenuView()" id="nav-menu"><span>ເມນູ</span></button>
+  <button class="nav-btn active" onclick="setNav(this);scrollToId('hero')" id="nav-home"><span>ໜ້າຫຼັກ</span></button>
+  <button class="nav-btn" onclick="setNav(this);scrollToId('product-grid')" id="nav-menu"><span>ເມນູ</span></button>
   <button class="nav-btn" onclick="setNav(this);openTrackSheet()" id="nav-orders"><span>ອອເດີ</span></button>
   <button class="nav-btn" onclick="setNav(this);openCart()" id="nav-cart"><span>ກະຕ່າ</span></button>
   <button class="nav-btn" onclick="setNav(this);openAccountSheet()" id="nav-account"><span>ບັນຊີ</span></button>
@@ -1010,7 +1001,7 @@ function renderHero(){
         '<img src="'+b.image+'" loading="'+(i===0?'eager':'lazy')+'" onload="this.classList.add(\'loaded\');document.getElementById(\'hero\').classList.add(\'loaded\')" onerror="this.classList.add(\'loaded\')">'+
         '<div class="eyebrow">ໝູປີ້ງ</div>'+
         '<div class="txt"><h2>'+b.title+'</h2><p>'+(b.subtitle||'')+'</p>'+
-        (b.buttonText? '<button class="hero-cta" onclick="showMenuView()">'+b.buttonText+' →</button>':'')+
+        (b.buttonText? '<button class="hero-cta" onclick="scrollToId(\'product-grid\')">'+b.buttonText+' →</button>':'')+
         '</div></div>');
     dots.insertAdjacentHTML('beforeend','<span class="'+(i===state.heroIdx?'active':'')+'"></span>');
   });
@@ -1066,7 +1057,7 @@ function renderProducts(){
       '</div>';
   }).join('');
 }
-function openSearch(){ showMenuView(); openSheet('search'); setTimeout(()=>document.getElementById('search-input').focus(),300); }
+function openSearch(){ openSheet('search'); setTimeout(()=>document.getElementById('search-input').focus(),300); }
 
 /* ═══════════════════════════════════════════════════════════════
    SHEET / MODAL PLUMBING
@@ -1090,16 +1081,6 @@ function closeHamburger(){
 }
 function scrollToId(id){ document.getElementById(id).scrollIntoView({behavior:'smooth', block:'start'}); }
 function setNav(el){ document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active')); el.classList.add('active'); }
-function showHomeView(){
-  document.getElementById('view-customer').style.display='block';
-  document.getElementById('view-menu').style.display='none';
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-function showMenuView(){
-  document.getElementById('view-customer').style.display='none';
-  document.getElementById('view-menu').style.display='block';
-  window.scrollTo({top:0, behavior:'smooth'});
-}
 
 /* ═══════════════════════════════════════════════════════════════
    PRODUCT DETAIL
@@ -1592,13 +1573,13 @@ function toggleOrderItems(orderId){
 function openAccountSheet(){
   const c = state.customer;
   const avatarHtml = c.avatar
-    ? '<img src="'+c.avatar+'" style="width:112px;height:112px;border-radius:28px;object-fit:cover;box-shadow:0 12px 30px -8px rgba(0,0,0,.35);">'
-    : '<div style="width:112px;height:112px;border-radius:28px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;font-size:44px;color:#fff;box-shadow:0 12px 30px -8px rgba(0,0,0,.35);">👤</div>';
+    ? '<img src="'+c.avatar+'" style="width:66px;height:66px;border-radius:20px;object-fit:cover;box-shadow:0 10px 24px -8px rgba(0,0,0,.3);">'
+    : '<div style="width:66px;height:66px;border-radius:20px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;box-shadow:0 10px 24px -8px rgba(0,0,0,.3);">👤</div>';
 
   const avatarBlock =
-    '<div style="position:relative;width:112px;margin:0 auto 12px;">'+
+    '<div style="position:relative;width:66px;margin:0 auto 10px;">'+
       avatarHtml+
-      '<button onclick="document.getElementById(\'avatar-input\').click()" style="position:absolute;bottom:-4px;right:-4px;width:34px;height:34px;border-radius:50%;background:var(--c-accent);border:2px solid var(--c-surface);display:flex;align-items:center;justify-content:center;font-size:16px;">📷</button>'+
+      '<button onclick="document.getElementById(\'avatar-input\').click()" style="position:absolute;bottom:-4px;right:-4px;width:26px;height:26px;border-radius:50%;background:var(--c-accent);border:2px solid var(--c-surface);display:flex;align-items:center;justify-content:center;font-size:12px;">📷</button>'+
       '<input type="file" accept="image/*" id="avatar-input" style="display:none" onchange="handleAvatarUpload(this)">'+
     '</div>';
 
