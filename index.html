@@ -4,7 +4,7 @@
 <base target="_top">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>ໝູປີ້ງ Online</title>
+<title>ໝູປີ້ງ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://images.unsplash.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Lao:wght@400;500;600;700;900&family=Noto+Sans+Lao:wght@300;400;500;600;700;800&family=Noto+Sans+Lao+Looped:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
@@ -527,7 +527,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
   <div class="brand">
     <div id="logo-holder"></div>
     <div class="brand-text">
-      <div class="name" id="hdr-store-name">ໝູປີ້ງ Online</div>
+      <div class="name" id="hdr-store-name">ໝູປີ້ງ</div>
       <div class="tag" id="hdr-tag">ປີ້ງສົດ ທຸກຊີ້ນ ທຸກອອເດີ</div>
     </div>
   </div>
@@ -562,7 +562,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
   <div id="hero">
     <div class="slide active">
       <img src="https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=1200">
-      <div class="eyebrow">ໝູປີ້ງ ອອນລາຍ</div>
+      <div class="eyebrow">ໝູປີ້ງ</div>
       <div class="txt"><h2>ຍິນດີຕ້ອນຮັບ</h2><p>ເລືອກເມນູທີ່ທ່ານມັກ</p></div>
     </div>
     <div id="hero-dots"></div>
@@ -649,6 +649,14 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <p style="margin-top:10px;font-size:11px;">ລະຫັດຜ່ານເລີ່ມຕົ້ນ: 1234 (ປ່ຽນໄດ້ໃນ Settings)</p>
     </div>
   </div>
+</div>
+
+<!-- ══════════════ WISHLIST SHEET ══════════════ -->
+<div class="overlay" id="wishlist-overlay" onclick="closeSheet('wishlist')"></div>
+<div class="sheet" id="wishlist-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><h3>❤️ ລາຍການທີ່ຖືກໃຈ</h3><button class="sheet-close" onclick="closeSheet('wishlist')">✕</button></div>
+  <div class="sheet-body" id="wishlist-body"></div>
 </div>
 
 <!-- ══════════════ BOTTOM NAV (mobile) ══════════════ -->
@@ -959,7 +967,7 @@ function toggleDarkMode(){
 }
 
 function renderHeader(){
-  document.getElementById('hdr-store-name').textContent = state.settings.storeName||'ໝູປີ້ງ Online';
+  document.getElementById('hdr-store-name').textContent = state.settings.storeName||'ໝູປີ້ງ';
   document.getElementById('hdr-tag').textContent = state.settings.tagline||'';
   const holder = document.getElementById('logo-holder');
   if(state.settings.logoUrl){
@@ -979,14 +987,14 @@ function renderHero(){
   hero.querySelectorAll('.slide').forEach(el=>el.remove());
   dots.innerHTML='';
   if(active.length===0){
-    hero.insertAdjacentHTML('afterbegin','<div class="slide active"><img src="https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=1200"><div class="eyebrow">ໝູປີ້ງ ອອນລາຍ</div><div class="txt"><h2>ຍິນດີຕ້ອນຮັບ</h2><p>ເລືອກເມນູທີ່ທ່ານມັກ</p></div></div>');
+    hero.insertAdjacentHTML('afterbegin','<div class="slide active"><img src="https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=1200"><div class="eyebrow">ໝູປີ້ງ </div><div class="txt"><h2>ຍິນດີຕ້ອນຮັບ</h2><p>ເລືອກເມນູທີ່ທ່ານມັກ</p></div></div>');
     return;
   }
   active.forEach((b,i)=>{
     hero.insertAdjacentHTML('afterbegin',
       '<div class="slide '+(i===state.heroIdx?'active':'')+'" data-i="'+i+'">'+
         '<img src="'+b.image+'" loading="'+(i===0?'eager':'lazy')+'" onload="this.classList.add(\'loaded\');document.getElementById(\'hero\').classList.add(\'loaded\')" onerror="this.classList.add(\'loaded\')">'+
-        '<div class="eyebrow">ໝູປີ້ງ ອອນລາຍ</div>'+
+        '<div class="eyebrow">ໝູປີ້ງ</div>'+
         '<div class="txt"><h2>'+b.title+'</h2><p>'+(b.subtitle||'')+'</p>'+
         (b.buttonText? '<button class="hero-cta" onclick="scrollToId(\'product-grid\')">'+b.buttonText+' →</button>':'')+
         '</div></div>');
@@ -1178,6 +1186,60 @@ function wishlistBtnHtml(id){
   const active = isWishlisted(id);
   return '<button class="wishlist-btn '+(active?'active':'')+'" id="wish-'+id+'" onclick="event.stopPropagation();toggleWishlist(\''+id+'\')">'+
     '<svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ລາຍການທີ່ຖືກໃຈ — ໂຊວ໌ເມນູຈິງ + ສັ່ງໄດ້ເລີຍ
+   ═══════════════════════════════════════════════════════════════ */
+function openWishlistSheet(){
+  renderWishlistBody();
+  openSheet('wishlist');
+}
+function renderWishlistBody(){
+  const body = document.getElementById('wishlist-body');
+  const items = state.products.filter(p => state.wishlist.indexOf(p.id) > -1);
+
+  if(items.length === 0){
+    body.innerHTML = '<div class="empty-state"><div class="ico">❤️</div><h4>ຍັງບໍ່ມີລາຍການທີ່ຖືກໃຈ</h4><p>ກົດຮູບຫົວໃຈຢູ່ເມນູທີ່ທ່ານມັກ ເພື່ອບັນທຶກໄວ້ທີ່ນີ້</p></div>';
+    return;
+  }
+
+  body.innerHTML = items.map(p=>{
+    const promo = Number(p.promoPrice)>0 && Number(p.promoPrice)<Number(p.regularPrice);
+    const out = Number(p.stock)<=0;
+    return '<div class="cart-item" style="align-items:center;">'+
+      '<img src="'+p.image+'" style="cursor:pointer;" onclick="closeSheet(\'wishlist\');openProductDetail(\''+p.id+'\')">'+
+      '<div class="ci-body">'+
+        '<div class="ci-name" style="cursor:pointer;" onclick="closeSheet(\'wishlist\');openProductDetail(\''+p.id+'\')">'+p.name+'</div>'+
+        '<div class="ci-price num">'+(promo?'<span style="text-decoration:line-through;color:var(--ink-soft);font-weight:400;margin-right:6px;">'+money(p.regularPrice)+'</span>':'')+money(promo?p.promoPrice:p.regularPrice)+'</div>'+
+        (out
+          ? '<div style="font-size:11px;color:var(--danger);font-weight:700;margin-top:6px;">⛔ ສິນຄ້າໝົດຊົ່ວຄາວ</div>'
+          : '<div id="wl-qty-'+p.id+'" style="margin-top:8px;">'+wlQtyHtml(p.id)+'</div>')+
+      '</div>'+
+      '<button class="ci-del-btn" onclick="toggleWishlist(\''+p.id+'\');renderWishlistBody();" title="ເອົາອອກຈາກລາຍການ">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg>'+
+      '</button>'+
+    '</div>';
+  }).join('') +
+  (state.cart.length>0
+    ? '<button class="btn-primary" style="margin-top:16px;" onclick="closeSheet(\'wishlist\');openCart()">🛒 ໄປທີ່ກະຕ່າ ('+state.cart.reduce((s,i)=>s+i.qty,0)+')</button>'
+    : '');
+}
+function wlQtyHtml(id){
+  const qty = cartQtyFor(id);
+  if(qty > 0){
+    return '<div style="display:flex;align-items:center;gap:12px;">'+
+      '<button class="mini-qty-btn" onclick="gridDecrease(\''+id+'\');rerenderWlQty(\''+id+'\')">−</button>'+
+      '<span class="num" style="font-weight:800;font-size:14px;">'+qty+'</span>'+
+      '<button class="mini-qty-btn" onclick="gridIncrease(\''+id+'\');rerenderWlQty(\''+id+'\')">+</button>'+
+    '</div>';
+  }
+  return '<button class="btn-sm primary" onclick="gridIncrease(\''+id+'\');rerenderWlQty(\''+id+'\')">🛒 ໃສ່ກະຕ່າ</button>';
+}
+function rerenderWlQty(id){
+  const holder = document.getElementById('wl-qty-'+id);
+  if(holder) holder.innerHTML = wlQtyHtml(id);
+  updateCartBadge();
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1504,15 +1566,56 @@ function toggleOrderItems(orderId){
    ═══════════════════════════════════════════════════════════════ */
 function openAccountSheet(){
   const c = state.customer;
+  const avatarHtml = c.avatar
+    ? '<img src="'+c.avatar+'" style="width:66px;height:66px;border-radius:20px;object-fit:cover;box-shadow:0 10px 24px -8px rgba(0,0,0,.3);">'
+    : '<div style="width:66px;height:66px;border-radius:20px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;box-shadow:0 10px 24px -8px rgba(0,0,0,.3);">👤</div>';
+
+  const avatarBlock =
+    '<div style="position:relative;width:66px;margin:0 auto 10px;">'+
+      avatarHtml+
+      '<button onclick="document.getElementById(\'avatar-input\').click()" style="position:absolute;bottom:-4px;right:-4px;width:26px;height:26px;border-radius:50%;background:var(--c-accent);border:2px solid var(--c-surface);display:flex;align-items:center;justify-content:center;font-size:12px;">📷</button>'+
+      '<input type="file" accept="image/*" id="avatar-input" style="display:none" onchange="handleAvatarUpload(this)">'+
+    '</div>';
+
   document.getElementById('account-body').innerHTML = c.name?
-    '<div style="text-align:center;margin-bottom:16px;"><div style="width:66px;height:66px;border-radius:20px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin:0 auto 10px;box-shadow:0 10px 24px -8px rgba(0,0,0,.3);">👤</div>'+
+    '<div style="text-align:center;margin-bottom:16px;">'+avatarBlock+
     '<h3 style="margin:0;">'+c.name+'</h3><p style="color:var(--ink-soft);font-size:13px;margin:2px 0;">'+c.phone+'</p></div>'+
     '<div class="field"><label>ທີ່ຢູ່</label><input value="'+(c.address||'')+'" readonly></div>'+
     '<button class="btn-ghost" style="width:100%;" onclick="openTrackSheet()">📦 ຕິດຕາມອອເດີຫຼ້າສຸດ</button>'+
     '<button class="btn-ghost" style="width:100%;margin-top:8px;" onclick="openWishlistSheet()">❤️ ລາຍການທີ່ຖືກໃຈ ('+state.wishlist.length+')</button>'
     :
-    '<div class="empty-state"><div class="ico">👤</div><h4>ຍັງບໍ່ມີຂໍ້ມູນ</h4><p>ຂໍ້ມູນຂອງທ່ານຈະຖືກບັນທຶກອັດຕະໂນມັດຫຼັງຈາກສັ່ງຊື້ຄັ້ງທຳອິດ</p></div>';
+    '<div style="text-align:center;">'+avatarBlock+
+    '<div class="empty-state" style="padding:10px 0 0;"><div class="ico">👤</div><h4>ຍັງບໍ່ມີຂໍ້ມູນ</h4><p>ຂໍ້ມູນຂອງທ່ານຈະຖືກບັນທຶກອັດຕະໂນມັດຫຼັງຈາກສັ່ງຊື້ຄັ້ງທຳອິດ</p></div>'+
+    '<button class="btn-ghost" style="width:100%;margin-top:12px;" onclick="openWishlistSheet()">❤️ ລາຍການທີ່ຖືກໃຈ ('+state.wishlist.length+')</button>'+
+    '</div>';
   openSheet('account');
+}
+
+/* ── ອັບໂຫລດຮູບໂປຣໄຟລ໌ (resize + ບັນທຶກໃນເຄື່ອງລູກຄ້າ) ─────────── */
+function handleAvatarUpload(input){
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 8*1024*1024){ toast('ຮູບໃຫຍ່ເກີນໄປ (ສູງສຸດ 8MB)','⚠️'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = function(){
+      const maxSize = 300;
+      let w = img.width, h = img.height;
+      if(w > h){ if(w > maxSize){ h = Math.round(h*maxSize/w); w = maxSize; } }
+      else { if(h > maxSize){ w = Math.round(w*maxSize/h); h = maxSize; } }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+      state.customer.avatar = dataUrl;
+      localStorage.setItem('pk_customer', JSON.stringify(state.customer));
+      toast('ອັບເດດຮູບໂປຣໄຟລ໌ແລ້ວ','📷');
+      openAccountSheet();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2092,7 +2195,7 @@ function renderAdminSettings(){
     Object.keys(FONT_PAIRS).map(name=>'<option value="'+name+'" '+((s.fontPairing||'ຄລາສສິກ')===name?'selected':'')+'>'+name+'</option>').join('')+
   '</select></div>'+
   '<div id="font-preview" style="margin-top:10px;padding:16px;border-radius:14px;background:var(--c-bg);border:1px solid var(--line);">'+
-    '<div class="display" style="font-size:20px;font-weight:700;" id="fp-display">ໝູປີ້ງ ອອນລາຍ ແຊບຫຼາຍ</div>'+
+    '<div class="display" style="font-size:20px;font-weight:700;" id="fp-display">ໝູປີ້ງ ແຊບຫຼາຍ</div>'+
     '<div style="font-size:13px;color:var(--ink-soft);margin-top:4px;" id="fp-body">ຕົວຢ່າງໂຕໜັງສືເນື້ອຫາ — ປີ້ງສົດ ທຸກຊີ້ນ ທຸກອອເດີ</div>'+
   '</div></div>'+
 
