@@ -112,11 +112,11 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
   position:sticky;top:0;z-index:200;
   background:linear-gradient(120deg, var(--c-header), color-mix(in srgb, var(--c-header) 85%, var(--c-secondary)));
   color:var(--c-header-text);
-  padding:13px 14px;display:flex;align-items:center;gap:8px;
+  padding:13px 10px;display:flex;align-items:center;gap:6px;
   box-shadow:0 8px 24px rgba(0,0,0,.24);
   border-bottom:1px solid color-mix(in srgb, var(--c-accent) 35%, transparent);
 }
-.brand{display:flex;align-items:center;gap:10px;flex:none;min-width:0;}
+.brand{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;overflow:hidden;}
 .brand img.logo{width:40px;height:40px;border-radius:12px;object-fit:cover;background:var(--c-primary);box-shadow:0 0 0 1.5px rgba(199,154,73,.4);}
 .brand .logo-fallback{width:40px;height:40px;border-radius:12px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;font-size:19px;flex:none;box-shadow:0 0 0 1.5px rgba(199,154,73,.4);}
 .brand-text{min-width:0;}
@@ -377,7 +377,8 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
   width:220px;background:var(--c-sidebar);color:var(--c-sidebar-text);flex:none;overflow-y:auto;
   display:flex;flex-direction:column;padding:14px 0;border-right:1px solid color-mix(in srgb, var(--c-accent) 20%, transparent);
 }
-.a-nav-item{display:flex;align-items:center;gap:11px;padding:12px 20px;font-size:13.5px;font-weight:600;color:color-mix(in srgb, var(--c-sidebar-text) 68%, transparent);border-left:3px solid transparent;transition:.15s;}
+.a-nav-item{position:relative;display:flex;align-items:center;gap:11px;padding:12px 20px;font-size:13.5px;font-weight:600;color:color-mix(in srgb, var(--c-sidebar-text) 68%, transparent);border-left:3px solid transparent;transition:.15s;}
+.a-nav-dot{position:absolute;top:9px;right:16px;min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:var(--c-accent);color:var(--charcoal);font-size:9.5px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--c-sidebar);animation:pulse 1.4s infinite;font-family:var(--font-num);}
 .a-nav-item svg{width:17px;height:17px;flex:none;}
 .a-nav-item.active{color:var(--c-sidebar-text);background:color-mix(in srgb, var(--c-accent) 14%, transparent);border-left-color:var(--c-accent);}
 .a-nav-sec{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:color-mix(in srgb, var(--c-sidebar-text) 40%, transparent);padding:16px 20px 5px;}
@@ -385,6 +386,16 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .a-title-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
 .a-title-row h2{margin:0;font-size:19px;font-family:var(--font-display);}
 .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:13px;margin-bottom:20px;}
+@media(max-width:720px){
+  #admin-main{padding:14px 12px 64px;}
+
+  .kpi-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .kpi-card{padding:13px 14px;}
+  .kpi-card .lbl{font-size:10.5px;}
+  .kpi-card .val{font-size:17px;}
+
+  .chart-box{height:200px;}
+}
 .kpi-card{background:var(--c-surface);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow-card);border:1px solid var(--line);position:relative;overflow:hidden;}
 .kpi-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c-primary),var(--c-accent));}
 .kpi-card .lbl{font-size:11.5px;color:var(--ink-soft);font-weight:700;margin-bottom:7px;}
@@ -396,10 +407,15 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .dash-presets{display:flex;gap:8px;flex-wrap:wrap;}
 .dash-preset-btn{padding:9px 16px;border-radius:100px;border:1.5px solid var(--line);background:var(--c-surface);font-size:12.5px;font-weight:700;color:var(--ink-soft);}
 .dash-preset-btn.active{background:var(--c-primary);border-color:var(--c-primary);color:#fff;}
-.dash-daterange{display:flex;align-items:center;gap:8px;}
-.dash-daterange input{padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--c-bg);color:var(--c-text);font-size:13px;}
+.dash-daterange{display:flex;align-items:center;gap:8px;background:var(--c-surface);border:1.5px solid var(--line);border-radius:100px;padding:6px 8px 6px 14px;box-shadow:var(--shadow-soft);flex-wrap:wrap;}
+.dash-daterange-ico{font-size:14px;}
+.dash-daterange input{padding:6px 4px;border-radius:8px;border:none;background:transparent;color:var(--c-text);font-size:12.5px;}
+.dash-apply-btn{background:var(--c-primary);color:#fff;border:none;border-radius:100px;padding:8px 14px;font-size:12px;font-weight:800;white-space:nowrap;}
+.dash-clear-btn{width:28px;height:28px;border-radius:50%;background:var(--c-bg);border:1px solid var(--line);color:var(--ink-soft);font-size:13px;flex:none;}
+.dash-range-summary{font-size:11.5px;color:var(--ink-soft);margin:2px 0 4px;}
 .a-panel{background:var(--c-surface);border-radius:18px;padding:18px;box-shadow:var(--shadow-card);border:1px solid var(--line);margin-bottom:18px;}
 .a-panel h4{margin:0 0 14px;font-size:14px;font-family:var(--font-display);}
+.chart-box{position:relative;height:260px;}
 .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
 .bar-row .bl{width:70px;font-size:11.5px;color:var(--ink-soft);flex:none;}
 .bar-track{flex:1;height:9px;background:var(--porcelain-2);border-radius:6px;overflow:hidden;}
@@ -466,6 +482,16 @@ table.a-table tr:hover td{background:var(--c-bg);}
 .padm-chip{flex:none;padding:9px 16px;border-radius:100px;border:1.5px solid var(--line);background:var(--c-surface);font-size:12.5px;font-weight:700;color:var(--ink-soft);cursor:pointer;transition:.15s;}
 .padm-chip.active{background:var(--c-primary);border-color:var(--c-primary);color:#fff;}
 .padm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;}
+@media(max-width:720px){
+  .padm-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .padm-card .padm-name{font-size:12.5px;min-height:32px;}
+  .padm-card .padm-cat{font-size:10px;}
+  .padm-card .padm-price-now{font-size:14px;}
+  .padm-card .padm-price-old{font-size:10px;}
+  .padm-card-body{padding:10px 10px 12px;gap:4px;}
+  .padm-actions{gap:6px;}
+  .padm-actions button{font-size:10.5px;padding:7px 4px;}
+}
 .padm-card{background:var(--c-surface);border-radius:18px;overflow:hidden;border:1px solid var(--line);box-shadow:var(--shadow-card);display:flex;flex-direction:column;}
 .padm-card .padm-imgwrap{position:relative;aspect-ratio:1/1;background:var(--porcelain-2);overflow:hidden;}
 .padm-card .padm-imgwrap img{width:100%;height:100%;object-fit:cover;display:block;}
@@ -501,6 +527,13 @@ table.a-table tr:hover td{background:var(--c-bg);}
 
 /* ── ໜ້າອໍເດີ (redesigned) ─────────────────────── */
 .ord-toolbar{display:flex;flex-direction:column;gap:12px;margin-bottom:16px;}
+.ord-stats-strip{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.ord-stat-chip{flex:1;min-width:100px;background:var(--c-surface);border:1px solid var(--line);border-radius:14px;padding:11px 14px;box-shadow:var(--shadow-soft);text-align:center;}
+.ord-stat-chip b{display:block;font-size:19px;font-family:var(--font-num);font-weight:800;}
+.ord-stat-chip span{font-size:10.5px;color:var(--ink-soft);font-weight:700;}
+.ord-stat-chip.active b{color:var(--c-primary);}
+.ord-stat-chip.done b{color:var(--success);}
+.ord-stat-chip.cancel b{color:var(--danger);}
 .ord-search{position:relative;}
 .ord-search input{width:100%;padding:12px 16px 12px 40px;border-radius:14px;border:1.5px solid var(--line);background:var(--c-surface);color:var(--c-text);font-size:14px;box-shadow:var(--shadow-soft);}
 .ord-search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--ink-soft);}
@@ -825,7 +858,12 @@ function applyAllIcons(){
   const labels = {dashboard:'Dashboard', orders:'ອອເດີ', products:'ສິນຄ້າ', categories:'ໝວດໝູ່', banners:'Banner', settings:'ຮ້ານ &amp; ໂຕນຮັບ'};
   Object.keys(sb).forEach(function(page){
     const el = document.getElementById('sb-'+page);
-    if(el) el.innerHTML = iconHtml(sb[page]) + '<span>'+labels[page]+'</span>';
+    if(!el) return;
+    let extra = '';
+    if(page==='orders'){
+      extra = '<span class="a-nav-dot" id="orders-pending-dot" style="display:'+(state.admin._hasPendingOrders?'flex':'none')+';"></span>';
+    }
+    el.innerHTML = iconHtml(sb[page]) + '<span>'+labels[page]+'</span>' + extra;
   });
   updateCartBadge();
 }
@@ -863,7 +901,7 @@ const state = {
   activeCategory:'all',
   menuActiveCategory:'all',
   heroIdx:0, heroTimer:null,
-  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'', dashRange:{preset:'7d', start:null, end:null}, charts:{line:null, pie:null}, productFilter:'all', productSearchQuery:'', productSort:'name' },
+  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'', dashRange:{preset:'7d', start:null, end:null}, charts:{line:null, pie:null}, productFilter:'all', productSearchQuery:'', productSort:'name', dashLoading:false, _hasPendingOrders:false },
   customer: JSON.parse(localStorage.getItem('pk_customer')||'{}'),
   _catJson:'', _prodJson:'', _banJson:''
 };
@@ -1811,17 +1849,45 @@ function startAdminOrderPoll(){
   checkNewOrders();
 }
 function stopAdminOrderPoll(){ clearInterval(state.admin.pollTimer); }
+function updateOrdersPendingBadge(orders){
+  const doneStatuses = ['DELIVERED','COMPLETED','CANCELLED'];
+  const pendingCount = orders.filter(o=>doneStatuses.indexOf(o.orderStatus)===-1).length;
+  state.admin._hasPendingOrders = pendingCount > 0;
+  const dot = document.getElementById('orders-pending-dot');
+  if(dot) dot.style.display = pendingCount>0 ? 'flex' : 'none';
+  if(dot) dot.textContent = pendingCount>9 ? '9+' : (pendingCount>0? String(pendingCount) : '');
+}
+async function changeOrderStatus(orderId, status){
+  state.admin.orders = await api.updateOrderStatus(state.admin.token, orderId, status);
+  updateOrdersPendingBadge(state.admin.orders);
+  toast('ອັບເດດສະຖານະແລ້ວ','✅');
+  renderOrdersTableOnly();
+}
+
+async function removeOrder(orderId){
+  if(!confirm('ຢືນຢັນລຶບອອເດີ '+orderId+' ນີ້?')) return;
+  state.admin.orders = await api.deleteOrder(state.admin.token, orderId);
+  updateOrdersPendingBadge(state.admin.orders);
+  toast('ລຶບອອເດີແລ້ວ','🗑️');
+  renderOrdersTableOnly();
+}
 async function checkNewOrders(){
   try{
     const orders = await api.getOrders(state.admin.token);
+    state.admin.orders = orders; // ເກັບໄວ້ໃຊ້ຊ້ຳ — ໜ້າອອເດີບໍ່ຕ້ອງຍິງ API ຊ້ຳອີກຮອບ
+    updateOrdersPendingBadge(orders);
     const ids = orders.map(o=>o.orderId);
-    if(state.admin.seenOrderIds===null){ state.admin.seenOrderIds = ids; return; }
+    if(state.admin.seenOrderIds===null){
+      state.admin.seenOrderIds = ids;
+      if(state.admin.page==='orders') renderOrdersTableOnly();
+      return;
+    }
     const newOnes = ids.filter(id=>state.admin.seenOrderIds.indexOf(id)===-1);
     if(newOnes.length>0){
       playNotificationSound();
       toast('🔔 ມີອອເດີໃໝ່ເຂົ້າມາ '+newOnes.length+' ລາຍການ','🛎️');
-      if(state.admin.page==='orders') renderAdminOrders();
-      if(state.admin.page==='dashboard') renderAdminDashboard();
+      if(state.admin.page==='orders') renderOrdersTableOnly();
+      if(state.admin.page==='dashboard') loadDashboardData(true); // ອັບເດດງຽບໆ ບໍ່ຣີເຊັດ toolbar
     }
     state.admin.seenOrderIds = ids;
   }catch(e){
@@ -1887,15 +1953,25 @@ function renderAdminDashboard(){
 
 function dashboardToolbarHTML(){
   const r = state.admin.dashRange;
-  const presets = [['today','ມື້ນີ້'],['7d','7 ວັນ'],['month','ເດືອນນີ້'],['year','ປີນີ້'],['custom','ກຳນົດເອງ']];
+  const presets = [['today','ມື້ນີ້'],['7d','7 ວັນ'],['month','ເດືອນນີ້'],['year','ປີນີ້']];
+  const rangeText = r.start===r.end ? r.start : (r.start+' ຫາ '+r.end);
   return '<div class="dash-toolbar">'+
     '<div class="dash-presets">'+presets.map(p=>'<button class="dash-preset-btn '+(r.preset===p[0]?'active':'')+'" onclick="setDashPreset(\''+p[0]+'\')">'+p[1]+'</button>').join('')+'</div>'+
-    '<div class="dash-daterange" id="dash-daterange" style="'+(r.preset==='custom'?'':'display:none;')+'">'+
-      '<input type="date" id="dash-start" value="'+r.start+'" onchange="setDashCustom()">'+
+    '<div class="dash-daterange" id="dash-daterange">'+
+      '<span class="dash-daterange-ico">📅</span>'+
+      '<input type="date" id="dash-start" value="'+r.start+'">'+
       '<span>→</span>'+
-      '<input type="date" id="dash-end" value="'+r.end+'" onchange="setDashCustom()">'+
+      '<input type="date" id="dash-end" value="'+r.end+'">'+
+      '<button class="dash-apply-btn" onclick="setDashCustom()">🔍 ຄົ້ນຫາ</button>'+
+      (r.preset==='custom'? '<button class="dash-clear-btn" onclick="clearDashCustom()" title="ລ້າງ">✕</button>' : '')+
     '</div>'+
+    '<div class="dash-range-summary">📊 ສະແດງຂໍ້ມູນ: <b>'+rangeText+'</b></div>'+
   '</div>';
+}
+function clearDashCustom(){
+  const r = dashRangeFor('7d');
+  state.admin.dashRange = {preset:'7d', start:r.start, end:r.end};
+  renderAdminDashboard();
 }
 function setDashPreset(p){
   if(p==='custom'){
@@ -1910,22 +1986,26 @@ function setDashPreset(p){
 function setDashCustom(){
   const s = document.getElementById('dash-start').value;
   const e = document.getElementById('dash-end').value;
-  if(!s || !e) return;
+  if(!s || !e){ toast('ກະລຸນາເລືອກວັນທີໃຫ້ຄົບທັງ 2 ຊ່ອງ','⚠️'); return; }
+  if(s > e){ toast('ວັນທີເລີ່ມຕົ້ນຕ້ອງມາກ່ອນວັນທີສິ້ນສຸດ','⚠️'); return; }
   state.admin.dashRange = {preset:'custom', start:s, end:e};
-  loadDashboardData();
+  renderAdminDashboard();
 }
 
-async function loadDashboardData(){
+async function loadDashboardData(silent){
+  if(state.admin.dashLoading) return; // ກັນຍິງຊ້ຳຊ້ອນ ຖ້າຍັງໂຫຼດຄ້າງຢູ່
+  state.admin.dashLoading = true;
   const content = document.getElementById('dash-content');
   const cacheKey = 'pk_cache_admin_stats_'+state.admin.dashRange.start+'_'+state.admin.dashRange.end;
   const cached = localStorage.getItem(cacheKey);
-  if(cached){ try{ content.innerHTML = buildDashboardHTML(JSON.parse(cached)); drawDashboardCharts(JSON.parse(cached)); }catch(e){} }
+  if(cached && !silent){ try{ content.innerHTML = buildDashboardHTML(JSON.parse(cached)); drawDashboardCharts(JSON.parse(cached)); }catch(e){} }
   try{
     const s = await api.getDashboardStats(state.admin.token, state.admin.dashRange.start, state.admin.dashRange.end);
     localStorage.setItem(cacheKey, JSON.stringify(s));
     content.innerHTML = buildDashboardHTML(s);
     drawDashboardCharts(s);
   }catch(e){ if(!cached) content.innerHTML='<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; console.error(e); }
+  finally{ state.admin.dashLoading = false; }
 }
 
 function dashboardSkeletonHTML(){
@@ -1947,9 +2027,9 @@ function buildDashboardHTML(s){
     '</div>'+
     '<div class="grid-2">'+
       '<div class="a-panel"><h4>📈 ຍອດຂາຍຕາມຊ່ວງເວລາ'+(s.range.monthly?' (ສະຫຼຸບຕໍ່ເດືອນ)':' (ຕໍ່ວັນ)')+'</h4>'+
-        '<div style="position:relative;height:260px;"><canvas id="dash-line-chart"></canvas></div></div>'+
+        '<div class="chart-box"><canvas id="dash-line-chart"></canvas></div></div>'+
       '<div class="a-panel"><h4>🥧 ສັດສ່ວນເມນູຂາຍດີ (ຕາມຍອດຂາຍ)</h4>'+
-        '<div style="position:relative;height:260px;">'+
+        '<div class="chart-box">'+
         (s.pieData.length? '<canvas id="dash-pie-chart"></canvas>' : '<p style="font-size:12px;color:var(--ink-soft);text-align:center;padding-top:80px;">ຍັງບໍ່ມີຂໍ້ມູນການຂາຍໃນຊ່ວງນີ້</p>')+
         '</div></div>'+
     '</div>'+
@@ -2068,8 +2148,20 @@ function renderOrdersTableOnly(){
   if(holder) holder.innerHTML = buildOrdersTableOnlyHTML(filterOrdersList(state.admin.orders));
 }
 
+function orderStatsStripHTML(orders){
+  const doneStatuses = ['DELIVERED','COMPLETED'];
+  const activeCount = orders.filter(o=>['DELIVERED','COMPLETED','CANCELLED'].indexOf(o.orderStatus)===-1).length;
+  const doneCount = orders.filter(o=>doneStatuses.indexOf(o.orderStatus)>-1).length;
+  const cancelCount = orders.filter(o=>o.orderStatus==='CANCELLED').length;
+  return '<div class="ord-stats-strip">'+
+    '<div class="ord-stat-chip"><b>'+orders.length+'</b><span>ທັງໝົດ</span></div>'+
+    '<div class="ord-stat-chip active"><b>'+activeCount+'</b><span>ກຳລັງດຳເນີນການ</span></div>'+
+    '<div class="ord-stat-chip done"><b>'+doneCount+'</b><span>ສຳເລັດ</span></div>'+
+    '<div class="ord-stat-chip cancel"><b>'+cancelCount+'</b><span>ຍົກເລີກ</span></div>'+
+  '</div>';
+}
 function buildOrdersTableHTML(orders){
-  return '<div class="ord-toolbar">'+
+  return orderStatsStripHTML(orders)+'<div class="ord-toolbar">'+
     '<div class="ord-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>'+
     '<input type="text" placeholder="ຄົ້ນຫາ ລະຫັດ / ຊື່ / ເບີໂທ..." value="'+(state.admin.orderSearchQuery||'')+'" oninput="searchOrdersInput(this.value)"></div>'+
     '<div class="ord-filters">'+ORDER_FILTER_TABS.map(t=>
@@ -2181,7 +2273,8 @@ function closeOrderDetailModal(){ document.getElementById('order-detail-holder')
 async function updateOrderStatusFromDetail(orderId){
   const status = document.getElementById('od-status-select').value;
   state.admin.orders = await api.updateOrderStatus(state.admin.token, orderId, status);
-  toast('ອັບເດດສะຖານະແລ້ວ','✅');
+  updateOrdersPendingBadge(state.admin.orders);
+  toast('ອັບເດດສະຖານະແລ້ວ','✅');
   renderOrdersTableOnly();
   closeOrderDetailModal();
 }
