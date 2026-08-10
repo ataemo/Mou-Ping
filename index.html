@@ -585,7 +585,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
 <div class="overlay" id="cart-overlay" onclick="closeSheet('cart')"></div>
 <div class="sheet" id="cart-sheet">
   <div class="sheet-handle"></div>
-  <div class="sheet-head"><h3>ກະຕ່າສິນຄ້າ</h3><button class="sheet-close" onclick="closeSheet('cart')">✕</button></div>
+  <div class="sheet-head"><h3>ກະຕ່າ & ຢືນຢັນສັ່ງຊື້</h3><button class="sheet-close" onclick="closeSheet('cart')">✕</button></div>
   <div class="sheet-body" id="cart-body"></div>
 </div>
 
@@ -719,6 +719,29 @@ function applyAllIcons(){
   });
   updateCartBadge();
 }
+
+/* ═══════════ ຂໍ້ມູນແຂວງ / ເມືອງ ສຳລັບເລືອກທີ່ຢູ່ຈັດສົ່ງ ═══════════
+   ໝາຍເຫດ: ລາຍຊື່ເມືອງບາງແຂວງອາດບໍ່ຄົບ 100% — ແກ້ໄຂ/ເພີ່ມໄດ້ເອງທີ່ນີ້ */
+const LAO_PROVINCES = {
+  "ນະຄອນຫຼວງວຽງຈັນ": ["ຈັນທະບູລີ","ສີໂຄດຕະບອງ","ໄຊເສດຖາ","ສີສັດຕະນາກ","ນາຊາຍທອງ","ໄຊທານີ","ຫາດຊາຍຟອງ","ສັງທອງ","ປາກງື່ມ"],
+  "ວຽງຈັນ": ["ໂພນໂຮງ","ວັງວຽງ","ແກ້ວອຸດົມ","ກາສີ","ແມດ","ຟຽງ","ຫີນເຫີບ","ຊະນະຄາມ","ໝື່ນ","ທຸລະຄົມ"],
+  "ບໍລິຄຳໄຊ": ["ປາກຊັນ","ທ່າພະບາດ","ປາກກະດິງ","ບໍລິຄັນ","ໄຊຈຳພອນ","ວຽງທອງ","ຄຳເກີດ"],
+  "ຄໍາມ່ວນ": ["ທ່າແຂກ","ໝາຍ","ໜອງບົກ","ຍົມມະລາດ","ບົວລະພາ","ນາກາຍ","ຄູນຄຳ","ຫິນບູນ","ເຊບັ້ງໄຟ"],
+  "ສະຫວັນນະເຂດ": ["ໄກສອນ ພົມວິຫານ","ອຸທຸມພອນ","ອາດສະພັງທອງ","ພິນ","ເຊໂປນ","ນອງ","ຈໍາພອນ","ສອງຄອນ","ຫາດອາດ","ວິລະບູລີ","ອາດສະພອນ"],
+  "ສາລະວັນ": ["ສາລະວັນ","ຄົງເຊໂດນ","ຕະໂອ້ຍ","ຕຸ້ມລານ","ວາປີ","ລະຄອນເພັງ","ລະລໍາ"],
+  "ເຊກອງ": ["ລະມາມ","ກາລືມ","ດາກຈຶງ","ທ່າແຕງ"],
+  "ຈຳປາສັກ": ["ປາກເຊ","ບາຈຽງຈະເລີນສຸກ","ໂພນທອງ","ຈຳປາສັກ","ຊະນະສົມບູນ","ໂຂງ","ມູນລະປະໂມກ","ປະທຸມພອນ","ສຸຂຸມາ","ວາປີ"],
+  "ອັດຕະປື": ["ສາມັກຄີໄຊ","ສະໜາມໄຊ","ພູວົງ","ແສນສົມບູນ"],
+  "ຫຼວງພະບາງ": ["ຫຼວງພະບາງ","ຊຽງເງິນ","ນານ","ປາກອູ","ໂພນໄຊ","ໜອງແຮດ","ໜອງຄຽວ","ປາກແຊງ","ວຽງຄຳ","ຈອມເພັດ","ພູຄູນ"],
+  "ຫົວພັນ": ["ຊຳເໜືອ","ຊຳໃຕ້","ວຽງໄຊ","ວຽງທອງ","ຮວມ","ຊອນ","ແອດ","ໂຊບ","ຊຽງຄໍ້"],
+  "ໄຊຍະບູລີ": ["ໄຊຍະບູລີ","ຄອບ","ຫົງສາ","ເງິນ","ພຽງ","ຜາກລາຍ","ທົ່ງມີໄຊ","ບໍ່ແຕນ","ຊຽງຮ່ອນ","ວັງເໜືອ"],
+  "ຊຽງຂວາງ": ["ໂພນສະຫວັນ","ແປກ","ໜອງແຫ້ດ","ຄູນ","ໝອກ","ຜາໄຊ","ຄຳ"],
+  "ຫຼວງນ້ຳທາ": ["ຫຼວງນ້ຳທາ","ສີງ","ລອງ","ວຽງພູຄາ","ນາແລ"],
+  "ອຸດົມໄຊ": ["ໄຊ","ນາໝໍ້","ລາ","ງອຍ","ຮຸນ","ປາກແບງ","ບຶນ","ຫຼາ"],
+  "ບໍ່ແກ້ວ": ["ຫ້ວຍຊາຍ","ຕົ້ນເຜີ້ງ","ພະອຸດົມ","ເມິງ","ປາກທາ"],
+  "ຜົ້ງສາລີ": ["ຜົ້ງສາລີ","ມະໂຍະໄຊ","ຄວາ","ຍອດອູ","ບຸນເໜືອ","ບຸນໃຕ້","ນຳ້ຫງື່ມ","ບຸນຕາຍ"],
+  "ໄຊສົມບູນ": ["ອະນຸວົງ","ລ໋ອງແຈງ","ຄາຍສອນ ບຸນວິຈິດ","ທາທົມ"]
+};
 
 /* ═══════════════════════════════════════════════════════════════
    APP STATE
@@ -1038,7 +1061,7 @@ function renderPD(){
     '<div class="qty-row"><button class="qty-btn" onclick="pdChangeQty(-1)">−</button><span class="qty-val" id="pd-qty-val">'+pdQty+'</span><button class="qty-btn" onclick="pdChangeQty(1)">+</button>'+
     '<span style="font-size:12px;color:var(--ink-soft);margin-left:auto;">ຄົງເຫຼືອ: '+p.stock+' '+(p.unit||'')+'</span></div>'+
     '<div style="display:flex;gap:10px;"><button class="btn-secondary" onclick="addToCart(pdProduct,pdQty);closeSheet(\'pd\')">ໃສ່ກະຕ່າ</button>'+
-    '<button class="btn-primary" onclick="addToCart(pdProduct,pdQty);closeSheet(\'pd\');openCheckout();">ສັ່ງເລີຍ</button></div>';
+    '<button class="btn-primary" onclick="addToCart(pdProduct,pdQty);closeSheet(\'pd\');openCart();">ສັ່ງເລີຍ</button></div>';
 }
 function pdChangeQty(d){
   pdQty = Math.max(1, Math.min(Number(pdProduct.stock)||99, pdQty+d));
@@ -1097,9 +1120,102 @@ function wishlistBtnHtml(id){
   return '<button class="wishlist-btn '+(active?'active':'')+'" id="wish-'+id+'" onclick="event.stopPropagation();toggleWishlist(\''+id+'\')">'+
     '<svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>';
 }
+
 /* ═══════════════════════════════════════════════════════════════
-   CART
+   ກະຕ່າ + ຢືນຢັນສັ່ງຊື້ (ລວມກັນເປັນໜ້າດຽວ)
    ═══════════════════════════════════════════════════════════════ */
+let checkoutState = {orderType:'delivery', payment:'cash', slipUrl:'', slipBase64:'', slipFileName:'', slipMimeType:'', draft:{}};
+
+function captureCheckoutDraft(){
+  const ids = ['co-name','co-phone','co-province','co-district','co-village','co-detail','co-note'];
+  ids.forEach(id=>{ const el=document.getElementById(id); if(el) checkoutState.draft[id]=el.value; });
+}
+function draftVal(id, fallback){
+  return checkoutState.draft && checkoutState.draft[id]!==undefined ? checkoutState.draft[id] : (fallback||'');
+}
+
+function openCart(){ renderCartBody(); openSheet('cart'); }
+
+function cartItemRowHtml(i){
+  return '<div class="cart-item"><img src="'+i.image+'"><div class="ci-body"><div class="ci-name">'+i.name+'</div><div class="ci-price num">'+money(i.price)+'</div>'+
+    '<div class="ci-qty"><button class="mini-qty-btn" onclick="changeCartQty(\''+i.id+'\',-1)">−</button><span class="num">'+i.qty+'</span><button class="mini-qty-btn" onclick="changeCartQty(\''+i.id+'\',1)">+</button>'+
+    '<button style="margin-left:auto;background:none;border:none;color:var(--c-secondary);font-size:11px;" onclick="removeCartItem(\''+i.id+'\')">ລຶບ</button></div></div></div>';
+}
+
+function checkoutFormHtml(){
+  const c = state.customer||{};
+  const s = state.settings;
+  const provinces = Object.keys(LAO_PROVINCES);
+  const curProvince = draftVal('co-province', c.province);
+  const qrBlock = checkoutState.payment==='qr' ? (
+    '<div class="a-panel" style="padding:14px;">'+
+    '<div style="font-weight:800;font-size:13px;margin-bottom:10px;">💳 ຂໍ້ມູນໂອນເງິນ</div>'+
+    '<div style="font-size:13px;line-height:1.9;">'+
+      '<div>🏦 <b>'+(s.bankName||'-')+'</b></div>'+
+      '<div>📋 '+(s.bankAccountNumber||'-')+'</div>'+
+      '<div>👤 '+(s.bankAccountHolder||'-')+'</div>'+
+    '</div>'+
+    (s.bankQrUrl? '<div class="qr-card-wrap"><div class="qr-card"><img src="'+s.bankQrUrl+'" referrerpolicy="no-referrer" onerror="imgFallback(this)"></div></div>' : '')+
+    '<div class="field" style="margin-top:6px;"><label>📎 ອັບໂຫລດ Slip ການໂອນ</label>'+
+    (checkoutState.slipBase64?
+      '<div class="slip-preview-wrap"><img src="'+checkoutState.slipBase64+'"></div>'+
+      '<div style="text-align:center;"><button type="button" class="slip-remove-btn" onclick="removeSlip()">🗑️ ລຶບຮູບ / ອັບໂຫລດໃໝ່</button></div>'
+      :
+      '<div class="slip-dropzone" onclick="document.getElementById(\'co-slip\').click()">'+
+        '<div class="slip-camera">📸</div><div class="slip-hint-main">ກົດເພື່ອເລືອກ Slip / ຖ່າຍວາງຮູບ</div>'+
+        '<div class="slip-hint-sub">JPG, PNG ຂະໜາດບໍ່ເກີນ 5MB</div></div>'
+    )+
+    '<input type="file" accept="image/*" id="co-slip" style="display:none" onchange="handleSlipUpload(this)">'+
+    '<div id="co-slip-status" style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;"></div>'+
+    '</div></div>'
+  ) : '';
+
+  return '<div class="gilt-divider" style="margin:16px 0 12px;"><div class="ln"></div><div class="gem"></div><div class="ln"></div></div>'+
+    '<h4 style="margin:0 0 10px;font-size:14px;">👤 ຂໍ້ມູນຜູ້ສັ່ງ</h4>'+
+    '<div class="field"><label>ຊື່ຜູ້ສັ່ງ</label><input id="co-name" value="'+draftVal('co-name', c.name)+'" placeholder="ຊື່ ແລະ ນາມສະກຸນ"></div>'+
+    '<div class="field"><label>ເບີໂທ</label><input id="co-phone" value="'+draftVal('co-phone', c.phone)+'" placeholder="020 xxxxxxxx"></div>'+
+    '<div class="field"><label>ປະເພດການສັ່ງ</label><div class="seg" id="co-type">'+
+      ['delivery:ຈັດສົ່ງ','pickup:ມາຮັບເອງ','dinein:ນັ່ງຮ້ານ'].map(o=>{const[v,l]=o.split(':');return '<div class="seg-btn '+(checkoutState.orderType===v?'active':'')+'" onclick="setOrderType(\''+v+'\')">'+l+'</div>';}).join('')+
+    '</div></div>'+
+    (checkoutState.orderType==='delivery'?
+      '<h4 style="margin:14px 0 10px;font-size:14px;">📍 ທີ່ຢູ່ຈັດສົ່ງ</h4>'+
+      '<div class="field"><label>ແຂວງ *</label><select id="co-province" onchange="onProvinceChange()">'+
+        '<option value="">— ເລືອກແຂວງ —</option>'+
+        provinces.map(p=>'<option value="'+p+'" '+(curProvince===p?'selected':'')+'>'+p+'</option>').join('')+
+      '</select></div>'+
+      '<div class="field"><label>ເມືອງ *</label><select id="co-district"><option value="">— ກະລຸນາເລືອກແຂວງກ່ອນ —</option></select></div>'+
+      '<div class="field"><label>ບ້ານ / ໝູ່ບ້ານ</label><input id="co-village" value="'+draftVal('co-village', c.village)+'" placeholder="ບ້ານ..."></div>'+
+      '<div class="field"><label>ລາຍລະອຽດເພີ່ມເຕີມ (ຖະໜົນ, ຈຸດສັງເກດ)</label><textarea id="co-detail" placeholder="ຫຼັງຫ້າງ, ໃກ້ວັດ...">'+draftVal('co-detail', c.detail)+'</textarea></div>'
+    : '')+
+    '<div class="field"><label>ໝາຍເຫດ</label><textarea id="co-note" placeholder="ເຊັ່ນ: ບໍ່ເອົາຜັກ, ເຜັດໜ້ອຍ...">'+draftVal('co-note','')+'</textarea></div>'+
+    '<div class="field"><label>ຊຳລະເງິນ</label><div class="seg" id="co-pay">'+
+      ['cash:ເງິນສົດ','transfer:ໂອນເງິນ','qr:ສະແກນ QR'].map(o=>{const[v,l]=o.split(':');return '<div class="seg-btn '+(checkoutState.payment===v?'active':'')+'" onclick="setPayment(\''+v+'\')">'+l+'</div>';}).join('')+
+    '</div></div>'+
+    qrBlock;
+}
+
+function onProvinceChange(){
+  const prov = document.getElementById('co-province').value;
+  const distSel = document.getElementById('co-district');
+  const districts = LAO_PROVINCES[prov] || [];
+  const cur = draftVal('co-district', (state.customer||{}).district);
+  distSel.innerHTML = '<option value="">— ເລືອກເມືອງ —</option>'+districts.map(d=>'<option value="'+d+'" '+(cur===d?'selected':'')+'>'+d+'</option>').join('');
+}
+function initAddressSelectors(){
+  const provSel = document.getElementById('co-province');
+  if(provSel && provSel.value) onProvinceChange();
+}
+
+function cartSummaryHtml(t){
+  return '<div class="gilt-divider" style="margin:16px 0 10px;"><div class="ln"></div><div class="gem"></div><div class="ln"></div></div>'+
+    '<div class="summary-row"><span>ລວມຍ່ອຍ</span><span class="num">'+money(t.subtotal)+'</span></div>'+
+    '<div class="summary-row"><span>ຄ່າສົ່ງ</span><span class="num">'+money(t.deliveryFee)+'</span></div>'+
+    (t.serviceFee?'<div class="summary-row"><span>ຄ່າບໍລິການ</span><span class="num">'+money(t.serviceFee)+'</span></div>':'')+
+    (t.tax?'<div class="summary-row"><span>ພາສີ</span><span class="num">'+money(t.tax)+'</span></div>':'')+
+    '<div class="summary-row total"><span>ລວມທັງໝົດ</span><span class="num">'+money(t.total)+'</span></div>'+
+    '<button class="btn-primary" style="margin-top:14px;" onclick="submitOrder()">ຢືນຢັນສັ່ງຊື້ 🛵</button>';
+}
+
 function saveCart(){ localStorage.setItem('pk_cart', JSON.stringify(state.cart)); updateCartBadge(); }
 function updateCartBadge(){
   const count = state.cart.reduce((s,i)=>s+i.qty,0);
@@ -1115,22 +1231,24 @@ function addToCart(p, qty){
   saveCart();
 }
 function changeCartQty(id, d){
+  captureCheckoutDraft();
   const item = state.cart.find(i=>i.id===id);
   if(!item) return;
   item.qty += d;
   if(item.qty<=0) state.cart = state.cart.filter(i=>i.id!==id);
   saveCart(); renderCartBody();
 }
-function removeCartItem(id){ state.cart = state.cart.filter(i=>i.id!==id); saveCart(); renderCartBody(); }
+function removeCartItem(id){ captureCheckoutDraft(); state.cart = state.cart.filter(i=>i.id!==id); saveCart(); renderCartBody(); }
 
 function cartTotals(){
   const subtotal = state.cart.reduce((s,i)=>s+i.price*i.qty,0);
-  const deliveryFee = Number(state.settings.deliveryFeeDefault)||0;
+  // ຄ່າສົ່ງຄິດສະເພາະ "ຈັດສົ່ງ" ເທົ່ານັ້ນ, ມາຮັບເອງ/ນັ່ງຮ້ານບໍ່ເສຍຄ່າສົ່ງ
+  const deliveryFee = checkoutState.orderType==='delivery' ? (Number(state.settings.deliveryFeeDefault)||0) : 0;
   const tax = Math.round(subtotal * (Number(state.settings.taxPercent)||0)/100);
   const serviceFee = Math.round(subtotal * (Number(state.settings.serviceFeePercent)||0)/100);
   return {subtotal, deliveryFee, tax, serviceFee, total: subtotal+deliveryFee+tax+serviceFee};
 }
-function openCart(){ renderCartBody(); openSheet('cart'); }
+
 function renderCartBody(){
   const body = document.getElementById('cart-body');
   if(state.cart.length===0){
@@ -1138,115 +1256,55 @@ function renderCartBody(){
     return;
   }
   const t = cartTotals();
-  body.innerHTML = state.cart.map(i=>
-    '<div class="cart-item"><img src="'+i.image+'"><div class="ci-body"><div class="ci-name">'+i.name+'</div><div class="ci-price num">'+money(i.price)+'</div>'+
-    '<div class="ci-qty"><button class="mini-qty-btn" onclick="changeCartQty(\''+i.id+'\',-1)">−</button><span class="num">'+i.qty+'</span><button class="mini-qty-btn" onclick="changeCartQty(\''+i.id+'\',1)">+</button>'+
-    '<button style="margin-left:auto;background:none;border:none;color:var(--c-secondary);font-size:11px;" onclick="removeCartItem(\''+i.id+'\')">ລຶບ</button></div></div></div>'
-  ).join('') +
-  '<div style="margin-top:12px;">'+
-  '<div class="summary-row"><span>ລວມຍ່ອຍ</span><span class="num">'+money(t.subtotal)+'</span></div>'+
-  '<div class="summary-row"><span>ຄ່າສົ່ງ</span><span class="num">'+money(t.deliveryFee)+'</span></div>'+
-  (t.serviceFee?'<div class="summary-row"><span>ຄ່າບໍລິການ</span><span class="num">'+money(t.serviceFee)+'</span></div>':'')+
-  (t.tax?'<div class="summary-row"><span>ພາສີ</span><span class="num">'+money(t.tax)+'</span></div>':'')+
-  '<div class="summary-row total"><span>ລວມທັງໝົດ</span><span class="num">'+money(t.total)+'</span></div>'+
-  '</div><button class="btn-primary" style="margin-top:14px;" onclick="openCheckout()">ສັ່ງຊື້ ('+state.cart.length+')</button>';
+  body.innerHTML =
+    state.cart.map(i=>cartItemRowHtml(i)).join('') +
+    checkoutFormHtml() +
+    cartSummaryHtml(t);
+  initAddressSelectors();
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   CHECKOUT
-   ═══════════════════════════════════════════════════════════════ */
-let checkoutState = {orderType:'delivery', payment:'cash', slipUrl:'', slipBase64:'', slipFileName:'', slipMimeType:''};
-function openCheckout(){
-  if(state.cart.length===0){ toast('ກະຕ່າຍັງຫວ່າງເປົ່າ','⚠️'); return; }
-  closeSheet('cart');
-  renderCheckout();
-  openSheet('checkout');
-}
-function renderCheckout(){
-  const c = state.customer;
-  const t = cartTotals();
-  const s = state.settings;
-  const qrBlock = checkoutState.payment==='qr' ? (
-    '<div class="a-panel" style="padding:14px;">'+
-    '<div style="font-weight:800;font-size:13px;margin-bottom:10px;">💳 ຂໍ້ມູນໂອນເງິນ</div>'+
-    '<div style="font-size:13px;line-height:1.9;">'+
-      '<div>🏦 <b>'+(s.bankName||'-')+'</b></div>'+
-      '<div>📋 '+(s.bankAccountNumber||'-')+'</div>'+
-      '<div>👤 '+(s.bankAccountHolder||'-')+'</div>'+
-    '</div>'+
-    (s.bankQrUrl?
-      '<div class="qr-card-wrap"><div class="qr-card"><img src="'+s.bankQrUrl+'" referrerpolicy="no-referrer" onerror="imgFallback(this)"></div></div>'
-      : '')+
-    '<div class="field" style="margin-top:6px;"><label>📎 ອັບໂຫລດ Slip ການໂອນ</label>'+
-    (checkoutState.slipBase64?
-      '<div class="slip-preview-wrap"><img src="'+checkoutState.slipBase64+'"></div>'+
-      '<div style="text-align:center;"><button type="button" class="slip-remove-btn" onclick="removeSlip()">🗑️ ລຶບຮູບ / ອັບໂຫລດໃໝ່</button></div>'
-      :
-      '<div class="slip-dropzone" onclick="document.getElementById(\'co-slip\').click()">'+
-        '<div class="slip-camera">📸</div>'+
-        '<div class="slip-hint-main">ກົດເພື່ອເລືອກ Slip / ຖ່າຍວາງຮູບ</div>'+
-        '<div class="slip-hint-sub">JPG, PNG ຂະໜາດບໍ່ເກີນ 5MB</div>'+
-      '</div>'
-    )+
-    '<input type="file" accept="image/*" id="co-slip" style="display:none" onchange="handleSlipUpload(this)">'+
-    '<div id="co-slip-status" style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;"></div>'+
-    '</div></div>'
-  ) : '';
-  document.getElementById('checkout-body').innerHTML =
-    '<div class="field"><label>ຊື່ຜູ້ສັ່ງ</label><input id="co-name" value="'+(c.name||'')+'" placeholder="ຊື່ ແລະ ນາມສະກຸນ"></div>'+
-    '<div class="field"><label>ເບີໂທ</label><input id="co-phone" value="'+(c.phone||'')+'" placeholder="020 xxxxxxxx"></div>'+
-    '<div class="field"><label>ປະເພດການສັ່ງ</label><div class="seg" id="co-type">'+
-      ['delivery:ຈັດສົ່ງ','pickup:ມາຮັບເອງ','dinein:ນັ່ງຮ້ານ'].map(o=>{const[v,l]=o.split(':');return '<div class="seg-btn '+(checkoutState.orderType===v?'active':'')+'" onclick="setOrderType(\''+v+'\')">'+l+'</div>';}).join('')+
-    '</div></div>'+
-    '<div class="field" id="co-addr-wrap"><label>ທີ່ຢູ່ຈັດສົ່ງ</label><textarea id="co-address" placeholder="ບ້ານ, ເມືອງ, ຈຸດສັງເກດ">'+(c.address||'')+'</textarea></div>'+
-    '<div class="field"><label>ໝາຍເຫດ</label><textarea id="co-note" placeholder="ເຊັ່ນ: ບໍ່ເອົາຜັກ, ເຜັດໜ້ອຍ..."></textarea></div>'+
-    '<div class="field"><label>ຊຳລະເງິນ</label><div class="seg" id="co-pay">'+
-      ['cash:ເງິນສົດ','transfer:ໂອນເງິນ','qr:ສະແກນ QR'].map(o=>{const[v,l]=o.split(':');return '<div class="seg-btn '+(checkoutState.payment===v?'active':'')+'" onclick="setPayment(\''+v+'\')">'+l+'</div>';}).join('')+
-    '</div></div>'+
-    qrBlock+
-    '<div class="a-panel" style="padding:12px 14px;">'+
-    '<div class="summary-row"><span>ລວມຍ່ອຍ</span><span class="num">'+money(t.subtotal)+'</span></div>'+
-    '<div class="summary-row"><span>ຄ່າສົ່ງ</span><span class="num">'+money(t.deliveryFee)+'</span></div>'+
-    '<div class="summary-row total"><span>ລວມທັງໝົດ</span><span class="num">'+money(t.total)+'</span></div>'+
-    '</div>'+
-    '<button class="btn-primary" onclick="submitOrder()">ຢືນຢັນສັ່ງຊື້ 🛵</button>';
-}
+function setOrderType(v){ captureCheckoutDraft(); checkoutState.orderType=v; renderCartBody(); }
+function setPayment(v){ captureCheckoutDraft(); checkoutState.payment=v; renderCartBody(); }
+
 function handleSlipUpload(input){
   const file = input.files[0];
   if(!file) return;
+  captureCheckoutDraft();
   const reader = new FileReader();
   reader.onload = function(e){
-    // ເກັບໄວ້ຊົ່ວຄາວໃນເຄື່ອງເທົ່ານັ້ນ — ຍັງບໍ່ອັບໂຫລດເຂົ້າ Drive ຈົນກວ່າຈະກົດຢືນຢັນສັ່ງຊື້
     checkoutState.slipBase64 = e.target.result;
     checkoutState.slipFileName = file.name;
     checkoutState.slipMimeType = file.type;
-    checkoutState.slipUrl = ''; // ຣີເຊັດ url ເກົ່າ ຖ້າມີ
-    renderCheckout();
+    checkoutState.slipUrl = '';
+    renderCartBody();
   };
   reader.readAsDataURL(file);
 }
-
 function removeSlip(){
-  checkoutState.slipUrl = '';
-  checkoutState.slipBase64 = '';
-  checkoutState.slipFileName = '';
-  checkoutState.slipMimeType = '';
-  renderCheckout();
+  captureCheckoutDraft();
+  checkoutState.slipUrl=''; checkoutState.slipBase64=''; checkoutState.slipFileName=''; checkoutState.slipMimeType='';
+  renderCartBody();
 }
-
-function setOrderType(v){ checkoutState.orderType=v; renderCheckout(); }
-function setPayment(v){ checkoutState.payment=v; renderCheckout(); }
 
 async function submitOrder(){
   const name = document.getElementById('co-name').value.trim();
   const phone = document.getElementById('co-phone').value.trim();
-  const address = document.getElementById('co-address')?.value.trim()||'';
   if(!name || !phone){ toast('ກະລຸນາປ້ອນຊື່ ແລະ ເບີໂທ','⚠️'); return; }
 
-  const submitBtn = document.querySelector('#checkout-body .btn-primary');
+  let address = '', addrParts = {};
+  if(checkoutState.orderType==='delivery'){
+    const province = document.getElementById('co-province').value;
+    const district = document.getElementById('co-district').value;
+    const village = document.getElementById('co-village').value.trim();
+    const detail = document.getElementById('co-detail').value.trim();
+    if(!province || !district){ toast('ກະລຸນາເລືອກແຂວງ ແລະ ເມືອງ ຈັດສົ່ງ','⚠️'); return; }
+    address = [village, district, province].filter(Boolean).join(', ') + (detail? ' ('+detail+')' : '');
+    addrParts = {province, district, village, detail};
+  }
+
+  const submitBtn = document.querySelector('#cart-body .btn-primary');
   if(submitBtn){ submitBtn.disabled = true; submitBtn.textContent = 'ກຳລັງດຳເນີນການ...'; }
 
-  // ອັບໂຫລດ Slip ເຂົ້າ Drive ຕອນນີ້ເທົ່ານັ້ນ (ຫຼັງກົດຢືນຢັນ)
   let uploadedSlipUrl = '';
   if(checkoutState.slipBase64){
     try{
@@ -1265,15 +1323,16 @@ async function submitOrder(){
     orderType:checkoutState.orderType,
     items: state.cart.map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty})),
     subtotal:t.subtotal, discount:0, deliveryFee:t.deliveryFee, serviceFee:t.serviceFee, tax:t.tax, total:t.total,
-    paymentMethod:checkoutState.payment, slipUrl:uploadedSlipUrl, note:document.getElementById('co-note').value.trim(), branch:'Main'
+    paymentMethod:checkoutState.payment, slipUrl:uploadedSlipUrl,
+    note:document.getElementById('co-note').value.trim(), branch:'Main'
   };
   try{
     const res = await api.createOrder(orderInput);
-    state.customer = {name:name, phone:phone, address:address};
+    state.customer = Object.assign({name:name, phone:phone, address:address}, addrParts);
     localStorage.setItem('pk_customer', JSON.stringify(state.customer));
     state.cart = []; saveCart();
-    checkoutState = {orderType:'delivery', payment:'cash', slipUrl:'', slipBase64:'', slipFileName:'', slipMimeType:''};
-    closeSheet('checkout');
+    checkoutState = {orderType:'delivery', payment:'cash', slipUrl:'', slipBase64:'', slipFileName:'', slipMimeType:'', draft:{}};
+    closeSheet('cart');
     toast('ສັ່ງຊື້ສຳເລັດ! ລະຫັດ '+res.orderId,'🎉');
     showOrderConfirmation(res.orderId);
   }catch(e){
