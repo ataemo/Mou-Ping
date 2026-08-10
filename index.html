@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://images.unsplash.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Lao:wght@400;500;600;700;900&family=Noto+Sans+Lao:wght@300;400;500;600;700;800&family=Noto+Sans+Lao+Looped:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
-
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
 /* ═══════════════════════════════════════════════════════════════
    DESIGN SYSTEM — "IVORY AURUM"
@@ -392,6 +392,12 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .kpi-card .val.orange{color:var(--c-primary);}
 .kpi-card .val.chili{color:var(--c-secondary);}
 .kpi-card .val.herb{color:var(--success);}
+.dash-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;}
+.dash-presets{display:flex;gap:8px;flex-wrap:wrap;}
+.dash-preset-btn{padding:9px 16px;border-radius:100px;border:1.5px solid var(--line);background:var(--c-surface);font-size:12.5px;font-weight:700;color:var(--ink-soft);}
+.dash-preset-btn.active{background:var(--c-primary);border-color:var(--c-primary);color:#fff;}
+.dash-daterange{display:flex;align-items:center;gap:8px;}
+.dash-daterange input{padding:8px 10px;border-radius:10px;border:1.5px solid var(--line);background:var(--c-bg);color:var(--c-text);font-size:13px;}
 .a-panel{background:var(--c-surface);border-radius:18px;padding:18px;box-shadow:var(--shadow-card);border:1px solid var(--line);margin-bottom:18px;}
 .a-panel h4{margin:0 0 14px;font-size:14px;font-family:var(--font-display);}
 .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
@@ -826,7 +832,7 @@ const state = {
   activeCategory:'all',
   menuActiveCategory:'all',
   heroIdx:0, heroTimer:null,
-  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'' },
+  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'', dashRange:{preset:'7d', start:null, end:null}, charts:{line:null, pie:null} },
   customer: JSON.parse(localStorage.getItem('pk_customer')||'{}'),
   _catJson:'', _prodJson:'', _banJson:''
 };
@@ -852,7 +858,7 @@ const api = {
   createOrder: (order) => callApi('createOrder', {order}),
   getOrderStatusPublic: (orderId) => callApi('getOrderStatusPublic', {orderId}),
   adminLogin: (password, remember) => callApi('adminLogin', {password, remember}),
-  getDashboardStats: (token) => callApi('getDashboardStats', {token}),
+  getDashboardStats: (token, startDate, endDate) => callApi('getDashboardStats', {token, startDate, endDate}),
   getOrders: (token) => callApi('getOrders', {token}),
   updateOrderStatus: (token, orderId, status) => callApi('updateOrderStatus', {token, orderId, status}),
   updatePaymentStatus: (token, orderId, status) => callApi('updatePaymentStatus', {token, orderId, status}),
@@ -1814,60 +1820,162 @@ function gotoAdminPage(page){
 }
 function refreshAdminCurrentView(){ gotoAdminPage(state.admin.page); toast('ອັບເດດແລ້ວ','🔄'); }
 
-/* ── dashboard ─────────────────────────────────────────────── */
-async function renderAdminDashboard(){
-  const main = document.getElementById('admin-main');
-  const cacheKey = 'pk_cache_admin_stats';
-  const cached = localStorage.getItem(cacheKey);
-  if(cached){
-    try{ main.innerHTML = buildDashboardHTML(JSON.parse(cached)); }catch(e){ main.innerHTML = dashboardSkeletonHTML(); }
-  } else {
-    main.innerHTML = dashboardSkeletonHTML();
-  }
-  try{
-    const s = await api.getDashboardStats(state.admin.token);
-    localStorage.setItem(cacheKey, JSON.stringify(s));
-    main.innerHTML = buildDashboardHTML(s);
-  }catch(e){ if(!cached) main.innerHTML='<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; console.error(e); }
+/* ── dashboard (v2 — ມີໂຕກອງວັນທີ + ກາຟ) ─────────────────────── */
+function dashRangeFor(preset){
+  const now = new Date();
+  const fmt = d => d.toISOString().slice(0,10);
+  let start;
+  if(preset==='today'){ start = new Date(now); }
+  else if(preset==='7d'){ start = new Date(now); start.setDate(start.getDate()-6); }
+  else if(preset==='month'){ start = new Date(now.getFullYear(), now.getMonth(), 1); }
+  else if(preset==='year'){ start = new Date(now.getFullYear(), 0, 1); }
+  else { return null; }
+  return { start: fmt(start), end: fmt(now) };
 }
+
+function renderAdminDashboard(){
+  const main = document.getElementById('admin-main');
+  if(!state.admin.dashRange.start){
+    const r = dashRangeFor('7d');
+    state.admin.dashRange = {preset:'7d', start:r.start, end:r.end};
+  }
+  main.innerHTML = dashboardToolbarHTML() + '<div id="dash-content">'+dashboardSkeletonHTML()+'</div>';
+  loadDashboardData();
+}
+
+function dashboardToolbarHTML(){
+  const r = state.admin.dashRange;
+  const presets = [['today','ມື້ນີ້'],['7d','7 ວັນ'],['month','ເດືອນນີ້'],['year','ປີນີ້'],['custom','ກຳນົດເອງ']];
+  return '<div class="dash-toolbar">'+
+    '<div class="dash-presets">'+presets.map(p=>'<button class="dash-preset-btn '+(r.preset===p[0]?'active':'')+'" onclick="setDashPreset(\''+p[0]+'\')">'+p[1]+'</button>').join('')+'</div>'+
+    '<div class="dash-daterange" id="dash-daterange" style="'+(r.preset==='custom'?'':'display:none;')+'">'+
+      '<input type="date" id="dash-start" value="'+r.start+'" onchange="setDashCustom()">'+
+      '<span>→</span>'+
+      '<input type="date" id="dash-end" value="'+r.end+'" onchange="setDashCustom()">'+
+    '</div>'+
+  '</div>';
+}
+function setDashPreset(p){
+  if(p==='custom'){
+    state.admin.dashRange.preset='custom';
+    renderAdminDashboard();
+    return;
+  }
+  const r = dashRangeFor(p);
+  state.admin.dashRange = {preset:p, start:r.start, end:r.end};
+  renderAdminDashboard();
+}
+function setDashCustom(){
+  const s = document.getElementById('dash-start').value;
+  const e = document.getElementById('dash-end').value;
+  if(!s || !e) return;
+  state.admin.dashRange = {preset:'custom', start:s, end:e};
+  loadDashboardData();
+}
+
+async function loadDashboardData(){
+  const content = document.getElementById('dash-content');
+  const cacheKey = 'pk_cache_admin_stats_'+state.admin.dashRange.start+'_'+state.admin.dashRange.end;
+  const cached = localStorage.getItem(cacheKey);
+  if(cached){ try{ content.innerHTML = buildDashboardHTML(JSON.parse(cached)); drawDashboardCharts(JSON.parse(cached)); }catch(e){} }
+  try{
+    const s = await api.getDashboardStats(state.admin.token, state.admin.dashRange.start, state.admin.dashRange.end);
+    localStorage.setItem(cacheKey, JSON.stringify(s));
+    content.innerHTML = buildDashboardHTML(s);
+    drawDashboardCharts(s);
+  }catch(e){ if(!cached) content.innerHTML='<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; console.error(e); }
+}
+
 function dashboardSkeletonHTML(){
   return '<div class="kpi-grid">'+
-    '<div class="kpi-card skel" style="height:78px;"></div>'.repeat(4)+
+    '<div class="kpi-card skel" style="height:78px;"></div>'.repeat(6)+
     '</div>'+
-    '<div class="grid-2"><div class="a-panel skel" style="height:220px;"></div><div class="a-panel skel" style="height:220px;"></div></div>'+
-    '<div class="grid-2"><div class="a-panel skel" style="height:150px;"></div><div class="a-panel skel" style="height:150px;"></div></div>';
+    '<div class="grid-2"><div class="a-panel skel" style="height:280px;"></div><div class="a-panel skel" style="height:280px;"></div></div>'+
+    '<div class="grid-2"><div class="a-panel skel" style="height:200px;"></div><div class="a-panel skel" style="height:200px;"></div></div>';
 }
+
 function buildDashboardHTML(s){
-    const maxDay = Math.max(1, ...Object.values(s.last7));
-    return '<div class="kpi-grid">'+
-        kpi('ອອເດີມື້ນີ້', s.todayOrders, '', 'orange')+
-        kpi('ຍອດຂາຍມື້ນີ້', money(s.todaySales), '', 'chili')+
-        kpi('ກຳໄລເບື້ອງຕົ້ນມື້ນີ້', money(s.todayGrossProfit), '', 'herb')+
-        kpi('ອອເດີທັງໝົດ', s.totalOrders, '', '')+
+  return '<div class="kpi-grid">'+
+      kpi('ຈຳນວນອອເດີ (ຊ່ວງທີ່ເລືອກ)', s.totalOrders, '', '')+
+      kpi('ຍອດຂາຍ', money(s.totalSales), '', 'orange')+
+      kpi('ກຳໄລເບື້ອງຕົ້ນ', money(s.totalProfit), '', 'herb')+
+      kpi('ຍອດສະເລ່ຍ/ອອເດີ', money(s.avgOrderValue), '', '')+
+      kpi('ຈຳນວນລາຍການທີ່ຂາຍ', s.totalItemsSold, '', '')+
+      kpi('ອອເດີຍົກເລີກ', s.cancelledOrders, '', 'chili')+
+    '</div>'+
+    '<div class="grid-2">'+
+      '<div class="a-panel"><h4>📈 ຍອດຂາຍຕາມຊ່ວງເວລາ'+(s.range.monthly?' (ສະຫຼຸບຕໍ່ເດືອນ)':' (ຕໍ່ວັນ)')+'</h4>'+
+        '<div style="position:relative;height:260px;"><canvas id="dash-line-chart"></canvas></div></div>'+
+      '<div class="a-panel"><h4>🥧 ສັດສ່ວນເມນູຂາຍດີ (ຕາມຍອດຂາຍ)</h4>'+
+        '<div style="position:relative;height:260px;">'+
+        (s.pieData.length? '<canvas id="dash-pie-chart"></canvas>' : '<p style="font-size:12px;color:var(--ink-soft);text-align:center;padding-top:80px;">ຍັງບໍ່ມີຂໍ້ມູນການຂາຍໃນຊ່ວງນີ້</p>')+
+        '</div></div>'+
+    '</div>'+
+    '<div class="grid-2">'+
+      '<div class="a-panel"><h4>🏆 Top ສິນຄ້າຂາຍດີ (ຕາມຍອດຂາຍ)</h4>'+
+        (s.productBreakdown.length? s.productBreakdown.slice(0,8).map(function(p){
+          const pct = Math.round((p.revenue/(s.productBreakdown[0].revenue||1))*100);
+          return '<div class="bar-row"><div class="bl" style="width:120px;">'+p.name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="num" style="font-size:11px;width:80px;text-align:right;">'+money(p.revenue)+'</div></div>';
+        }).join('') : '<p style="font-size:12px;color:var(--ink-soft);">ຍັງບໍ່ມີຂໍ້ມູນ</p>')+
       '</div>'+
-      '<div class="grid-2">'+
-        '<div class="a-panel"><h4>📈 ຍອດຂາຍ 7 ມື້ຫຼ້າສຸດ</h4>'+
-          Object.keys(s.last7).map(d=>{
-            const v = s.last7[d]; const pct = Math.round((v/maxDay)*100);
-            return '<div class="bar-row"><div class="bl">'+d.slice(5)+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="num" style="font-size:11px;width:70px;text-align:right;">'+money(v)+'</div></div>';
-          }).join('')+
-        '</div>'+
-        '<div class="a-panel"><h4>🏆 ສິນຄ້າຂາຍດີ</h4>'+
-          (s.topProducts.length? s.topProducts.map(p=>{
-            const pct = Math.round((p.qty/(s.topProducts[0].qty||1))*100);
-            return '<div class="bar-row"><div class="bl" style="width:110px;">'+p.name+'</div><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><div class="num" style="font-size:11px;width:30px;text-align:right;">'+p.qty+'</div></div>';
-          }).join('') : '<p style="font-size:12px;color:var(--ink-soft);">ຍັງບໍ່ມີຂໍ້ມູນ</p>')+
-        '</div>'+
+      '<div class="a-panel"><h4>📊 ອອເດີຕາມສະຖານະ (ຊ່ວງທີ່ເລືອກ)</h4>'+
+        (Object.keys(s.byStatus).length? Object.keys(s.byStatus).map(function(k){
+          return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;"><span class="pill '+k+'">'+k+'</span><span class="num">'+s.byStatus[k]+'</span></div>';
+        }).join('') : '<p style="font-size:12px;color:var(--ink-soft);">ບໍ່ມີອອເດີໃນຊ່ວງນີ້</p>')+
       '</div>'+
-      '<div class="grid-2">'+
-        '<div class="a-panel"><h4>📊 ອອເດີຕາມສະຖານະ</h4>'+
-          Object.keys(s.byStatus).map(k=>'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;"><span class="pill '+k+'">'+k+'</span><span class="num">'+s.byStatus[k]+'</span></div>').join('')+
-        '</div>'+
-        '<div class="a-panel"><h4>⚠️ ສິນຄ້າໃກ້ໝົດ</h4>'+
-          (s.lowStock.length? s.lowStock.map(p=>'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;"><span>'+p.name+'</span><span class="num" style="color:var(--c-secondary);font-weight:700;">'+p.stock+'</span></div>').join('') : '<p style="font-size:12px;color:var(--success);">✅ ສະຕັອກທັງໝົດປົກກະຕິ</p>')+
-        '</div>'+
-      '</div>';
+    '</div>'+
+    '<div class="a-panel"><h4>⚠️ ສິນຄ້າໃກ້ໝົດ (ປັດຈຸບັນ)</h4>'+
+      (s.lowStock.length? s.lowStock.map(function(p){
+        return '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px;"><span>'+p.name+'</span><span class="num" style="color:var(--c-secondary);font-weight:700;">'+p.stock+'</span></div>';
+      }).join('') : '<p style="font-size:12px;color:var(--success);">✅ ສະຕັອກທັງໝົດປົກກະຕິ</p>')+
+    '</div>';
 }
+
+function drawDashboardCharts(s){
+  if(typeof Chart === 'undefined') return; // Chart.js ຍັງບໍ່ໂຫຼດສຳເລັດ
+  if(state.admin.charts.line){ state.admin.charts.line.destroy(); state.admin.charts.line=null; }
+  if(state.admin.charts.pie){ state.admin.charts.pie.destroy(); state.admin.charts.pie=null; }
+  const lineEl = document.getElementById('dash-line-chart');
+  const pieEl = document.getElementById('dash-pie-chart');
+
+  const css = getComputedStyle(document.documentElement);
+  const primary = (css.getPropertyValue('--c-primary')||'#C6702D').trim();
+  const accent = (css.getPropertyValue('--c-accent')||'#C9A227').trim();
+  const textColor = (css.getPropertyValue('--c-text')||'#241C15').trim();
+
+  if(lineEl){
+    const labels = Object.keys(s.series);
+    const dataVals = labels.map(k=>s.series[k]);
+    state.admin.charts.line = new Chart(lineEl, {
+      type:'line',
+      data:{ labels: labels.map(l=> s.range.monthly? l : l.slice(5)), datasets:[{
+        label:'ຍອດຂາຍ', data: dataVals, borderColor: primary, backgroundColor: primary+'33',
+        fill:true, tension:.35, pointRadius:3, pointBackgroundColor: accent
+      }]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{display:false}, tooltip:{callbacks:{label:c=>' '+money(c.raw)}} },
+        scales:{ y:{ ticks:{ color:textColor, callback:v=>Number(v).toLocaleString() } }, x:{ ticks:{ color:textColor } } }
+      }
+    });
+  }
+  if(pieEl && s.pieData.length){
+    const pieColors = ['#C6702D','#7A2E3D','#C9A227','#4E8A5C','#1D5FC7','#8A2FC9','#C23A4B','#8A7C6C'];
+    state.admin.charts.pie = new Chart(pieEl, {
+      type:'doughnut',
+      data:{ labels: s.pieData.map(p=>p.name), datasets:[{ data: s.pieData.map(p=>p.revenue), backgroundColor: pieColors, borderWidth:2, borderColor:'#fff' }]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ position:'bottom', labels:{ color:textColor, boxWidth:10, font:{size:10} } },
+          tooltip:{ callbacks:{ label:function(ctx){
+            const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+            const pct = total? Math.round(ctx.raw/total*100):0;
+            return ' '+ctx.label+': '+money(ctx.raw)+' ('+pct+'%)';
+          }}}
+        }
+      }
+    });
+  }
+}
+
 function kpi(label,val,extra,cls){
   return '<div class="kpi-card"><div class="lbl">'+label+'</div><div class="val num '+cls+'">'+val+'</div></div>';
 }
