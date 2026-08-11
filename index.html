@@ -519,6 +519,12 @@ table.a-table tr:hover td{background:var(--c-bg);}
 .padm-card .padm-stock-row{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
 .padm-card .padm-actions{display:flex;gap:8px;margin-top:8px;}
 .padm-card .padm-actions button{flex:1;}
+.padm-select-wrap{position:absolute;top:8px;left:8px;z-index:3;width:22px;height:22px;background:rgba(255,255,255,.9);border-radius:6px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.25);}
+.padm-select-wrap input{width:16px;height:16px;margin:0;cursor:pointer;}
+.padm-card[draggable=true]{cursor:grab;}
+.padm-bulk-bar{position:sticky;bottom:10px;left:0;right:0;background:var(--c-surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow-pop);padding:12px 16px;display:none;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap;z-index:50;}
+.padm-bulk-bar b{color:var(--c-primary);}
+.padm-load-more{width:100%;text-align:center;margin-top:14px;grid-column:1/-1;}
 
 /* ── QR ຢືນຢັນການສັ່ງຊື້ (ຈັດຢູ່ກາງ) ─────────────────────────── */
 .qr-card-wrap{display:flex;justify-content:center;margin:6px 0 16px;}
@@ -946,6 +952,10 @@ const api = {
   deleteOrder: (token, orderId) => callApi('deleteOrder', {token, orderId}),
   saveProduct: (token, product) => callApi('saveProduct', {token, product}),
   deleteProduct: (token, id) => callApi('deleteProduct', {token, id}),
+  bulkUpdateProducts: (token, ids, changes) => callApi('bulkUpdateProducts', {token, ids, changes}),
+  bulkDeleteProducts: (token, ids) => callApi('bulkDeleteProducts', {token, ids}),
+  reorderProducts: (token, orderedIds) => callApi('reorderProducts', {token, orderedIds}),
+  getProductHistory: (token, productId) => callApi('getProductHistory', {token, productId}),
   saveCategory: (token, category) => callApi('saveCategory', {token, category}),
   deleteCategory: (token, id) => callApi('deleteCategory', {token, id}),
   saveBanner: (token, banner) => callApi('saveBanner', {token, banner}),
@@ -2507,16 +2517,34 @@ function doPrintReceipt(orderId){
   w.onload = function(){ setTimeout(()=>{ w.print(); }, 400); };
 }
 
-/* ── products admin (v2 — card grid, responsive, no more squished table images) ─── */
+/* ── products admin (v3 — bulk actions + drag reorder + CSV + history) ─── */
 function renderAdminProducts(){
   const main = document.getElementById('admin-main');
-  main.innerHTML = buildProductsToolbarHTML() + '<div id="padm-grid-holder"></div>' + '<div id="product-form-holder"></div>';
+  main.innerHTML = buildProductsToolbarHTML() +
+    '<div id="padm-grid-holder"></div>' +
+    '<div id="padm-bulk-bar" class="padm-bulk-bar">'+
+      '<span><b id="padm-bulk-count">0</b> ລາຍການທີ່ເລືອກ</span>'+
+      '<button class="btn-sm primary" onclick="bulkSetStatus(\'active\')">✅ ເປີດຂາຍ</button>'+
+      '<button class="btn-sm" onclick="bulkSetStatus(\'inactive\')">⛔ ປິດຂາຍ</button>'+
+      '<button class="btn-sm danger" onclick="bulkDelete()">🗑️ ລຶບ</button>'+
+      '<button class="btn-sm" onclick="clearProductSelection()">✕ ຍົກເລີກ</button>'+
+    '</div>'+
+    '<div id="product-form-holder"></div>'+
+    '<div id="product-history-holder"></div>';
   renderProductsGridOnly();
 }
 function buildProductsToolbarHTML(){
   const filters = [['all','ທັງໝົດ'],['active','ເປີດຂາຍ'],['inactive','ປິດຂາຍ'],['low','ໃກ້ໝົດ'],['out','ໝົດສະຕັອກ']];
-  const sortOpts = [['name','ຊື່ ກ-ຮ'],['price_desc','ລາຄາ ສູງ→ຕ່ຳ'],['price_asc','ລາຄາ ຕ່ຳ→ສູງ'],['stock_asc','ສະຕັອກ ໜ້ອຍ→ຫຼາຍ']];
-  return '<div class="a-title-row"><h2>ສິນຄ້າ ('+state.products.length+')</h2><button class="btn-sm primary" onclick="openProductForm()">+ ເພີ່ມສິນຄ້າ</button></div>'+
+  const sortOpts = [['name','ຊື່ ກ-ຮ'],['price_desc','ລາຄາ ສູງ→ຕ່ຳ'],['price_asc','ລາຄາ ຕ່ຳ→ສູງ'],['stock_asc','ສະຕັອກ ໜ້ອຍ→ຫຼາຍ'],['custom','ລຳດັບກຳນົດເອງ']];
+  const canDrag = state.admin.productFilter==='all' && !(state.admin.productSearchQuery||'').trim();
+  return '<div class="a-title-row"><h2>ສິນຄ້າ ('+state.products.length+')</h2>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;">'+
+      '<button class="btn-sm" onclick="exportProductsCsv()">⬇️ Export CSV</button>'+
+      '<button class="btn-sm" onclick="document.getElementById(\'products-csv-input\').click()">⬆️ Import CSV</button>'+
+      '<input type="file" accept=".csv" id="products-csv-input" style="display:none" onchange="handleProductsCsvImport(this)">'+
+      '<button class="btn-sm" onclick="openProductHistoryModal(null)">🕒 ປະຫວັດທັງໝົດ</button>'+
+      '<button class="btn-sm primary" onclick="openProductForm()">+ ເພີ່ມສິນຄ້າ</button>'+
+    '</div></div>'+
     '<div class="padm-toolbar">'+
       '<div class="padm-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>'+
       '<input type="text" placeholder="ຄົ້ນຫາ ຊື່ / SKU..." value="'+(state.admin.productSearchQuery||'')+'" oninput="searchProductsInput(this.value)"></div>'+
@@ -2526,6 +2554,7 @@ function buildProductsToolbarHTML(){
           sortOpts.map(o=>'<option value="'+o[0]+'" '+(state.admin.productSort===o[0]?'selected':'')+'>'+o[1]+'</option>').join('')+
         '</select>'+
       '</div>'+
+      '<p style="font-size:11px;color:var(--ink-soft);margin:0;">'+(canDrag?'💡 ລາກບັດສິນຄ້າເພື່ອຈັດລຳດັບເອງໄດ້':'ລ້າງການຄົ້ນຫາ/ໝວດ ເພື່ອລາກຈັດລຳດັບໄດ້')+'</p>'+
     '</div>';
 }
 function filterProductsList(){
@@ -2542,20 +2571,26 @@ function filterProductsList(){
   else if(sort==='price_desc') list.sort((a,b)=>Number(b.regularPrice)-Number(a.regularPrice));
   else if(sort==='price_asc') list.sort((a,b)=>Number(a.regularPrice)-Number(b.regularPrice));
   else if(sort==='stock_asc') list.sort((a,b)=>Number(a.stock)-Number(b.stock));
+  else if(sort==='custom') list.sort((a,b)=>(Number(a.sortOrder)||0)-(Number(b.sortOrder)||0));
   return list;
 }
-function setProductFilter(f){ state.admin.productFilter=f; renderAdminProducts(); }
-function searchProductsInput(v){ state.admin.productSearchQuery=v; renderProductsGridOnly(); }
-function setProductSort(v){ state.admin.productSort=v; renderProductsGridOnly(); }
+function setProductFilter(f){ state.admin.productFilter=f; state.admin.productVisibleCount=24; renderAdminProducts(); }
+function searchProductsInput(v){ state.admin.productSearchQuery=v; state.admin.productVisibleCount=24; renderProductsGridOnly(); }
+function setProductSort(v){ state.admin.productSort=v; state.admin.productVisibleCount=24; renderProductsGridOnly(); }
 function renderProductsGridOnly(){
   const holder = document.getElementById('padm-grid-holder');
   if(holder) holder.innerHTML = buildProductsGridHTML(filterProductsList());
+  updateBulkBarVisibility();
 }
 function buildProductsGridHTML(list){
   if(list.length===0){
     return '<div class="a-panel"><div class="empty-state"><div class="ico">📦</div><h4>ບໍ່ພົບສິນຄ້າ</h4><p>ລອງປ່ຽນຄຳຄົ້ນຫາ ຫຼື ໝວດການກອງ</p></div></div>';
   }
-  return '<div class="padm-grid">'+list.map(p=>{
+  const visibleCount = state.admin.productVisibleCount || 24;
+  const shown = list.slice(0, visibleCount);
+  const selectedSet = new Set(state.admin.selectedProductIds||[]);
+  const canDrag = state.admin.productFilter==='all' && !(state.admin.productSearchQuery||'').trim();
+  const cardsHtml = shown.map(function(p){
     const cat = state.categories.find(c=>c.id===p.categoryId);
     const promo = Number(p.promoPrice)>0 && Number(p.promoPrice)<Number(p.regularPrice);
     const stock = Number(p.stock)||0, minStock = Number(p.minStock)||0;
@@ -2563,9 +2598,11 @@ function buildProductsGridHTML(list){
     const cost = Number(p.costPrice)||0;
     const sellPrice = promo? Number(p.promoPrice) : Number(p.regularPrice);
     const margin = sellPrice>0 && cost>0 ? Math.round(((sellPrice-cost)/sellPrice)*100) : null;
-    return '<div class="padm-card">'+
+    const selected = selectedSet.has(p.id);
+    return '<div class="padm-card" data-id="'+p.id+'" '+(canDrag?'draggable="true" ondragstart="onProductDragStart(event,\''+p.id+'\')"':'')+'>'+
       '<div class="padm-imgwrap">'+
-        (out? '<span class="padm-stock-badge out">ໝົດ</span>' : (low? '<span class="padm-stock-badge low">ໃກ້ໝົດ</span>' : ''))+
+        '<label class="padm-select-wrap"><input type="checkbox" '+(selected?'checked':'')+' onclick="event.stopPropagation()" onchange="toggleProductSelect(\''+p.id+'\',this.checked)"></label>'+
+        (out? '<span class="padm-stock-badge out" style="left:36px;">ໝົດ</span>' : (low? '<span class="padm-stock-badge low" style="left:36px;">ໃກ້ໝົດ</span>' : ''))+
         '<span class="pill '+(p.status==='active'?'active':'inactive')+'" style="position:absolute;top:8px;right:8px;z-index:2;">'+(p.status==='active'?'ເປີດ':'ປິດ')+'</span>'+
         '<img src="'+p.image+'" loading="lazy" onerror="imgFallback(this)">'+
       '</div>'+
@@ -2576,14 +2613,193 @@ function buildProductsGridHTML(list){
         (margin!==null? '<div class="padm-margin">ກຳໄລ ~'+margin+'%</div>' : '')+
         '<div class="padm-stock-row">ສະຕັອກ: <b style="color:'+(out?'var(--danger)':(low?'#946200':'var(--c-text)'))+'">'+stock+'</b> '+(p.unit||'')+'</div>'+
         '<div class="padm-actions">'+
-          '<button class="btn-sm" onclick=\'openProductForm(JSON.parse(this.dataset.p))\' data-p=\''+JSON.stringify(p).replace(/'/g,"&apos;")+'\'>✏️ ແກ້ໄຂ</button>'+
-          '<button class="btn-sm danger" onclick="removeProduct(\''+p.id+'\')">🗑️ ລຶບ</button>'+
+          '<button class="btn-sm" onclick=\'openProductForm(JSON.parse(this.dataset.p))\' data-p=\''+JSON.stringify(p).replace(/'/g,"&apos;")+'\'>✏️</button>'+
+          '<button class="btn-sm" onclick="duplicateProduct(\''+p.id+'\')">📋</button>'+
+          '<button class="btn-sm" onclick="openProductHistoryModal(\''+p.id+'\')">🕒</button>'+
+          '<button class="btn-sm danger" onclick="removeProduct(\''+p.id+'\')">🗑️</button>'+
         '</div>'+
       '</div>'+
     '</div>';
-  }).join('')+'</div>';
+  }).join('');
+  const loadMoreHtml = list.length>shown.length
+    ? '<div class="padm-load-more"><button class="btn-sm primary" onclick="loadMoreProducts()">⬇️ ໂຫຼດເພີ່ມ ('+(list.length-shown.length)+' ລາຍການທີ່ເຫຼືອ)</button></div>'
+    : '';
+  return '<div class="padm-grid" id="padm-grid" ondragover="onProductDragOver(event)" ondrop="onProductDrop(event)">'+cardsHtml+'</div>'+loadMoreHtml;
+}
+function loadMoreProducts(){ state.admin.productVisibleCount = (state.admin.productVisibleCount||24) + 24; renderProductsGridOnly(); }
+
+/* ── bulk select / bulk actions ──────────────────────────────── */
+function toggleProductSelect(id, checked){
+  const set = new Set(state.admin.selectedProductIds||[]);
+  if(checked) set.add(id); else set.delete(id);
+  state.admin.selectedProductIds = Array.from(set);
+  updateBulkBarVisibility();
+}
+function clearProductSelection(){ state.admin.selectedProductIds = []; renderProductsGridOnly(); }
+function updateBulkBarVisibility(){
+  const bar = document.getElementById('padm-bulk-bar');
+  if(!bar) return;
+  const n = (state.admin.selectedProductIds||[]).length;
+  bar.style.display = n>0? 'flex':'none';
+  const countEl = document.getElementById('padm-bulk-count');
+  if(countEl) countEl.textContent = n;
+}
+async function bulkSetStatus(status){
+  const ids = state.admin.selectedProductIds||[];
+  if(!ids.length) return;
+  state.products = await api.bulkUpdateProducts(state.admin.token, ids, {status:status});
+  clearProductSelection();
+  renderAdminProducts(); renderProducts();
+  toast('ອັບເດດ '+ids.length+' ລາຍການແລ້ວ','✅');
+}
+async function bulkDelete(){
+  const ids = state.admin.selectedProductIds||[];
+  if(!ids.length) return;
+  if(!confirm('ຢືນຢັນລຶບ '+ids.length+' ລາຍການທີ່ເລືອກ?')) return;
+  state.products = await api.bulkDeleteProducts(state.admin.token, ids);
+  clearProductSelection();
+  renderAdminProducts(); renderProducts();
+  toast('ລຶບແລ້ວ','🗑️');
 }
 
+/* ── drag-to-reorder ──────────────────────────────────────────── */
+let dragProductId = null;
+function onProductDragStart(e, id){ dragProductId = id; e.dataTransfer.effectAllowed = 'move'; }
+function onProductDragOver(e){ e.preventDefault(); }
+async function onProductDrop(e){
+  e.preventDefault();
+  const target = e.target.closest('.padm-card');
+  if(!target || !dragProductId) return;
+  const targetId = target.dataset.id;
+  if(targetId === dragProductId){ dragProductId=null; return; }
+  const ids = filterProductsList().map(p=>p.id);
+  const fromIdx = ids.indexOf(dragProductId);
+  const toIdx = ids.indexOf(targetId);
+  dragProductId = null;
+  if(fromIdx<0||toIdx<0) return;
+  ids.splice(toIdx, 0, ids.splice(fromIdx,1)[0]);
+  state.admin.productSort = 'custom';
+  ids.forEach(function(id, idx){
+    const p = state.products.find(x=>x.id===id);
+    if(p) p.sortOrder = idx+1;
+  });
+  renderProductsGridOnly();
+  try{
+    state.products = await api.reorderProducts(state.admin.token, ids);
+    toast('ບັນທຶກລຳດັບໃໝ່ແລ້ວ','✅');
+  }catch(err){ toast('ບັນທຶກລຳດັບບໍ່ສຳເລັດ','⚠️'); console.error(err); }
+}
+
+/* ── duplicate ─────────────────────────────────────────────────── */
+function duplicateProduct(id){
+  const p = state.products.find(x=>x.id===id);
+  if(!p) return;
+  const dup = Object.assign({}, p, {id:'', name:(p.name||'')+' (ສຳເນົາ)', sortOrder: state.products.length+1});
+  openProductForm(dup);
+}
+
+/* ── CSV export / import ─────────────────────────────────────── */
+function csvEscape(v){
+  v = String(v==null?'':v);
+  if (/[",\n]/.test(v)) return '"'+v.replace(/"/g,'""')+'"';
+  return v;
+}
+function parseCsv(text){
+  const rows = []; let row=[], field='', inQuotes=false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c==='"'){ if(text[i+1]==='"'){ field+='"'; i++; } else { inQuotes=false; } }
+      else field += c;
+    } else {
+      if(c==='"') inQuotes = true;
+      else if(c===','){ row.push(field); field=''; }
+      else if(c==='\n' || c==='\r'){
+        if(c==='\r' && text[i+1]==='\n') i++;
+        row.push(field); field=''; rows.push(row); row=[];
+      } else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r=>r.length>1 || (r.length===1 && r[0]!==''));
+}
+function exportProductsCsv(){
+  const headers = ['id','sku','name','categoryId','description','image','regularPrice','promoPrice','costPrice','stock','minStock','unit','badgeNew','badgeBestSeller','badgePromotion','status','sortOrder'];
+  const lines = [headers.join(',')];
+  state.products.forEach(function(p){
+    lines.push(headers.map(function(h){ return csvEscape(p[h]); }).join(','));
+  });
+  const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'products_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('ສົ່ງອອກ CSV ສຳເລັດ','⬇️');
+}
+function handleProductsCsvImport(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    try{
+      const rows = parseCsv(e.target.result);
+      if(rows.length<2){ toast('ໄຟລ໌ CSV ບໍ່ມີຂໍ້ມູນ','⚠️'); input.value=''; return; }
+      const headers = rows[0].map(h=>h.trim());
+      const dataRows = rows.slice(1);
+      toast('ກຳລັງນຳເຂົ້າ '+dataRows.length+' ລາຍການ...','⏳');
+      let success=0, fail=0;
+      for(const r of dataRows){
+        const obj = {};
+        headers.forEach(function(h,i){ obj[h]=r[i]!==undefined?r[i]:''; });
+        if(!obj.name){ fail++; continue; }
+        try{
+          const p = {
+            id: obj.id||'', sku: obj.sku||'', name: obj.name||'', categoryId: obj.categoryId||(state.categories[0]?.id||''),
+            description: obj.description||'', image: obj.image||'',
+            regularPrice: Number(obj.regularPrice)||0, promoPrice: Number(obj.promoPrice)||0, costPrice: Number(obj.costPrice)||0,
+            stock: Number(obj.stock)||0, minStock: Number(obj.minStock)||0, unit: obj.unit||'',
+            badgeNew: obj.badgeNew==='true'||obj.badgeNew===true, badgeBestSeller: obj.badgeBestSeller==='true'||obj.badgeBestSeller===true,
+            badgePromotion:false, status: obj.status==='inactive'?'inactive':'active', sortOrder: Number(obj.sortOrder)||state.products.length+1
+          };
+          state.products = await api.saveProduct(state.admin.token, p);
+          success++;
+        }catch(err){ fail++; console.error(err); }
+      }
+      renderAdminProducts(); renderProducts();
+      toast('ນຳເຂົ້າສຳເລັດ '+success+' ລາຍການ'+(fail?' (ຜິດພາດ '+fail+')':''), fail? '⚠️':'✅');
+    }catch(err){ toast('ອ່ານໄຟລ໌ CSV ບໍ່ສຳເລັດ','⚠️'); console.error(err); }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+/* ── price/stock change history ──────────────────────────────── */
+async function openProductHistoryModal(productId){
+  const p = productId ? state.products.find(x=>x.id===productId) : null;
+  const holder = document.getElementById('product-history-holder');
+  holder.innerHTML = '<div class="overlay show" onclick="closeProductHistoryModal()"></div>'+
+    '<div class="sheet show" style="position:fixed;"><div class="sheet-handle"></div>'+
+    '<div class="sheet-head"><h3>🕒 ປະຫວັດການປ່ຽນແປງ'+(p?': '+p.name:'')+'</h3><button class="sheet-close" onclick="closeProductHistoryModal()">✕</button></div>'+
+    '<div class="sheet-body" id="product-history-body"><p style="text-align:center;color:var(--ink-soft);">ກຳລັງໂຫຼດ...</p></div></div>';
+  try{
+    const rows = await api.getProductHistory(state.admin.token, productId);
+    const body = document.getElementById('product-history-body');
+    if(!rows.length){ body.innerHTML = '<div class="empty-state"><div class="ico">🕒</div><h4>ຍັງບໍ່ມີປະຫວັດ</h4><p>ການປ່ຽນລາຄາ/ສະຕັອກຈະຖືກບັນທຶກໄວ້ທີ່ນີ້</p></div>'; return; }
+    body.innerHTML = rows.map(function(r){
+      const isStock = r.field === 'ສະຕັອກ';
+      const fmt = v => isStock ? Number(v).toLocaleString('en-US') : money(v);
+      const up = Number(r.newValue) > Number(r.oldValue);
+      return '<div class="od-row"><span class="od-label">'+new Date(r.changedAt).toLocaleString('lo-LA')+
+        (productId? '' : '<br><b style="color:var(--c-text)">'+r.productName+'</b>')+
+        '<br>'+r.field+'</span>'+
+        '<span class="od-value" style="color:'+(up?'var(--success)':'var(--danger)')+';">'+fmt(r.oldValue)+' → '+fmt(r.newValue)+'</span></div>';
+    }).join('');
+  }catch(err){ document.getElementById('product-history-body').innerHTML = '<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; console.error(err); }
+}
+function closeProductHistoryModal(){ const h=document.getElementById('product-history-holder'); if(h) h.innerHTML=''; }
+
+/* ── product add/edit form (ຄືເກົ່າ) ───────────────────────── */
 function openProductForm(p){
   p = p || {id:'',sku:'',name:'',categoryId:state.categories[0]?.id||'',description:'',image:'',regularPrice:0,promoPrice:0,costPrice:0,stock:0,minStock:5,unit:'ຈານ',badgeNew:false,badgeBestSeller:false,badgePromotion:false,status:'active',sortOrder:state.products.length+1,options:'[]'};
   try{ pfOptionsList = JSON.parse(p.options||'[]'); }catch(e){ pfOptionsList = []; }
