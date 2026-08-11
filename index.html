@@ -820,6 +820,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <div class="a-nav-item" data-page="products" onclick="gotoAdminPage('products')" id="sb-products"><span>ສິນຄ້າ</span></div>
       <div class="a-nav-item" data-page="categories" onclick="gotoAdminPage('categories')" id="sb-categories"><span>ໝວດໝູ່</span></div>
       <div class="a-nav-item" data-page="banners" onclick="gotoAdminPage('banners')" id="sb-banners"><span>Banner</span></div>
+      <div class="a-nav-item" data-page="finance" onclick="gotoAdminPage('finance')" id="sb-finance"><span>ລາຍຮັບ-ລາຍຈ່າຍ</span></div>
       <div class="a-nav-sec">ຕັ້ງຄ່າ</div>
       <div class="a-nav-item" data-page="settings" onclick="gotoAdminPage('settings')" id="sb-settings"><span>ຮ້ານ &amp; ໂຕນຮັບ</span></div>
     </div>
@@ -846,13 +847,14 @@ const DEFAULT_ICONS = {
   a_products:'<svg class="ico" viewBox="0 0 24 24"><path d="M20.4 14.5L16 10 4 20"/><circle cx="18" cy="6" r="3"/></svg>',
   a_categories:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
   a_banners:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 5-5 4 4"/></svg>',
+  a_finance:'<svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
   a_settings:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
 };
 const ICON_LABELS = {
   search:'ຄົ້ນຫາ (Header)', orders:'ອອເດີ (Header)', cart:'ກະຕ່າ (Header)', menu:'ເມນູ (Header)',
   home:'ໜ້າຫຼັກ (Nav)', grid:'ເມນູອາຫານ (Nav)', account:'ບັນຊີ (Nav)',
   dashboard:'Dashboard (Admin)', a_orders:'ອອເດີ (Admin)', a_products:'ສິນຄ້າ (Admin)',
-  a_categories:'ໝວດໝູ່ (Admin)', a_banners:'Banner (Admin)', a_settings:'ຮ້ານ & ໂຕນຮັບ (Admin)'
+  a_categories:'ໝວດໝູ່ (Admin)', a_banners:'Banner (Admin)',a_finance:'ລາຍຮັບ-ລາຍຈ່າຍ (Admin)', a_settings:'ຮ້ານ & ໂຕນຮັບ (Admin)'
 };
 function iconHtml(key){
   const custom = state.settings && state.settings['icon_'+key];
@@ -871,8 +873,8 @@ function applyAllIcons(){
   document.getElementById('nav-cart').innerHTML = iconHtml('cart')+'<span>ກະຕ່າ</span>';
   document.getElementById('nav-cart').innerHTML = iconHtml('cart')+'<span class="nav-badge" id="nav-cart-badge" style="display:none;">0</span><span>ກະຕ່າ</span>';
   document.getElementById('nav-account').innerHTML = iconHtml('account')+'<span>ບັນຊີ</span>';
-  const sb = {dashboard:'dashboard', orders:'a_orders', products:'a_products', categories:'a_categories', banners:'a_banners', settings:'a_settings'};
-  const labels = {dashboard:'Dashboard', orders:'ອອເດີ', products:'ສິນຄ້າ', categories:'ໝວດໝູ່', banners:'Banner', settings:'ຮ້ານ &amp; ໂຕນຮັບ'};
+  const sb = {dashboard:'dashboard', orders:'a_orders', products:'a_products', categories:'a_categories', banners:'a_banners', finance:'a_finance', settings:'a_settings'};
+  const labels = {dashboard:'Dashboard', orders:'ອອເດີ', products:'ສິນຄ້າ', categories:'ໝວດໝູ່', banners:'Banner', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ &amp; ໂຕນຮັບ'};
   Object.keys(sb).forEach(function(page){
     const el = document.getElementById('sb-'+page);
     if(!el) return;
@@ -918,7 +920,7 @@ const state = {
   activeCategory:'all',
   menuActiveCategory:'all',
   heroIdx:0, heroTimer:null,
-  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'', dashRange:{preset:'7d', start:null, end:null}, charts:{line:null, pie:null}, productFilter:'all', productSearchQuery:'', productSort:'name', dashLoading:false, _hasPendingOrders:false },
+  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'', dashRange:{preset:'7d', start:null, end:null}, financeRange:{preset:null, start:null, end:null}, financeTx:[], charts:{line:null, pie:null, financeLine:null, financePie:null}, productFilter:'all', productSearchQuery:'', productSort:'name', dashLoading:false, _hasPendingOrders:false },
   customer: JSON.parse(localStorage.getItem('pk_customer')||'{}'),
   _catJson:'', _prodJson:'', _banJson:''
 };
@@ -964,7 +966,11 @@ const api = {
   getSettings: () => callApi('getSettings'),
   uploadSlip: (base64, fileName, mimeType) => callApi('uploadSlip', {base64, fileName, mimeType}),
   uploadAvatar: (base64, fileName, mimeType) => callApi('uploadAvatar', {base64, fileName, mimeType}),
-  getOrdersByPhone: (phone) => callApi('getOrdersByPhone', {phone})
+  getOrdersByPhone: (phone) => callApi('getOrdersByPhone', {phone}),
+  saveTransaction: (token, transaction) => callApi('saveTransaction', {token, transaction}),
+  deleteTransaction: (token, id) => callApi('deleteTransaction', {token, id}),
+  getTransactions: (token, startDate, endDate) => callApi('getTransactions', {token, startDate, endDate}),
+  getFinanceStats: (token, startDate, endDate) => callApi('getFinanceStats', {token, startDate, endDate})
 };
 
 /* ── formatting ─────────────────────────────────────────────── */
@@ -1934,14 +1940,14 @@ function adminEntry(){
 }
 
 /* ── admin nav ─────────────────────────────────────────────── */
-const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', settings:'ຮ້ານ & ໂຕນຮັບ'};
+const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ & ໂຕນຮັບ'};
 function gotoAdminPage(page){
   state.admin.page = page;
   localStorage.setItem('pk_admin_page', page); // ຈື່ໜ້າຫຼ້າສຸດ
   document.querySelectorAll('.a-nav-item').forEach(el=>el.classList.toggle('active', el.dataset.page===page));
   closeAdminSidebar();
   document.getElementById('admin-page-title').textContent = ADMIN_TITLES[page];
-  const renderers = {dashboard:renderAdminDashboard, orders:renderAdminOrders, products:renderAdminProducts, categories:renderAdminCategories, banners:renderAdminBanners, settings:renderAdminSettings};
+  const renderers = {dashboard:renderAdminDashboard, orders:renderAdminOrders, products:renderAdminProducts, categories:renderAdminCategories, banners:renderAdminBanners, finance:renderAdminFinance, settings:renderAdminSettings};
   renderers[page]();
 }
 function refreshAdminCurrentView(){
@@ -2271,6 +2277,220 @@ function syncOrdersCacheAndDashboard(orders){
   }
   if(state.admin.page==='orders') renderOrdersTableOnly();
   return orders;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ADMIN — ລາຍຮັບ-ລາຍຈ່າຍ (Finance)
+   ═══════════════════════════════════════════════════════════════ */
+const EXPENSE_CATEGORIES_JS = ['ຕົ້ນທຶນວັດຖຸດິບ','ຄ່າແຮງງານ/ພະນັກງານ','ຄ່າເຊົ່າສະຖານທີ່','ຄ່າໄຟ/ນ້ຳ/ອິນເຕີເນັດ','ຄ່າຂົນສົ່ງ/ນ້ຳມັນ','ຄ່າກາຊ/ຖ່ານ','ຄ່າອຸປະກອນ/ບຳລຸງຮັກສາ','ຄ່າກາລະຕະຫຼາດ/ໂຄສະນາ','ພາສີ/ຄ່າທຳນຽມ','ອື່ນໆ'];
+const INCOME_CATEGORIES_JS = ['ລາຍຮັບອື່ນນອກຈາກຍອດຂາຍ','ດອກເບ້ຍ/ຜົນຕອບແທນ','ອື່ນໆ'];
+
+function renderAdminFinance(){
+  const main = document.getElementById('admin-main');
+  if(!state.admin.financeRange.start){
+    const r = dashRangeFor('7d');
+    state.admin.financeRange = {preset:'7d', start:r.start, end:r.end};
+  }
+  main.innerHTML = financeToolbarHTML() + '<div id="finance-content">'+dashboardSkeletonHTML()+'</div>';
+  loadFinanceData();
+}
+
+function financeToolbarHTML(){
+  const r = state.admin.financeRange;
+  const presets = [['today','ມື້ນີ້'],['7d','7 ວັນ'],['month','ເດືອນນີ້'],['year','ປີນີ້']];
+  const rangeText = r.start===r.end ? r.start : (r.start+' ຫາ '+r.end);
+  return '<div class="a-title-row"><h2>💰 ລາຍຮັບ - ລາຍຈ່າຍ</h2>'+
+    '<button class="btn-sm primary" onclick="openTransactionForm()">+ ບັນທຶກລາຍການ</button></div>'+
+    '<div class="dash-toolbar">'+
+    '<div class="dash-presets">'+presets.map(p=>'<button class="dash-preset-btn '+(r.preset===p[0]?'active':'')+'" onclick="setFinancePreset(\''+p[0]+'\')">'+p[1]+'</button>').join('')+'</div>'+
+    '<div class="dash-daterange">'+
+      '<span class="dash-daterange-ico">📅</span>'+
+      '<input type="date" id="fin-start" value="'+r.start+'">'+
+      '<span>→</span>'+
+      '<input type="date" id="fin-end" value="'+r.end+'">'+
+      '<button class="dash-apply-btn" onclick="setFinanceCustom()">🔍 ຄົ້ນຫາ</button>'+
+      (r.preset==='custom'? '<button class="dash-clear-btn" onclick="clearFinanceCustom()" title="ລ້າງ">✕</button>' : '')+
+    '</div>'+
+    '<div class="dash-range-summary">📊 ສະແດງຂໍ້ມູນ: <b>'+rangeText+'</b></div>'+
+  '</div>';
+}
+function clearFinanceCustom(){ const r=dashRangeFor('7d'); state.admin.financeRange={preset:'7d',start:r.start,end:r.end}; renderAdminFinance(); }
+function setFinancePreset(p){
+  if(p==='custom'){ state.admin.financeRange.preset='custom'; renderAdminFinance(); return; }
+  const r = dashRangeFor(p);
+  state.admin.financeRange = {preset:p, start:r.start, end:r.end};
+  renderAdminFinance();
+}
+function setFinanceCustom(){
+  const s = document.getElementById('fin-start').value;
+  const e = document.getElementById('fin-end').value;
+  if(!s || !e){ toast('ກະລຸນາເລືອກວັນທີໃຫ້ຄົບທັງ 2 ຊ່ອງ','⚠️'); return; }
+  if(s > e){ toast('ວັນທີເລີ່ມຕົ້ນຕ້ອງມາກ່ອນວັນທີສິ້ນສຸດ','⚠️'); return; }
+  state.admin.financeRange = {preset:'custom', start:s, end:e};
+  renderAdminFinance();
+}
+
+async function loadFinanceData(){
+  const content = document.getElementById('finance-content');
+  const cacheKey = 'pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end;
+  const cached = localStorage.getItem(cacheKey);
+  let cachedStats = null;
+  if(cached){
+    try{
+      const c = JSON.parse(cached);
+      cachedStats = c.stats; state.admin.financeTx = c.tx;
+      content.innerHTML = buildFinanceHTML(c.stats, c.tx);
+      drawFinanceCharts(c.stats);
+    }catch(e){}
+  }
+  try{
+    const [stats, tx] = await Promise.all([
+      api.getFinanceStats(state.admin.token, state.admin.financeRange.start, state.admin.financeRange.end),
+      api.getTransactions(state.admin.token, state.admin.financeRange.start, state.admin.financeRange.end)
+    ]);
+    localStorage.setItem(cacheKey, JSON.stringify({stats:stats, tx:tx}));
+    state.admin.financeTx = tx;
+    content.innerHTML = buildFinanceHTML(stats, tx);
+    drawFinanceCharts(stats);
+  }catch(e){ if(!cachedStats) content.innerHTML = '<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; console.error(e); }
+}
+
+function buildFinanceHTML(s, tx){
+  state.admin.financeTx = tx || state.admin.financeTx || [];
+  return '<div class="kpi-grid">'+
+      kpi('ລາຍຮັບທັງໝົດ', money(s.totalIncome), '', 'herb')+
+      kpi('— ຈາກຍອດຂາຍ', money(s.salesIncome), '', '')+
+      kpi('— ລາຍຮັບອື່ນໆ', money(s.otherIncome), '', '')+
+      kpi('ລາຍຈ່າຍທັງໝົດ', money(s.totalExpense), '', 'chili')+
+      kpi('ກຳໄລ/ຂາດທຶນສຸດທິ', money(s.netProfit), '', s.netProfit>=0?'herb':'chili')+
+      kpi('ຈຳນວນລາຍການບັນທຶກ', s.transactionCount, '', '')+
+    '</div>'+
+    '<div class="grid-2">'+
+      '<div class="a-panel"><h4>📈 ລາຍຮັບ ທຽບ ລາຍຈ່າຍ'+(s.range.monthly?' (ຕໍ່ເດືອນ)':' (ຕໍ່ວັນ)')+'</h4>'+
+        '<div class="chart-box"><canvas id="fin-line-chart"></canvas></div></div>'+
+      '<div class="a-panel"><h4>🥧 ສັດສ່ວນລາຍຈ່າຍຕາມໝວດ</h4>'+
+        '<div class="chart-box">'+
+        (s.expenseBreakdown.length? '<canvas id="fin-pie-chart"></canvas>' : '<p style="font-size:12px;color:var(--ink-soft);text-align:center;padding-top:80px;">ຍັງບໍ່ມີລາຍຈ່າຍໃນຊ່ວງນີ້</p>')+
+        '</div></div>'+
+    '</div>'+
+    '<div class="a-panel"><h4>📋 ລາຍການລາຍຮັບ-ລາຍຈ່າຍ (ບັນທຶກເອງ)</h4>'+
+    '<div id="fin-tx-holder">'+buildFinanceTxTableHTML(state.admin.financeTx)+'</div></div>'+
+    '<div id="finance-form-holder"></div>';
+}
+
+function buildFinanceTxTableHTML(list){
+  if(!list || list.length===0){
+    return '<div class="empty-state"><div class="ico">💰</div><h4>ຍັງບໍ່ມີລາຍການ</h4><p>ກົດ "+ ບັນທຶກລາຍການ" ເພື່ອເພີ່ມລາຍຮັບ/ລາຍຈ່າຍ</p></div>';
+  }
+  return '<div style="overflow-x:auto;"><table class="a-table"><thead><tr>'+
+    '<th>ວັນທີ</th><th>ປະເພດ</th><th>ໝວດ</th><th>ຈຳນວນເງິນ</th><th>ໝາຍເຫດ</th><th>ຈັດການ</th></tr></thead><tbody>'+
+    list.map(function(t){
+      const isIncome = t.type==='income';
+      return '<tr><td style="font-size:12px;">'+new Date(t.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</td>'+
+      '<td><span class="pill" style="background:'+(isIncome?'#DFEEDB':'#FBDADA')+';color:'+(isIncome?'var(--success)':'var(--danger)')+';">'+(isIncome?'ລາຍຮັບ':'ລາຍຈ່າຍ')+'</span></td>'+
+      '<td>'+(t.category||'-')+'</td>'+
+      '<td class="num" style="color:'+(isIncome?'var(--success)':'var(--danger)')+';font-weight:700;">'+(isIncome?'+':'-')+money(t.amount)+'</td>'+
+      '<td style="font-size:12px;">'+(t.note||'-')+'</td>'+
+      '<td><div class="ord-action-icons">'+
+        '<button class="ord-icon-btn view" onclick=\'openTransactionForm(JSON.parse(this.dataset.t))\' data-t=\''+JSON.stringify(t).replace(/'/g,"&apos;")+'\'>✏️</button>'+
+        '<button class="ord-icon-btn del" onclick="removeTransaction(\''+t.id+'\')">🗑️</button>'+
+      '</div></td></tr>';
+    }).join('')+
+    '</tbody></table></div>';
+}
+
+function drawFinanceCharts(s){
+  if(typeof Chart === 'undefined') return;
+  if(state.admin.charts.financeLine){ state.admin.charts.financeLine.destroy(); state.admin.charts.financeLine=null; }
+  if(state.admin.charts.financePie){ state.admin.charts.financePie.destroy(); state.admin.charts.financePie=null; }
+  const lineEl = document.getElementById('fin-line-chart');
+  const pieEl = document.getElementById('fin-pie-chart');
+  const css = getComputedStyle(document.documentElement);
+  const textColor = (css.getPropertyValue('--c-text')||'#241C15').trim();
+
+  if(lineEl){
+    const labels = Object.keys(s.series);
+    const incomeVals = labels.map(k=>s.series[k].income);
+    const expenseVals = labels.map(k=>s.series[k].expense);
+    state.admin.charts.financeLine = new Chart(lineEl, {
+      type:'bar',
+      data:{ labels: labels.map(l=> s.range.monthly? l : l.slice(5)), datasets:[
+        {label:'ລາຍຮັບ', data: incomeVals, backgroundColor:'#4E8A5C', borderRadius:6},
+        {label:'ລາຍຈ່າຍ', data: expenseVals, backgroundColor:'#C23A4B', borderRadius:6}
+      ]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{position:'bottom', labels:{color:textColor}}, tooltip:{callbacks:{label:c=>' '+c.dataset.label+': '+money(c.raw)}} },
+        scales:{ y:{ ticks:{ color:textColor, callback:v=>Number(v).toLocaleString() } }, x:{ ticks:{ color:textColor } } }
+      }
+    });
+  }
+  if(pieEl && s.expenseBreakdown.length){
+    const pieColors = ['#C23A4B','#C6702D','#7A2E3D','#C9A227','#8A2FC9','#1D5FC7','#946200','#8A7C6C'];
+    state.admin.charts.financePie = new Chart(pieEl, {
+      type:'doughnut',
+      data:{ labels: s.expenseBreakdown.map(p=>p.name), datasets:[{ data: s.expenseBreakdown.map(p=>p.amount), backgroundColor: pieColors, borderWidth:2, borderColor:'#fff' }]},
+      options:{ responsive:true, maintainAspectRatio:false,
+        plugins:{ legend:{ position:'bottom', labels:{ color:textColor, boxWidth:10, font:{size:10} } },
+          tooltip:{ callbacks:{ label:function(ctx){
+            const total = ctx.dataset.data.reduce((a,b)=>a+b,0);
+            const pct = total? Math.round(ctx.raw/total*100):0;
+            return ' '+ctx.label+': '+money(ctx.raw)+' ('+pct+'%)';
+          }}}
+        }
+      }
+    });
+  }
+}
+
+function openTransactionForm(t){
+  t = t || {id:'', date:new Date().toISOString().slice(0,10), type:'expense', category:EXPENSE_CATEGORIES_JS[0], amount:0, note:''};
+  const catList = t.type==='income' ? INCOME_CATEGORIES_JS : EXPENSE_CATEGORIES_JS;
+  document.getElementById('finance-form-holder').innerHTML =
+    '<div class="overlay show" onclick="closeTransactionForm()"></div>'+
+    '<div class="sheet show" style="position:fixed;"><div class="sheet-handle"></div>'+
+    '<div class="sheet-head"><h3>'+(t.id?'ແກ້ໄຂລາຍການ':'ບັນທຶກລາຍການ')+'</h3><button class="sheet-close" onclick="closeTransactionForm()">✕</button></div>'+
+    '<div class="sheet-body">'+
+    '<div class="field"><label>ປະເພດ</label><div class="seg">'+
+      '<div class="seg-btn '+(t.type==='income'?'active':'')+'" onclick="switchTxType(\'income\')" id="tx-type-income">ລາຍຮັບ</div>'+
+      '<div class="seg-btn '+(t.type==='expense'?'active':'')+'" onclick="switchTxType(\'expense\')" id="tx-type-expense">ລາຍຈ່າຍ</div>'+
+    '</div></div>'+
+    '<input type="hidden" id="tx-id" value="'+t.id+'">'+
+    '<input type="hidden" id="tx-type" value="'+t.type+'">'+
+    '<div class="field"><label>ວັນທີ</label><input type="date" id="tx-date" value="'+String(t.date).slice(0,10)+'"></div>'+
+    '<div class="field"><label>ໝວດ</label><select id="tx-category">'+catList.map(c=>'<option value="'+c+'" '+(t.category===c?'selected':'')+'>'+c+'</option>').join('')+'</select></div>'+
+    '<div class="field"><label>ຈຳນວນເງິນ (₭)</label><input type="number" id="tx-amount" value="'+t.amount+'"></div>'+
+    '<div class="field"><label>ໝາຍເຫດ</label><textarea id="tx-note">'+(t.note||'')+'</textarea></div>'+
+    '<button class="btn-primary" onclick="submitTransactionForm()">ບັນທຶກ</button>'+
+    (t.id? '<button class="btn-ghost" style="width:100%;margin-top:8px;" onclick="removeTransaction(\''+t.id+'\');closeTransactionForm();">🗑️ ລຶບລາຍການນີ້</button>' : '')+
+    '</div></div>';
+}
+function switchTxType(type){
+  document.getElementById('tx-type').value = type;
+  document.getElementById('tx-type-income').classList.toggle('active', type==='income');
+  document.getElementById('tx-type-expense').classList.toggle('active', type==='expense');
+  const catSel = document.getElementById('tx-category');
+  const catList = type==='income' ? INCOME_CATEGORIES_JS : EXPENSE_CATEGORIES_JS;
+  catSel.innerHTML = catList.map(c=>'<option value="'+c+'">'+c+'</option>').join('');
+}
+function closeTransactionForm(){ document.getElementById('finance-form-holder').innerHTML=''; }
+async function submitTransactionForm(){
+  const t = {
+    id: val('tx-id'), type: val('tx-type'), date: val('tx-date'),
+    category: val('tx-category'), amount: Number(val('tx-amount'))||0, note: val('tx-note')
+  };
+  if(!t.date || !t.amount){ toast('ກະລຸນາປ້ອນວັນທີ ແລະ ຈຳນວນເງິນ','⚠️'); return; }
+  await api.saveTransaction(state.admin.token, t);
+  closeTransactionForm();
+  localStorage.removeItem('pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end);
+  renderAdminFinance();
+  toast('ບັນທຶກແລ້ວ','✅');
+}
+async function removeTransaction(id){
+  if(!confirm('ຢືນຢັນລຶບລາຍການນີ້?')) return;
+  await api.deleteTransaction(state.admin.token, id);
+  localStorage.removeItem('pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end);
+  renderAdminFinance();
+  toast('ລຶບແລ້ວ','🗑️');
 }
 
 /* ── orders admin ──────────────────────────────────────────── */
