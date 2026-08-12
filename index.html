@@ -435,7 +435,7 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .dash-presets{display:flex;gap:8px;flex-wrap:wrap;}
 .dash-preset-btn{padding:9px 16px;border-radius:100px;border:1.5px solid var(--line);background:var(--c-surface);font-size:12.5px;font-weight:700;color:var(--ink-soft);}
 .dash-preset-btn.active{background:var(--c-primary);border-color:var(--c-primary);color:#fff;}
-.dash-daterange{display:flex;align-items:center;gap:8px;background:var(--c-surface);border:1.5px solid var(--line);border-radius:100px;padding:6px 8px 6px 14px;box-shadow:var(--shadow-soft);flex-wrap:wrap;}
+.dash-daterange{display:flex;align-items:center;gap:8px;background:var(--c-surface);border:1.5px solid var(--line);border-radius:16px;padding:6px 8px 6px 14px;box-shadow:var(--shadow-soft);flex-wrap:wrap;}
 .dash-daterange-ico{font-size:14px;}
 .dash-daterange input{padding:6px 4px;border-radius:8px;border:none;background:transparent;color:var(--c-text);font-size:12.5px;}
 .dash-apply-btn{background:var(--c-primary);color:#fff;border:none;border-radius:100px;padding:8px 14px;font-size:12px;font-weight:800;white-space:nowrap;}
@@ -1988,10 +1988,10 @@ async function checkNewOrders(){
           drawDashboardCharts(stats);
         }
       }
-    }
-    // ★ ອອເດີໃໝ່ເຂົ້າ/ປ່ຽນສະຖານະ -> ລ້າງ cache Finance ແລະ ອັບເດດງຽບໆຖ້າກຳລັງເປີດໜ້ານັ້ນຢູ່
+      // ★ ອອເດີໃໝ່ເຂົ້າ/ປ່ຽນສະຖານະ -> ລ້າງ cache Finance ແລະ ອັບເດດງຽບໆຖ້າກຳລັງເປີດໜ້ານັ້ນຢູ່
       localStorage.removeItem('pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end);
       if(state.admin.page==='finance') loadFinanceData(true);
+    }
     state.admin.seenOrderIds = ids;
     state.admin._lastOrdersMap = {}; orders.forEach(function(o){ state.admin._lastOrdersMap[o.orderId]=o.orderStatus; });
   }catch(e){
