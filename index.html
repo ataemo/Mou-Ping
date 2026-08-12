@@ -1885,6 +1885,8 @@ async function doAdminLogin(){
   const username = document.getElementById('admin-username').value.trim();
   const pw = document.getElementById('admin-pw').value;
   const remember = document.getElementById('admin-remember').checked;
+  const btn = document.querySelector('.login-card .btn-primary');
+  if(btn){ btn.disabled = true; btn.textContent = 'ກຳລັງເຂົ້າສູ່ລະບົບ...'; }
   try{
     const res = await api.adminLogin(username, pw, remember);
     if(res.success){
