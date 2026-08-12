@@ -2,7 +2,7 @@
 // ໜ້າທີ່: ຊ່ວຍໃຫ້ browser ຮັບຮູ້ວ່າເວັບນີ້ຕິດຕັ້ງເປັນແອັບໄດ້ (installable)
 // ແລະ cache ໜ້າຫຼັກໄວ້ໃຫ້ໂຫຼດໄວຂຶ້ນ / ເປີດໄດ້ເມື່ອເນັດຊ້າ
 
-const CACHE_NAME = 'moupink-cache-v2';
+const CACHE_NAME = 'moupink-cache-v3';
 const PRECACHE_URLS = ['./'];
 
 self.addEventListener('install', (event) => {
