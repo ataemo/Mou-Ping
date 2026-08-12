@@ -3479,7 +3479,15 @@ async function renderAdminUsers(){
     const users = await api.getUsers(state.admin.token);
     localStorage.setItem('pk_cache_admin_users', JSON.stringify(users));
     document.getElementById('users-table-holder').innerHTML = buildUsersTableHTML(users);
-  }catch(e){ if(!cachedUsers) document.getElementById('users-table-holder').innerHTML='<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; }
+  }catch(e){
+    console.error('getUsers error:', e);
+    const msg = String(e.message||e);
+    if(msg.indexOf('UNAUTHORIZED')>-1 || msg.indexOf('FORBIDDEN')>-1){ handleSessionExpired(); return; }
+    document.getElementById('users-table-holder').innerHTML =
+      '<div class="a-panel"><div class="empty-state"><div class="ico">⚠️</div><h4>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</h4>'+
+      '<p style="word-break:break-all;">'+msg+'</p>'+
+      '<button class="btn-sm primary" style="margin-top:10px;" onclick="renderAdminUsers()">🔄 ລອງໃໝ່</button></div></div>';
+  }
 }
 function buildUsersTableHTML(users){
   return '<div class="a-panel" style="padding:0;overflow-x:auto;"><table class="a-table"><thead><tr><th>Username</th><th>ຊື່ເຕັມ</th><th>ສິດທິ</th><th>ສະຖານະ</th><th>ຈັດການ</th></tr></thead><tbody>'+
@@ -3509,21 +3517,38 @@ function openUserForm(u){
     '<button class="btn-primary" onclick="submitUserForm()">ບັນທຶກ</button></div></div>';
 }
 async function submitUserForm(){
-  const u = { username: val('uf-username').trim(), fullName: val('uf-fullname'), password: val('uf-password'), role: val('uf-role'), status: val('uf-status') };
+  const u = { username: val('uf-username').trim(), fullName: val('uf-fullname').trim(), password: val('uf-password'), role: val('uf-role'), status: val('uf-status') };
   if(!u.username || !u.fullName){ toast('ກະລຸນາປ້ອນ Username ແລະ ຊື່ເຕັມ','⚠️'); return; }
-  await api.saveUser(state.admin.token, u);
-  localStorage.removeItem('pk_cache_admin_users');   // ← ເພີ່ມແຖວນີ້
-  document.getElementById('user-form-holder').innerHTML='';
-  renderAdminUsers();
-  toast('ບັນທຶກແລ້ວ','✅');
+  const btn = document.querySelector('#user-form-holder .btn-primary');
+  if(btn){ btn.disabled = true; btn.textContent = 'ກຳລັງບັນທຶກ...'; }
+  try{
+    await api.saveUser(state.admin.token, u);
+    localStorage.removeItem('pk_cache_admin_users');
+    document.getElementById('user-form-holder').innerHTML='';
+    renderAdminUsers();
+    toast('ບັນທຶກແລ້ວ','✅');
+  }catch(e){
+    console.error('saveUser error:', e);
+    const msg = String(e.message||e);
+    if(msg.indexOf('UNAUTHORIZED')>-1 || msg.indexOf('FORBIDDEN')>-1){ handleSessionExpired(); return; }
+    toast('ບັນທຶກບໍ່ສຳເລັດ: '+msg,'⚠️');
+    if(btn){ btn.disabled = false; btn.textContent = 'ບັນທຶກ'; }
+  }
 }
 async function removeUser(username){
   if(username===state.admin.username){ toast('ບໍ່ສາມາດລຶບບັນຊີຕົນເອງໄດ້','⚠️'); return; }
   if(!confirm('ຢືນຢັນລຶບຜູ້ໃຊ້ນີ້?')) return;
-  await api.deleteUser(state.admin.token, username);
-  localStorage.removeItem('pk_cache_admin_users');   // ← ເພີ່ມແຖວນີ້
-  renderAdminUsers();
-  toast('ລຶບແລ້ວ','🗑️');
+  try{
+    await api.deleteUser(state.admin.token, username);
+    localStorage.removeItem('pk_cache_admin_users');
+    renderAdminUsers();
+    toast('ລຶບແລ້ວ','🗑️');
+  }catch(e){
+    console.error('deleteUser error:', e);
+    const msg = String(e.message||e);
+    if(msg.indexOf('UNAUTHORIZED')>-1 || msg.indexOf('FORBIDDEN')>-1){ handleSessionExpired(); return; }
+    toast('ລຶບບໍ່ສຳເລັດ: '+msg,'⚠️');
+  }
 }
 
 function updateFontPreview(){
