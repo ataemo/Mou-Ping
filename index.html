@@ -59,6 +59,7 @@
   --c-header-text:#FBF6EE;
   --c-sidebar:#1B140F;
   --c-sidebar-text:#F1E7D6;
+  --c-danger-accent:#C23A4B;
 
   --radius-s:12px;
   --radius-m:18px;
@@ -213,7 +214,7 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 }
 .cat-pill .ico{font-size:22px;}
 .cat-pill span{font-size:11px;text-align:center;font-weight:700;line-height:1.2;}
-.cat-pill.active{background:linear-gradient(150deg,#C23A4B,#7A2E3D);border-color:transparent;color:#fff;box-shadow:0 10px 22px -8px rgba(194,58,75,.55);transform:translateY(-2px);}
+.cat-pill.active{background:linear-gradient(150deg,var(--c-danger-accent),color-mix(in srgb, var(--c-danger-accent) 60%, black));border-color:transparent;color:#fff;box-shadow:0 10px 22px -8px color-mix(in srgb, var(--c-danger-accent) 55%, transparent);transform:translateY(-2px);}
 
 /* ── product grid ───────────────────────────────────────────── */
 #product-grid,#product-grid-menu{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;padding:6px 16px 22px;transition:opacity .3s ease;}
@@ -242,7 +243,7 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }
 .pcard .prices{display:flex;flex-direction:column;gap:1px;margin-top:4px;}
-.pcard .price-now{font-family:var(--font-num);font-weight:900;color:#C23A4B;font-size:19px;line-height:1.1;}
+.pcard .price-now{font-family:var(--font-num);font-weight:900;color:var(--c-danger-accent);font-size:19px;line-height:1.1;}
 .pcard .price-old{font-family:var(--font-num);font-size:12.5px;color:var(--ink-soft);text-decoration:line-through;order:-1;}
 .pcard .addbtn{
   margin-top:6px;width:35px;height:35px;border-radius:12px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));color:#fff;border:none;
@@ -1148,6 +1149,7 @@ function applyTheme(){
   r.setProperty('--c-header-text', s.colorHeaderText||'#FBF6EE');
   r.setProperty('--c-sidebar', s.colorSidebar||'#1B140F');
   r.setProperty('--c-sidebar-text', s.colorSidebarText||'#F1E7D6');
+  r.setProperty('--c-danger-accent', s.colorDangerAccent||'#C23A4B');
   const pair = FONT_PAIRS[s.fontPairing] || FONT_PAIRS['ຄລາສສິກ'];
   r.setProperty('--font-display', pair.display);
   r.setProperty('--font-body', pair.body);
@@ -3425,6 +3427,7 @@ function renderAdminSettings(){
     colorField('colorBg','ພື້ນຫຼັງ', s.colorBg||'#FAF9F7')+colorField('colorSurface','ກ່ອງ/ບັດ', s.colorSurface||'#FFFFFF')+colorField('colorText','ຕົວໜັງສືທົ່ວໄປ', s.colorText||'#241C15')+
     colorField('colorHeader','ພື້ນ Header', s.colorHeader||'#1B140F')+colorField('colorHeaderText','ໂຕໜັງສື Header', s.colorHeaderText||'#FBF6EE')+
     colorField('colorSidebar','ພື້ນ Sidebar', s.colorSidebar||'#1B140F')+colorField('colorSidebarText','ໂຕໜັງສື Sidebar', s.colorSidebarText||'#F1E7D6')+
+    colorField('colorDangerAccent','ສີແດງເນັ້ນ (ໝວດ/ລາຄາ)', s.colorDangerAccent||'#C23A4B')+
   '</div>'+
   '<p style="font-size:11.5px;color:var(--ink-soft);margin:10px 0 0;">💡 ຖ້າສີພື້ນ ແລະ ສີໂຕໜັງສີໃກ້ກັນເກີນໄປ (ເຊັ່ນ ພື້ນຂາວ + ໂຕໜັງສືຂາວ) ຕົວໜັງສືຈະເບິ່ງບໍ່ເຫັນ — ໃຫ້ປັບສີໂຕໜັງສືກົງກັນຂ້າມກັບພື້ນສະເໝີ.</p>'+
   '<div style="display:flex;align-items:center;gap:10px;margin-top:14px;"><label class="switch"><input type="checkbox" id="st-dark" '+(s.darkMode==='true'?'checked':'')+'><span class="slider"></span></label><span style="font-size:13px;font-weight:600;">ໂໝດມືດເປັນຄ່າເລີ່ມຕົ້ນ</span></div>'+
@@ -3566,6 +3569,7 @@ async function saveAllSettings(){
     colorBg:val('st-colorBg'), colorSurface:val('st-colorSurface'), colorText:val('st-colorText'),
     colorHeader:val('st-colorHeader'), colorHeaderText:val('st-colorHeaderText'),
     colorSidebar:val('st-colorSidebar'), colorSidebarText:val('st-colorSidebarText'),
+    colorDangerAccent:val('st-colorDangerAccent'),
     darkMode: document.getElementById('st-dark').checked?'true':'false',
     fontPairing: val('st-font'),
     deliveryFeeDefault:val('st-delivery'), taxPercent:val('st-tax'), serviceFeePercent:val('st-service'),
