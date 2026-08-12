@@ -1920,7 +1920,16 @@ async function showAdmin(){
       localStorage.setItem('pk_admin_role', profile.role);
       localStorage.setItem('pk_admin_username', profile.username||'');
       localStorage.setItem('pk_admin_fullname', profile.fullName||'');
-    }catch(e){ handleSessionExpired(); return; }
+    }catch(e){
+      const msg = String(e.message||'');
+      if(msg.indexOf('UNAUTHORIZED') > -1){
+        handleSessionExpired();
+      } else {
+        toast('ເຊື່ອມຕໍ່ເຊີບເວີບໍ່ໄດ້ຊົ່ວຄາວ ກຳລັງລອງໃໝ່...','⚠️');
+        setTimeout(showAdmin, 3000);
+      }
+      return;
+    }
   }
   applyRoleUI();
   const savedPage = localStorage.getItem('pk_admin_page') || 'dashboard';
