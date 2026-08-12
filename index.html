@@ -986,8 +986,7 @@ const api = {
   saveTransaction: (token, transaction) => callApi('saveTransaction', {token, transaction}),
   deleteTransaction: (token, id) => callApi('deleteTransaction', {token, id}),
   getTransactions: (token, startDate, endDate) => callApi('getTransactions', {token, startDate, endDate}),
-  getFinanceStats: (token, startDate, endDate) => callApi('getFinanceStats', {token, startDate, endDate}),
-  approveTransaction: (token, id) => callApi('approveTransaction', {token, id})
+  getFinanceStats: (token, startDate, endDate) => callApi('getFinanceStats', {token, startDate, endDate})
 };
 
 /* ── formatting ─────────────────────────────────────────────── */
@@ -2317,11 +2316,7 @@ function financeToolbarHTML(){
   const presets = [['today','ມື້ນີ້'],['7d','7 ວັນ'],['month','ເດືອນນີ້'],['year','ປີນີ້']];
   const rangeText = r.start===r.end ? r.start : (r.start+' ຫາ '+r.end);
   return '<div class="a-title-row"><h2>💰 ລາຍຮັບ - ລາຍຈ່າຍ</h2>'+
-    '<div style="display:flex;gap:8px;flex-wrap:wrap;">'+
-      '<button class="btn-sm" onclick="exportFinanceCsv()">⬇️ Export CSV</button>'+
-      '<button class="btn-sm" onclick="printFinanceReport()">🖨️ ພິມລາຍງານ</button>'+
-      '<button class="btn-sm primary" onclick="openTransactionForm()">+ ບັນທຶກລາຍການ</button>'+
-    '</div></div>'+
+    '<button class="btn-sm primary" onclick="openTransactionForm()">+ ບັນທຶກລາຍການ</button></div>'+
     '<div class="dash-toolbar">'+
     '<div class="dash-presets">'+presets.map(p=>'<button class="dash-preset-btn '+(r.preset===p[0]?'active':'')+'" onclick="setFinancePreset(\''+p[0]+'\')">'+p[1]+'</button>').join('')+'</div>'+
     '<div class="dash-daterange">'+
@@ -2378,26 +2373,13 @@ async function loadFinanceData(){
 
 function buildFinanceHTML(s, tx){
   state.admin.financeTx = tx || state.admin.financeTx || [];
-  const includeCogs = state.admin.financeIncludeCogs !== false; // default true
-  const netProfit = includeCogs ? s.netProfitAfterCogs : s.netProfitBeforeCogs;
   return '<div class="kpi-grid">'+
       kpi('ລາຍຮັບທັງໝົດ', money(s.totalIncome), '', 'herb')+
       kpi('— ຈາກຍອດຂາຍ', money(s.salesIncome), '', '')+
       kpi('— ລາຍຮັບອື່ນໆ', money(s.otherIncome), '', '')+
-      kpi('ລາຍຈ່າຍທີ່ບັນທຶກເອງ', money(s.totalExpense), '', 'chili')+
-      kpi('ຕົ້ນທຶນສິນຄ້າ (ອັດຕະໂນມັດ)', money(s.costOfGoods), '', 'orange')+
-      kpi('ກຳໄລ/ຂາດທຶນສຸດທິ', money(netProfit), '', netProfit>=0?'herb':'chili')+
-    '</div>'+
-    (s.pendingCount>0? '<div class="a-panel" style="border-color:#F0C875;background:color-mix(in srgb, var(--c-accent) 8%, var(--c-surface));">'+
-      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'+
-        '<span style="font-size:20px;">⏳</span>'+
-        '<div style="flex:1;"><b>ມີ '+s.pendingCount+' ລາຍການລໍຖ້າອະນຸມັດ</b> (ລວມ '+money(s.pendingTotal)+') — ຍັງບໍ່ຖືກນັບເຂົ້າຍອດລວມຂ້າງເທິງ</div>'+
-      '</div></div>' : '')+
-    '<div class="a-panel" style="padding:12px 18px;">'+
-      '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;">'+
-        '<input type="checkbox" id="fin-include-cogs" '+(includeCogs?'checked':'')+' onchange="toggleFinanceCogs(this.checked)" style="width:18px;height:18px;">'+
-        '<span style="font-size:13px;font-weight:600;">ຫັກຕົ້ນທຶນສິນຄ້າ (COGS) ອອກຈາກກຳໄລສຸດທິ — ປິດໄວ້ຖ້າ Dashboard ຫຼັກໄດ້ຫັກໄປແລ້ວ ແລະ ບໍ່ຢາກນັບຊ້ຳ</span>'+
-      '</label>'+
+      kpi('ລາຍຈ່າຍທັງໝົດ', money(s.totalExpense), '', 'chili')+
+      kpi('ກຳໄລ/ຂາດທຶນສຸດທິ', money(s.netProfit), '', s.netProfit>=0?'herb':'chili')+
+      kpi('ຈຳນວນລາຍການບັນທຶກ', s.transactionCount, '', '')+
     '</div>'+
     '<div class="grid-2">'+
       '<div class="a-panel"><h4>📈 ລາຍຮັບ ທຽບ ລາຍຈ່າຍ'+(s.range.monthly?' (ຕໍ່ເດືອນ)':' (ຕໍ່ວັນ)')+'</h4>'+
@@ -2409,14 +2391,7 @@ function buildFinanceHTML(s, tx){
     '</div>'+
     '<div class="a-panel"><h4>📋 ລາຍການລາຍຮັບ-ລາຍຈ່າຍ (ບັນທຶກເອງ)</h4>'+
     '<div id="fin-tx-holder">'+buildFinanceTxTableHTML(state.admin.financeTx)+'</div></div>'+
-    '<div id="finance-form-holder"></div>'+
-    '<div id="finance-print-holder"></div>';
-}
-function toggleFinanceCogs(checked){
-  state.admin.financeIncludeCogs = checked;
-  const cacheKey = 'pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end;
-  const cached = localStorage.getItem(cacheKey);
-  if(cached){ try{ const c = JSON.parse(cached); document.getElementById('finance-content').innerHTML = buildFinanceHTML(c.stats, c.tx); drawFinanceCharts(c.stats); }catch(e){} }
+    '<div id="finance-form-holder"></div>';
 }
 
 function buildFinanceTxTableHTML(list){
@@ -2424,30 +2399,20 @@ function buildFinanceTxTableHTML(list){
     return '<div class="empty-state"><div class="ico">💰</div><h4>ຍັງບໍ່ມີລາຍການ</h4><p>ກົດ "+ ບັນທຶກລາຍການ" ເພື່ອເພີ່ມລາຍຮັບ/ລາຍຈ່າຍ</p></div>';
   }
   return '<div style="overflow-x:auto;"><table class="a-table"><thead><tr>'+
-    '<th>ວັນທີ</th><th>ປະເພດ</th><th>ໝວດ</th><th>ຈຳນວນເງິນ</th><th>ສະຖານະ</th><th>ຜູ້ບັນທຶກ</th><th>ໝາຍເຫດ</th><th>ຈັດການ</th></tr></thead><tbody>'+
+    '<th>ວັນທີ</th><th>ປະເພດ</th><th>ໝວດ</th><th>ຈຳນວນເງິນ</th><th>ໝາຍເຫດ</th><th>ຈັດການ</th></tr></thead><tbody>'+
     list.map(function(t){
       const isIncome = t.type==='income';
-      const isPending = t.status==='pending';
-      return '<tr'+(isPending?' style="background:color-mix(in srgb, var(--c-accent) 6%, transparent);"':'')+'><td style="font-size:12px;">'+new Date(t.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</td>'+
+      return '<tr><td style="font-size:12px;">'+new Date(t.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</td>'+
       '<td><span class="pill" style="background:'+(isIncome?'#DFEEDB':'#FBDADA')+';color:'+(isIncome?'var(--success)':'var(--danger)')+';">'+(isIncome?'ລາຍຮັບ':'ລາຍຈ່າຍ')+'</span></td>'+
       '<td>'+(t.category||'-')+'</td>'+
       '<td class="num" style="color:'+(isIncome?'var(--success)':'var(--danger)')+';font-weight:700;">'+(isIncome?'+':'-')+money(t.amount)+'</td>'+
-      '<td>'+(isPending? '<span class="pill" style="background:#FBEBD1;color:#946200;">ລໍຖ້າອະນຸມັດ</span>' : '<span class="pill active">ອະນຸມັດແລ້ວ</span>')+'</td>'+
-      '<td style="font-size:12px;">'+(t.recordedBy||'-')+'</td>'+
       '<td style="font-size:12px;">'+(t.note||'-')+'</td>'+
       '<td><div class="ord-action-icons">'+
-        (isPending? '<button class="ord-icon-btn view" title="ອະນຸມັດ" onclick="doApproveTransaction(\''+t.id+'\')" style="color:var(--success);">✅</button>' : '')+
         '<button class="ord-icon-btn view" onclick=\'openTransactionForm(JSON.parse(this.dataset.t))\' data-t=\''+JSON.stringify(t).replace(/'/g,"&apos;")+'\'>✏️</button>'+
         '<button class="ord-icon-btn del" onclick="removeTransaction(\''+t.id+'\')">🗑️</button>'+
       '</div></td></tr>';
     }).join('')+
     '</tbody></table></div>';
-}
-async function doApproveTransaction(id){
-  await api.approveTransaction(state.admin.token, id);
-  localStorage.removeItem('pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end);
-  renderAdminFinance();
-  toast('ອະນຸມັດລາຍການແລ້ວ','✅');
 }
 
 function drawFinanceCharts(s){
@@ -2494,7 +2459,7 @@ function drawFinanceCharts(s){
 }
 
 function openTransactionForm(t){
-  t = t || {id:'', date:new Date().toISOString().slice(0,10), type:'expense', category:EXPENSE_CATEGORIES_JS[0], amount:0, note:'', status:'approved', recordedBy:''};
+  t = t || {id:'', date:new Date().toISOString().slice(0,10), type:'expense', category:EXPENSE_CATEGORIES_JS[0], amount:0, note:''};
   const catList = t.type==='income' ? INCOME_CATEGORIES_JS : EXPENSE_CATEGORIES_JS;
   document.getElementById('finance-form-holder').innerHTML =
     '<div class="overlay show" onclick="closeTransactionForm()"></div>'+
@@ -2510,21 +2475,10 @@ function openTransactionForm(t){
     '<div class="field"><label>ວັນທີ</label><input type="date" id="tx-date" value="'+String(t.date).slice(0,10)+'"></div>'+
     '<div class="field"><label>ໝວດ</label><select id="tx-category">'+catList.map(c=>'<option value="'+c+'" '+(t.category===c?'selected':'')+'>'+c+'</option>').join('')+'</select></div>'+
     '<div class="field"><label>ຈຳນວນເງິນ (₭)</label><input type="number" id="tx-amount" value="'+t.amount+'"></div>'+
-    '<div class="field"><label>ຜູ້ບັນທຶກ (ຊື່ພະນັກງານ)</label><input id="tx-recordedby" value="'+(t.recordedBy||'')+'" placeholder="ຊື່ຜູ້ບັນທຶກ..."></div>'+
     '<div class="field"><label>ໝາຍເຫດ</label><textarea id="tx-note">'+(t.note||'')+'</textarea></div>'+
-    '<div class="field"><label>ສະຖານະ</label><div class="seg">'+
-      '<div class="seg-btn '+(t.status!=='pending'?'active':'')+'" onclick="setTxStatus(\'approved\')" id="tx-status-approved">✅ ອະນຸມັດເລີຍ</div>'+
-      '<div class="seg-btn '+(t.status==='pending'?'active':'')+'" onclick="setTxStatus(\'pending\')" id="tx-status-pending">⏳ ລໍຖ້າອະນຸມັດ</div>'+
-    '</div><p style="font-size:11px;color:var(--ink-soft);margin:6px 0 0;">ໃຊ້ "ລໍຖ້າອະນຸມັດ" ຖ້າພະນັກງານບັນທຶກລ່ວງໜ້າ ໃຫ້ເຈົ້າຂອງຮ້ານກວດກ່ອນນັບເຂົ້າຍອດ</p></div>'+
-    '<input type="hidden" id="tx-status" value="'+(t.status||'approved')+'">'+
-    '<button class="btn-primary" style="margin-top:10px;" onclick="submitTransactionForm()">ບັນທຶກ</button>'+
+    '<button class="btn-primary" onclick="submitTransactionForm()">ບັນທຶກ</button>'+
     (t.id? '<button class="btn-ghost" style="width:100%;margin-top:8px;" onclick="removeTransaction(\''+t.id+'\');closeTransactionForm();">🗑️ ລຶບລາຍການນີ້</button>' : '')+
     '</div></div>';
-}
-function setTxStatus(status){
-  document.getElementById('tx-status').value = status;
-  document.getElementById('tx-status-approved').classList.toggle('active', status!=='pending');
-  document.getElementById('tx-status-pending').classList.toggle('active', status==='pending');
 }
 function switchTxType(type){
   document.getElementById('tx-type').value = type;
@@ -2538,8 +2492,7 @@ function closeTransactionForm(){ document.getElementById('finance-form-holder').
 async function submitTransactionForm(){
   const t = {
     id: val('tx-id'), type: val('tx-type'), date: val('tx-date'),
-    category: val('tx-category'), amount: Number(val('tx-amount'))||0, note: val('tx-note'),
-    status: val('tx-status'), recordedBy: val('tx-recordedby')
+    category: val('tx-category'), amount: Number(val('tx-amount'))||0, note: val('tx-note')
   };
   if(!t.date || !t.amount){ toast('ກະລຸນາປ້ອນວັນທີ ແລະ ຈຳນວນເງິນ','⚠️'); return; }
   await api.saveTransaction(state.admin.token, t);
@@ -2554,73 +2507,6 @@ async function removeTransaction(id){
   localStorage.removeItem('pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end);
   renderAdminFinance();
   toast('ລຶບແລ້ວ','🗑️');
-}
-
-/* ── export CSV / ພິມລາຍງານການເງິນ ─────────────────────────── */
-function exportFinanceCsv(){
-  const headers = ['date','type','category','amount','status','recordedBy','note'];
-  const labels = ['ວັນທີ','ປະເພດ','ໝວດ','ຈຳນວນເງິນ','ສະຖານະ','ຜູ້ບັນທຶກ','ໝາຍເຫດ'];
-  const lines = [labels.join(',')];
-  (state.admin.financeTx||[]).forEach(function(t){
-    const row = [
-      new Date(t.date).toISOString().slice(0,10),
-      t.type==='income'?'ລາຍຮັບ':'ລາຍຈ່າຍ',
-      t.category||'', t.amount||0,
-      t.status==='pending'?'ລໍຖ້າອະນຸມັດ':'ອະນຸມັດແລ້ວ',
-      t.recordedBy||'', t.note||''
-    ];
-    lines.push(row.map(csvEscape).join(','));
-  });
-  const blob = new Blob(['\uFEFF'+lines.join('\n')], {type:'text/csv;charset=utf-8;'}); // \uFEFF = BOM ໃຫ້ Excel ອ່ານພາສາລາວຖືກ
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = 'finance_'+state.admin.financeRange.start+'_to_'+state.admin.financeRange.end+'.csv';
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(url);
-  toast('ສົ່ງອອກ CSV ສຳເລັດ','⬇️');
-}
-
-async function printFinanceReport(){
-  const cacheKey = 'pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end;
-  const cached = localStorage.getItem(cacheKey);
-  if(!cached){ toast('ຍັງບໍ່ມີຂໍ້ມູນໃຫ້ພິມ','⚠️'); return; }
-  const c = JSON.parse(cached);
-  const s = c.stats, tx = c.tx || [];
-  const includeCogs = state.admin.financeIncludeCogs !== false;
-  const netProfit = includeCogs ? s.netProfitAfterCogs : s.netProfitBeforeCogs;
-  const storeS = state.settings;
-  const rowsHtml = tx.map(function(t){
-    const isIncome = t.type==='income';
-    return '<tr><td>'+new Date(t.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</td>'+
-      '<td>'+(isIncome?'ລາຍຮັບ':'ລາຍຈ່າຍ')+'</td><td>'+(t.category||'-')+'</td>'+
-      '<td style="text-align:right;">'+(isIncome?'+':'-')+money(t.amount)+'</td>'+
-      '<td>'+(t.status==='pending'?'ລໍຖ້າອະນຸມັດ':'ອະນຸມັດແລ້ວ')+'</td>'+
-      '<td>'+(t.note||'-')+'</td></tr>';
-  }).join('');
-  const w = window.open('', '_blank', 'width=560,height:800');
-  w.document.write('<html><head><title>ລາຍງານການເງິນ '+s.range.start+' ຫາ '+s.range.end+'</title><meta charset="UTF-8">'+
-    '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;600;700;800&display=swap" rel="stylesheet">'+
-    '<style>body{font-family:"Noto Sans Lao",sans-serif;background:#fff;margin:0;padding:24px;color:#241C15;}'+
-    'h2{margin:0 0 2px;} .sub{color:#8A7C6C;font-size:12.5px;margin-bottom:18px;}'+
-    'table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;} td,th{padding:7px 6px;border-bottom:1px solid #eee;text-align:left;}'+
-    '.kpis{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;}'+
-    '.kpi{flex:1;min-width:140px;border:1px solid #eee;border-radius:10px;padding:10px 12px;}'+
-    '.kpi b{display:block;font-size:16px;} .kpi span{font-size:11px;color:#8A7C6C;}'+
-    '@media print{ body{padding:0;} }</style></head><body>'+
-    '<h2>'+(storeS.storeName||'')+' — ລາຍງານລາຍຮັບ-ລາຍຈ່າຍ</h2>'+
-    '<div class="sub">ຊ່ວງວັນທີ: '+s.range.start+' ຫາ '+s.range.end+' | ພິມເມື່ອ: '+new Date().toLocaleString('lo-LA')+'</div>'+
-    '<div class="kpis">'+
-      '<div class="kpi"><b>'+money(s.totalIncome)+'</b><span>ລາຍຮັບທັງໝົດ</span></div>'+
-      '<div class="kpi"><b>'+money(s.totalExpense)+'</b><span>ລາຍຈ່າຍ (ບັນທຶກເອງ)</span></div>'+
-      '<div class="kpi"><b>'+money(s.costOfGoods)+'</b><span>ຕົ້ນທຶນສິນຄ້າ (ອັດຕະໂນມັດ)</span></div>'+
-      '<div class="kpi"><b>'+money(netProfit)+'</b><span>ກຳໄລ/ຂາດທຶນສຸດທິ'+(includeCogs?' (ຫັກ COGS)':' (ບໍ່ຫັກ COGS)')+'</span></div>'+
-    '</div>'+
-    '<table><thead><tr><th>ວັນທີ</th><th>ປະເພດ</th><th>ໝວດ</th><th style="text-align:right;">ຈຳນວນເງິນ</th><th>ສະຖານະ</th><th>ໝາຍເຫດ</th></tr></thead><tbody>'+
-    (rowsHtml || '<tr><td colspan="6" style="text-align:center;color:#8A7C6C;">ບໍ່ມີລາຍການ</td></tr>')+
-    '</tbody></table>'+
-    '</body></html>');
-  w.document.close();
-  w.onload = function(){ setTimeout(()=>{ w.print(); }, 400); };
 }
 
 /* ── orders admin ──────────────────────────────────────────── */
