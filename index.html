@@ -1914,9 +1914,11 @@ function showAdmin(){
   document.getElementById('admin-root').classList.add('show');
   localStorage.setItem('pk_last_view','admin');
   updateAdminNavButton();
-  applyRolePermissions();   // ★ ເພີ່ມແຖວນີ້
+  applyRolePermissions();
   gotoAdminPage(localStorage.getItem('pk_admin_page') || 'dashboard');
-  startAdminOrderPoll();
+  // ★ ໜ່ວງ poll ຄັ້ງທຳອິດ 15 ວິນາທີ ເພາະ gotoAdminPage ໄດ້ໂຫຼດອອເດີ້ຄັ້ງທຳອິດໄປແລ້ວ
+  stopAdminOrderPoll();
+  state.admin.pollTimer = setInterval(checkNewOrders, 15000);
 }
 function viewStorefront(){
   document.getElementById('admin-root').classList.remove('show');
