@@ -2017,7 +2017,7 @@ function gotoAdminPage(page){
   document.querySelectorAll('.a-nav-item').forEach(el=>el.classList.toggle('active', el.dataset.page===page));
   closeAdminSidebar();
   document.getElementById('admin-page-title').textContent = ADMIN_TITLES[page];
-  const renderers = {dashboard:renderAdminDashboard, orders:renderAdminOrders, products:renderAdminProducts, categories:renderAdminCategories, banners:renderAdminBanners, finance:renderAdminFinance, settings:renderAdminSettings};
+  const renderers = {dashboard:renderAdminDashboard, orders:renderAdminOrders, products:renderAdminProducts, categories:renderAdminCategories, banners:renderAdminBanners, finance:renderAdminFinance, settings:renderAdminSettings, users:renderAdminUsers};
   renderers[page]();
 }
 function refreshAdminCurrentView(){
@@ -3469,11 +3469,15 @@ function renderAdminSettings(){
 
 async function renderAdminUsers(){
   const main = document.getElementById('admin-main');
-  main.innerHTML = '<div class="a-title-row"><h2>ຈັດການຜູ້ໃຊ້ງານ</h2><button class="btn-sm primary" onclick="openUserForm()">+ ເພີ່ມຜູ້ໃຊ້</button></div><div id="users-table-holder"><p>ກຳລັງໂຫຼດ...</p></div><div id="user-form-holder"></div>';
+  let cachedUsers = null;
+  try{ cachedUsers = JSON.parse(localStorage.getItem('pk_cache_admin_users')); }catch(e){}
+  main.innerHTML = '<div class="a-title-row"><h2>ຈັດການຜູ້ໃຊ້ງານ</h2><button class="btn-sm primary" onclick="openUserForm()">+ ເພີ່ມຜູ້ໃຊ້</button></div>'+
+    '<div id="users-table-holder">'+(cachedUsers? buildUsersTableHTML(cachedUsers) : '<p>ກຳລັງໂຫຼດ...</p>')+'</div><div id="user-form-holder"></div>';
   try{
     const users = await api.getUsers(state.admin.token);
+    localStorage.setItem('pk_cache_admin_users', JSON.stringify(users));
     document.getElementById('users-table-holder').innerHTML = buildUsersTableHTML(users);
-  }catch(e){ document.getElementById('users-table-holder').innerHTML='<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; }
+  }catch(e){ if(!cachedUsers) document.getElementById('users-table-holder').innerHTML='<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; }
 }
 function buildUsersTableHTML(users){
   return '<div class="a-panel" style="padding:0;overflow-x:auto;"><table class="a-table"><thead><tr><th>Username</th><th>ຊື່ເຕັມ</th><th>ສິດທິ</th><th>ສະຖານະ</th><th>ຈັດການ</th></tr></thead><tbody>'+
@@ -3506,6 +3510,7 @@ async function submitUserForm(){
   const u = { username: val('uf-username').trim(), fullName: val('uf-fullname'), password: val('uf-password'), role: val('uf-role'), status: val('uf-status') };
   if(!u.username || !u.fullName){ toast('ກະລຸນາປ້ອນ Username ແລະ ຊື່ເຕັມ','⚠️'); return; }
   await api.saveUser(state.admin.token, u);
+  localStorage.removeItem('pk_cache_admin_users');   // ← ເພີ່ມແຖວນີ້
   document.getElementById('user-form-holder').innerHTML='';
   renderAdminUsers();
   toast('ບັນທຶກແລ້ວ','✅');
@@ -3514,6 +3519,7 @@ async function removeUser(username){
   if(username===state.admin.username){ toast('ບໍ່ສາມາດລຶບບັນຊີຕົນເອງໄດ້','⚠️'); return; }
   if(!confirm('ຢືນຢັນລຶບຜູ້ໃຊ້ນີ້?')) return;
   await api.deleteUser(state.admin.token, username);
+  localStorage.removeItem('pk_cache_admin_users');   // ← ເພີ່ມແຖວນີ້
   renderAdminUsers();
   toast('ລຶບແລ້ວ','🗑️');
 }
