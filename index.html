@@ -777,6 +777,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <div class="ico">🔐</div>
       <h3>ເຂົ້າສູ່ລະບົບແອັດມິນ</h3>
       <p>ປ້ອນລະຫັດຜ່ານເພື່ອຈັດການຮ້ານ</p>
+      <div class="field"><input type="text" id="admin-username" placeholder="ຊື່ຜູ້ໃຊ້ (username)"></div>
       <div class="field"><input type="password" id="admin-pw" placeholder="ລະຫັດຜ່ານ" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
       <div style="display:flex;align-items:center;gap:10px;margin:2px 0 16px;text-align:left;">
         <label class="switch"><input type="checkbox" id="admin-remember" checked><span class="slider"></span></label>
@@ -814,6 +815,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
     <h2 id="admin-page-title">Dashboard</h2>
+    <span id="admin-user-label" style="font-size:11px;opacity:.85;margin-right:4px;white-space:nowrap;"></span>
     <button class="icon-btn" onclick="viewStorefront()" title="ເບິ່ງໜ້າຮ້ານ" style="width:32px;height:32px;">
       <svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
     </button>
@@ -839,6 +841,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <div class="a-nav-item" data-page="finance" onclick="gotoAdminPage('finance')" id="sb-finance"><span>ລາຍຮັບ-ລາຍຈ່າຍ</span></div>
       <div class="a-nav-sec">ຕັ້ງຄ່າ</div>
       <div class="a-nav-item" data-page="settings" onclick="gotoAdminPage('settings')" id="sb-settings"><span>ຮ້ານ &amp; ໂຕນຮັບ</span></div>
+      <div class="a-nav-item" data-page="users" onclick="gotoAdminPage('users')" id="sb-users"><span>ຈັດການຜູ້ໃຊ້ງານ</span></div>
     </div>
     <div id="admin-main"></div>
   </div>
@@ -872,6 +875,23 @@ const ICON_LABELS = {
   dashboard:'Dashboard (Admin)', a_orders:'ອອເດີ (Admin)', a_products:'ສິນຄ້າ (Admin)',
   a_categories:'ໝວດໝູ່ (Admin)', a_banners:'Banner (Admin)',a_finance:'ລາຍຮັບ-ລາຍຈ່າຍ (Admin)', a_settings:'ຮ້ານ & ໂຕນຮັບ (Admin)'
 };
+const ROLE_LABELS = {director:'ຜູ້ອຳນວຍການ', manager:'ຜູ້ຈັດການ', admin:'ແອັດມິນ', sale:'ພະນັກງານຂາຍ'};
+const ROLE_PAGE_ACCESS = {
+  director: ['dashboard','orders','products','categories','banners','finance','settings','users'],
+  manager:  ['dashboard','orders','products','categories','banners','finance'],
+  admin:    ['dashboard','orders','products','categories','banners'],
+  sale:     ['orders']
+};
+function applyRolePermissions(){
+  const role = state.admin.role;
+  const allowed = ROLE_PAGE_ACCESS[role] || [];
+  document.querySelectorAll('.a-nav-item').forEach(function(el){
+    el.style.display = allowed.indexOf(el.dataset.page)>-1 ? 'flex' : 'none';
+  });
+  if(allowed.indexOf(state.admin.page)===-1){ state.admin.page = allowed[0] || 'orders'; }
+  const lbl = document.getElementById('admin-user-label');
+  if(lbl) lbl.textContent = (state.admin.fullName||state.admin.username||'')+' · '+(ROLE_LABELS[role]||role||'');
+}
 function iconHtml(key){
   const custom = state.settings && state.settings['icon_'+key];
   if(custom && String(custom).trim()) return '<span class="icon-emoji">'+custom+'</span>';
@@ -936,7 +956,14 @@ const state = {
   activeCategory:'all',
   menuActiveCategory:'all',
   heroIdx:0, heroTimer:null,
-  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'', dashRange:{preset:'7d', start:null, end:null}, financeRange:{preset:null, start:null, end:null}, financeTx:[], charts:{line:null, pie:null, financeLine:null, financePie:null}, productFilter:'all', productSearchQuery:'', productSort:'name', dashLoading:false, _hasPendingOrders:false },
+  admin:{ token: localStorage.getItem('pk_admin_token')||null,
+    username: JSON.parse(localStorage.getItem('pk_admin_user')||'{}').username||null,
+    fullName: JSON.parse(localStorage.getItem('pk_admin_user')||'{}').fullName||null,
+    role: JSON.parse(localStorage.getItem('pk_admin_user')||'{}').role||null,
+    page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'',
+    dashRange:{preset:'7d', start:null, end:null}, financeRange:{preset:null, start:null, end:null},
+    financeTx:[], charts:{line:null, pie:null, financeLine:null, financePie:null},
+    productFilter:'all', productSearchQuery:'', productSort:'name', dashLoading:false, _hasPendingOrders:false },
   customer: JSON.parse(localStorage.getItem('pk_customer')||'{}'),
   _catJson:'', _prodJson:'', _banJson:''
 };
@@ -961,7 +988,10 @@ const api = {
   getInitialData: () => callApi('getInitialData'),
   createOrder: (order) => callApi('createOrder', {order}),
   getOrderStatusPublic: (orderId) => callApi('getOrderStatusPublic', {orderId}),
-  adminLogin: (password, remember) => callApi('adminLogin', {password, remember}),
+  adminLogin: (username, password, remember) => callApi('adminLogin', {username, password, remember}),
+  getUsers: (token) => callApi('getUsers', {token}),
+  saveUser: (token, user) => callApi('saveUser', {token, user}),
+  deleteUser: (token, username) => callApi('deleteUser', {token, username}),
   getDashboardStats: (token, startDate, endDate) => callApi('getDashboardStats', {token, startDate, endDate}),
   getOrders: (token) => callApi('getOrders', {token}),
   updateOrderStatus: (token, orderId, status) => callApi('updateOrderStatus', {token, orderId, status}),
@@ -1852,31 +1882,40 @@ function handleAvatarUpload(input){
    ═══════════════════════════════════════════════════════════════ */
 function openAdminLogin(){ openSheet('login'); }
 async function doAdminLogin(){
+  const username = document.getElementById('admin-username').value.trim();
   const pw = document.getElementById('admin-pw').value;
   const remember = document.getElementById('admin-remember').checked;
   try{
-    const res = await api.adminLogin(pw, remember);
+    const res = await api.adminLogin(username, pw, remember);
     if(res.success){
       state.admin.token = res.token;
+      state.admin.username = res.username;
+      state.admin.fullName = res.fullName;
+      state.admin.role = res.role;
       localStorage.setItem('pk_admin_token', res.token);
+      localStorage.setItem('pk_admin_user', JSON.stringify({username:res.username, fullName:res.fullName, role:res.role}));
       closeSheet('login');
       showAdmin();
-      toast(remember? 'ເຂົ້າສູ່ລະບົບແລ້ວ (ຈື່ຈຳ 30 ວັນ)' : 'ເຂົ້າສູ່ລະບົບແລ້ວ (ອອກອັດຕະໂນມັດ 12 ຊົ່ວໂມງ)', '🔓');
-    } else { toast('ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ','⚠️'); }
+      toast('ຍິນດີຕ້ອນຮັບ '+res.fullName+' ('+(ROLE_LABELS[res.role]||res.role)+')', '🔓');
+    } else { toast(res.error || 'ຊື່ຜູ້ໃຊ້ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ','⚠️'); }
   }catch(e){ toast('ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ','⚠️'); }
 }
 function adminLogout(){
-  state.admin.token=null; localStorage.removeItem('pk_admin_token');
+  state.admin.token=null; state.admin.username=null; state.admin.fullName=null; state.admin.role=null;
+  localStorage.removeItem('pk_admin_token');
+  localStorage.removeItem('pk_admin_user');   // ★ ເພີ່ມແຖວນີ້
   localStorage.removeItem('pk_last_view');
   document.getElementById('admin-root').classList.remove('show');
   stopAdminOrderPoll();
   updateAdminNavButton();
 }
+
 function showAdmin(){
   document.getElementById('admin-root').classList.add('show');
   localStorage.setItem('pk_last_view','admin');
   updateAdminNavButton();
-  gotoAdminPage(localStorage.getItem('pk_admin_page') || 'dashboard'); // ກັບໄປໜ້າຫຼ້າສຸດ ບໍ່ໃຫ້ເດັ້ງໄປ Dashboard ທຸກເທື່ອ
+  applyRolePermissions();   // ★ ເພີ່ມແຖວນີ້
+  gotoAdminPage(localStorage.getItem('pk_admin_page') || 'dashboard');
   startAdminOrderPoll();
 }
 function viewStorefront(){
@@ -1939,6 +1978,9 @@ async function checkNewOrders(){
         }
       }
     }
+    // ★ ອອເດີໃໝ່ເຂົ້າ/ປ່ຽນສະຖານະ -> ລ້າງ cache Finance ແລະ ອັບເດດງຽບໆຖ້າກຳລັງເປີດໜ້ານັ້ນຢູ່
+      localStorage.removeItem('pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end);
+      if(state.admin.page==='finance') loadFinanceData(true);
     state.admin.seenOrderIds = ids;
     state.admin._lastOrdersMap = {}; orders.forEach(function(o){ state.admin._lastOrdersMap[o.orderId]=o.orderStatus; });
   }catch(e){
@@ -1957,10 +1999,12 @@ function adminEntry(){
 }
 
 /* ── admin nav ─────────────────────────────────────────────── */
-const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ & ໂຕນຮັບ'};
+const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ & ໂຕນຮັບ', users:'ຈັດການຜູ້ໃຊ້ງານ'};
 function gotoAdminPage(page){
+  const allowed = ROLE_PAGE_ACCESS[state.admin.role] || [];
+  if(allowed.indexOf(page)===-1){ page = allowed[0] || 'orders'; }   // ★ ເພີ່ມ 2 ແຖວນີ້
   state.admin.page = page;
-  localStorage.setItem('pk_admin_page', page); // ຈື່ໜ້າຫຼ້າສຸດ
+  localStorage.setItem('pk_admin_page', page);
   document.querySelectorAll('.a-nav-item').forEach(el=>el.classList.toggle('active', el.dataset.page===page));
   closeAdminSidebar();
   document.getElementById('admin-page-title').textContent = ADMIN_TITLES[page];
@@ -1968,7 +2012,10 @@ function gotoAdminPage(page){
   renderers[page]();
 }
 function refreshAdminCurrentView(){
-  state.admin._ordersLoadedOnce = false; // ບັງຄັບດຶງອອເດີໃໝ່ຈາກເຊີບເວີຄັ້ງໜຶ່ງ
+  state.admin._ordersLoadedOnce = false;
+  if(state.admin.page==='finance'){
+    localStorage.removeItem('pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end);
+  }
   gotoAdminPage(state.admin.page);
   toast('ອັບເດດແລ້ວ','🔄');
 }
@@ -2351,7 +2398,7 @@ function setFinanceCustom(){
   renderAdminFinance();
 }
 
-async function loadFinanceData(){
+async function loadFinanceData(forceRefresh){
   const content = document.getElementById('finance-content');
   const cacheKey = 'pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end;
   const cached = localStorage.getItem(cacheKey);
@@ -2364,6 +2411,8 @@ async function loadFinanceData(){
       drawFinanceCharts(c.stats);
     }catch(e){}
   }
+  // ★ ຖ້າມີ cache ຢູ່ແລ້ວ ແລະ ບໍ່ໄດ້ບັງຄັບໃຫ້ refresh -> ໂຊວ໌ຂໍ້ມູນເກົ່າ ບໍ່ຍິງ API ຊ້ຳ
+  if(cachedStats && !forceRefresh) return;
   try{
     const [stats, tx] = await Promise.all([
       api.getFinanceStats(state.admin.token, state.admin.financeRange.start, state.admin.financeRange.end),
@@ -3407,6 +3456,58 @@ function renderAdminSettings(){
   updateFontPreview();
   document.getElementById('st-font').addEventListener('change', updateFontPreview);
 }
+
+async function renderAdminUsers(){
+  const main = document.getElementById('admin-main');
+  main.innerHTML = '<div class="a-title-row"><h2>ຈັດການຜູ້ໃຊ້ງານ</h2><button class="btn-sm primary" onclick="openUserForm()">+ ເພີ່ມຜູ້ໃຊ້</button></div><div id="users-table-holder"><p>ກຳລັງໂຫຼດ...</p></div><div id="user-form-holder"></div>';
+  try{
+    const users = await api.getUsers(state.admin.token);
+    document.getElementById('users-table-holder').innerHTML = buildUsersTableHTML(users);
+  }catch(e){ document.getElementById('users-table-holder').innerHTML='<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; }
+}
+function buildUsersTableHTML(users){
+  return '<div class="a-panel" style="padding:0;overflow-x:auto;"><table class="a-table"><thead><tr><th>Username</th><th>ຊື່ເຕັມ</th><th>ສິດທິ</th><th>ສະຖານະ</th><th>ຈັດການ</th></tr></thead><tbody>'+
+  users.map(function(u){
+    return '<tr><td>'+u.username+'</td><td>'+u.fullName+'</td><td>'+(ROLE_LABELS[u.role]||u.role)+'</td>'+
+    '<td><span class="pill '+(u.status==='active'?'active':'inactive')+'">'+(u.status==='active'?'ເປີດໃຊ້':'ປິດ')+'</span></td>'+
+    '<td><div class="ord-action-icons">'+
+      '<button class="btn-sm" onclick=\'openUserForm(JSON.parse(this.dataset.u))\' data-u=\''+JSON.stringify(u).replace(/'/g,"&apos;")+'\'>✏️</button>'+
+      '<button class="btn-sm danger" onclick="removeUser(\''+u.username+'\')">🗑️</button>'+
+    '</div></td></tr>';
+  }).join('')+'</tbody></table></div>';
+}
+function openUserForm(u){
+  u = u || {username:'',fullName:'',role:'sale',status:'active'};
+  document.getElementById('user-form-holder').innerHTML =
+    '<div class="overlay show" onclick="document.getElementById(\'user-form-holder\').innerHTML=\'\'"></div>'+
+    '<div class="sheet show" style="position:fixed;"><div class="sheet-handle"></div>'+
+    '<div class="sheet-head"><h3>ຜູ້ໃຊ້ງານ</h3><button class="sheet-close" onclick="document.getElementById(\'user-form-holder\').innerHTML=\'\'">✕</button></div>'+
+    '<div class="sheet-body">'+
+    '<div class="field"><label>Username</label><input id="uf-username" value="'+u.username+'" '+(u.username?'readonly':'')+'></div>'+
+    '<div class="field"><label>ຊື່ເຕັມ</label><input id="uf-fullname" value="'+u.fullName+'"></div>'+
+    '<div class="field"><label>ລະຫັດຜ່ານ'+(u.username?' (ຫວ່າງໄວ້ = ບໍ່ປ່ຽນ)':'')+'</label><input type="password" id="uf-password"></div>'+
+    '<div class="field"><label>ສິດທິ</label><select id="uf-role">'+
+      Object.keys(ROLE_LABELS).map(function(r){ return '<option value="'+r+'" '+(u.role===r?'selected':'')+'>'+ROLE_LABELS[r]+'</option>'; }).join('')+
+    '</select></div>'+
+    '<div class="field"><label>ສະຖານະ</label><select id="uf-status"><option value="active" '+(u.status==='active'?'selected':'')+'>ເປີດໃຊ້</option><option value="inactive" '+(u.status==='inactive'?'selected':'')+'>ປິດ</option></select></div>'+
+    '<button class="btn-primary" onclick="submitUserForm()">ບັນທຶກ</button></div></div>';
+}
+async function submitUserForm(){
+  const u = { username: val('uf-username').trim(), fullName: val('uf-fullname'), password: val('uf-password'), role: val('uf-role'), status: val('uf-status') };
+  if(!u.username || !u.fullName){ toast('ກະລຸນາປ້ອນ Username ແລະ ຊື່ເຕັມ','⚠️'); return; }
+  await api.saveUser(state.admin.token, u);
+  document.getElementById('user-form-holder').innerHTML='';
+  renderAdminUsers();
+  toast('ບັນທຶກແລ້ວ','✅');
+}
+async function removeUser(username){
+  if(username===state.admin.username){ toast('ບໍ່ສາມາດລຶບບັນຊີຕົນເອງໄດ້','⚠️'); return; }
+  if(!confirm('ຢືນຢັນລຶບຜູ້ໃຊ້ນີ້?')) return;
+  await api.deleteUser(state.admin.token, username);
+  renderAdminUsers();
+  toast('ລຶບແລ້ວ','🗑️');
+}
+
 function updateFontPreview(){
   const name = document.getElementById('st-font').value;
   const pair = FONT_PAIRS[name];
