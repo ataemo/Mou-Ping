@@ -777,13 +777,14 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <div class="ico">🔐</div>
       <h3>ເຂົ້າສູ່ລະບົບແອັດມິນ</h3>
       <p>ປ້ອນລະຫັດຜ່ານເພື່ອຈັດການຮ້ານ</p>
-      <div class="field"><input type="password" id="admin-pw" placeholder="ລະຫັດຜ່ານ" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
+      <div class="field"><input type="text" id="admin-username" placeholder="ຊື່ຜູ້ໃຊ້ (username)" value="admin" autocomplete="username"></div>
+      <div class="field"><input type="password" id="admin-pw" placeholder="ລະຫັດຜ່ານ" autocomplete="current-password" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
       <div style="display:flex;align-items:center;gap:10px;margin:2px 0 16px;text-align:left;">
         <label class="switch"><input type="checkbox" id="admin-remember" checked><span class="slider"></span></label>
         <span style="font-size:12px;font-weight:600;color:var(--ink-soft);">ຈື່ຈຳ 30 ວັນ — ປິດໄວ້ = ອອກອັດຕະໂນມັດພາຍໃນ 12 ຊົ່ວໂມງ</span>
       </div>
       <button class="btn-primary" onclick="doAdminLogin()">ເຂົ້າສູ່ລະບົບ</button>
-      <p style="margin-top:10px;font-size:11px;">ລະຫັດຜ່ານເລີ່ມຕົ້ນ: 1234 (ປ່ຽນໄດ້ໃນ Settings)</p>
+      <p style="margin-top:10px;font-size:11px;">ບັນຊີເລີ່ມຕົ້ນ: admin / 1234 (ຜູ້ອຳນວຍການ) — ເພີ່ມຜູ້ໃຊ້ອື່ນໄດ້ໃນໜ້າ "ຜູ້ໃຊ້ງານ" ຫຼັງ login</p>
     </div>
   </div>
 </div>
@@ -814,6 +815,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
     <h2 id="admin-page-title">Dashboard</h2>
+    <span id="admin-role-tag" onclick="openChangePasswordModal()" style="font-size:11px;font-weight:700;opacity:.85;cursor:pointer;padding:6px 10px;border-radius:100px;background:rgba(255,255,255,.08);white-space:nowrap;"></span>
     <button class="icon-btn" onclick="viewStorefront()" title="ເບິ່ງໜ້າຮ້ານ" style="width:32px;height:32px;">
       <svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
     </button>
@@ -838,10 +840,12 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <div class="a-nav-item" data-page="banners" onclick="gotoAdminPage('banners')" id="sb-banners"><span>Banner</span></div>
       <div class="a-nav-item" data-page="finance" onclick="gotoAdminPage('finance')" id="sb-finance"><span>ລາຍຮັບ-ລາຍຈ່າຍ</span></div>
       <div class="a-nav-sec">ຕັ້ງຄ່າ</div>
+      <div class="a-nav-item" data-page="users" onclick="gotoAdminPage('users')" id="sb-users"><span>ຜູ້ໃຊ້ງານ</span></div>
       <div class="a-nav-item" data-page="settings" onclick="gotoAdminPage('settings')" id="sb-settings"><span>ຮ້ານ &amp; ໂຕນຮັບ</span></div>
     </div>
     <div id="admin-main"></div>
   </div>
+  <div id="change-password-holder"></div>
 </div>
 
 <script>
@@ -864,13 +868,14 @@ const DEFAULT_ICONS = {
   a_categories:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
   a_banners:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 5-5 4 4"/></svg>',
   a_finance:'<svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+  a_users:'<svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
   a_settings:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
 };
 const ICON_LABELS = {
   search:'ຄົ້ນຫາ (Header)', orders:'ອອເດີ (Header)', cart:'ກະຕ່າ (Header)', menu:'ເມນູ (Header)',
   home:'ໜ້າຫຼັກ (Nav)', grid:'ເມນູອາຫານ (Nav)', account:'ບັນຊີ (Nav)',
   dashboard:'Dashboard (Admin)', a_orders:'ອອເດີ (Admin)', a_products:'ສິນຄ້າ (Admin)',
-  a_categories:'ໝວດໝູ່ (Admin)', a_banners:'Banner (Admin)',a_finance:'ລາຍຮັບ-ລາຍຈ່າຍ (Admin)', a_settings:'ຮ້ານ & ໂຕນຮັບ (Admin)'
+  a_categories:'ໝວດໝູ່ (Admin)', a_banners:'Banner (Admin)',a_finance:'ລາຍຮັບ-ລາຍຈ່າຍ (Admin)', a_users:'ຜູ້ໃຊ້ງານ (Admin)', a_settings:'ຮ້ານ & ໂຕນຮັບ (Admin)'
 };
 function iconHtml(key){
   const custom = state.settings && state.settings['icon_'+key];
@@ -889,8 +894,8 @@ function applyAllIcons(){
   document.getElementById('nav-cart').innerHTML = iconHtml('cart')+'<span>ກະຕ່າ</span>';
   document.getElementById('nav-cart').innerHTML = iconHtml('cart')+'<span class="nav-badge" id="nav-cart-badge" style="display:none;">0</span><span>ກະຕ່າ</span>';
   document.getElementById('nav-account').innerHTML = iconHtml('account')+'<span>ບັນຊີ</span>';
-  const sb = {dashboard:'dashboard', orders:'a_orders', products:'a_products', categories:'a_categories', banners:'a_banners', finance:'a_finance', settings:'a_settings'};
-  const labels = {dashboard:'Dashboard', orders:'ອອເດີ', products:'ສິນຄ້າ', categories:'ໝວດໝູ່', banners:'Banner', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ &amp; ໂຕນຮັບ'};
+  const sb = {dashboard:'dashboard', orders:'a_orders', products:'a_products', categories:'a_categories', banners:'a_banners', finance:'a_finance', users:'a_users', settings:'a_settings'};
+  const labels = {dashboard:'Dashboard', orders:'ອອເດີ', products:'ສິນຄ້າ', categories:'ໝວດໝູ່', banners:'Banner', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', users:'ຜູ້ໃຊ້ງານ', settings:'ຮ້ານ &amp; ໂຕນຮັບ'};
   Object.keys(sb).forEach(function(page){
     const el = document.getElementById('sb-'+page);
     if(!el) return;
@@ -927,6 +932,17 @@ const LAO_PROVINCES = {
 };
 
 /* ═══════════════════════════════════════════════════════════════
+   USER ROLES (ຕ້ອງກົງກັນກັບ ROLE_MATRIX ໃນ Code.gs)
+   ═══════════════════════════════════════════════════════════════ */
+const ROLE_MATRIX_JS = {
+  director: { pages:['dashboard','orders','products','categories','banners','finance','users','settings'], canDelete:true,  canApproveFinance:true,  canManageUsers:true,  canManageSettings:true  },
+  manager:  { pages:['dashboard','orders','products','categories','banners','finance'],                    canDelete:true,  canApproveFinance:true,  canManageUsers:false, canManageSettings:false },
+  admin:    { pages:['dashboard','orders','products','categories','banners'],                               canDelete:true,  canApproveFinance:false, canManageUsers:false, canManageSettings:false },
+  sale:     { pages:['orders'],                                                                              canDelete:false, canApproveFinance:false, canManageUsers:false, canManageSettings:false }
+};
+const ROLE_LABELS_JS = { director:'ຜູ້ອຳນວຍການ', manager:'ຜູ້ຈັດການ', admin:'ແອັດມິນ', sale:'ພະນັກງານຂາຍ' };
+
+/* ═══════════════════════════════════════════════════════════════
    APP STATE
    ═══════════════════════════════════════════════════════════════ */
 const state = {
@@ -936,7 +952,7 @@ const state = {
   activeCategory:'all',
   menuActiveCategory:'all',
   heroIdx:0, heroTimer:null,
-  admin:{ token: localStorage.getItem('pk_admin_token')||null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'', dashRange:{preset:'7d', start:null, end:null}, financeRange:{preset:null, start:null, end:null}, financeTx:[], charts:{line:null, pie:null, financeLine:null, financePie:null}, productFilter:'all', productSearchQuery:'', productSort:'name', dashLoading:false, _hasPendingOrders:false },
+  admin:{ token: localStorage.getItem('pk_admin_token')||null, username:null, fullName:null, role:null, roleLabel:null, page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'', dashRange:{preset:'7d', start:null, end:null}, financeRange:{preset:null, start:null, end:null}, financeTx:[], charts:{line:null, pie:null, financeLine:null, financePie:null}, productFilter:'all', productSearchQuery:'', productSort:'name', dashLoading:false, _hasPendingOrders:false, usersList:[] },
   customer: JSON.parse(localStorage.getItem('pk_customer')||'{}'),
   _catJson:'', _prodJson:'', _banJson:''
 };
@@ -961,7 +977,12 @@ const api = {
   getInitialData: () => callApi('getInitialData'),
   createOrder: (order) => callApi('createOrder', {order}),
   getOrderStatusPublic: (orderId) => callApi('getOrderStatusPublic', {orderId}),
-  adminLogin: (password, remember) => callApi('adminLogin', {password, remember}),
+  adminLogin: (username, password, remember) => callApi('adminLogin', {username, password, remember}),
+  getMyProfile: (token) => callApi('getMyProfile', {token}),
+  getUsers: (token) => callApi('getUsers', {token}),
+  saveUser: (token, user) => callApi('saveUser', {token, user}),
+  deleteUser: (token, id) => callApi('deleteUser', {token, id}),
+  changeMyPassword: (token, oldPassword, newPassword) => callApi('changeMyPassword', {token, oldPassword, newPassword}),
   getDashboardStats: (token, startDate, endDate) => callApi('getDashboardStats', {token, startDate, endDate}),
   getOrders: (token) => callApi('getOrders', {token}),
   updateOrderStatus: (token, orderId, status) => callApi('updateOrderStatus', {token, orderId, status}),
@@ -986,7 +1007,8 @@ const api = {
   saveTransaction: (token, transaction) => callApi('saveTransaction', {token, transaction}),
   deleteTransaction: (token, id) => callApi('deleteTransaction', {token, id}),
   getTransactions: (token, startDate, endDate) => callApi('getTransactions', {token, startDate, endDate}),
-  getFinanceStats: (token, startDate, endDate) => callApi('getFinanceStats', {token, startDate, endDate})
+  getFinanceStats: (token, startDate, endDate) => callApi('getFinanceStats', {token, startDate, endDate}),
+  approveTransaction: (token, id) => callApi('approveTransaction', {token, id})
 };
 
 /* ── formatting ─────────────────────────────────────────────── */
@@ -1851,32 +1873,73 @@ function handleAvatarUpload(input){
    ═══════════════════════════════════════════════════════════════ */
 function openAdminLogin(){ openSheet('login'); }
 async function doAdminLogin(){
+  const username = document.getElementById('admin-username').value.trim();
   const pw = document.getElementById('admin-pw').value;
   const remember = document.getElementById('admin-remember').checked;
   try{
-    const res = await api.adminLogin(pw, remember);
+    const res = await api.adminLogin(username, pw, remember);
     if(res.success){
       state.admin.token = res.token;
+      state.admin.username = res.username; state.admin.fullName = res.fullName;
+      state.admin.role = res.role; state.admin.roleLabel = res.roleLabel;
       localStorage.setItem('pk_admin_token', res.token);
+      localStorage.setItem('pk_admin_role', res.role);
+      localStorage.setItem('pk_admin_username', res.username||'');
+      localStorage.setItem('pk_admin_fullname', res.fullName||'');
       closeSheet('login');
       showAdmin();
       toast(remember? 'ເຂົ້າສູ່ລະບົບແລ້ວ (ຈື່ຈຳ 30 ວັນ)' : 'ເຂົ້າສູ່ລະບົບແລ້ວ (ອອກອັດຕະໂນມັດ 12 ຊົ່ວໂມງ)', '🔓');
-    } else { toast('ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ','⚠️'); }
-  }catch(e){ toast('ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ','⚠️'); }
+    } else { toast(res.error||'ຊື່ຜູ້ໃຊ້ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ','⚠️'); }
+  }catch(e){ toast('ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ','⚠️'); console.error(e); }
 }
 function adminLogout(){
-  state.admin.token=null; localStorage.removeItem('pk_admin_token');
+  state.admin.token=null; state.admin.role=null; state.admin.username=null; state.admin.fullName=null;
+  localStorage.removeItem('pk_admin_token');
+  localStorage.removeItem('pk_admin_role');
+  localStorage.removeItem('pk_admin_username');
+  localStorage.removeItem('pk_admin_fullname');
   localStorage.removeItem('pk_last_view');
+  localStorage.removeItem('pk_admin_page');
   document.getElementById('admin-root').classList.remove('show');
   stopAdminOrderPoll();
   updateAdminNavButton();
 }
-function showAdmin(){
+async function showAdmin(){
   document.getElementById('admin-root').classList.add('show');
   localStorage.setItem('pk_last_view','admin');
   updateAdminNavButton();
-  gotoAdminPage(localStorage.getItem('pk_admin_page') || 'dashboard'); // ກັບໄປໜ້າຫຼ້າສຸດ ບໍ່ໃຫ້ເດັ້ງໄປ Dashboard ທຸກເທື່ອ
+  if(!state.admin.role){
+    state.admin.role = localStorage.getItem('pk_admin_role') || null;
+    state.admin.username = localStorage.getItem('pk_admin_username') || null;
+    state.admin.fullName = localStorage.getItem('pk_admin_fullname') || null;
+  }
+  if(!state.admin.role){
+    try{
+      const profile = await api.getMyProfile(state.admin.token);
+      state.admin.role = profile.role; state.admin.username = profile.username; state.admin.fullName = profile.fullName;
+      localStorage.setItem('pk_admin_role', profile.role);
+      localStorage.setItem('pk_admin_username', profile.username||'');
+      localStorage.setItem('pk_admin_fullname', profile.fullName||'');
+    }catch(e){ handleSessionExpired(); return; }
+  }
+  applyRoleUI();
+  const savedPage = localStorage.getItem('pk_admin_page') || 'dashboard';
+  const allowedPage = roleHasPage(savedPage) ? savedPage : (roleAllowedPages()[0] || 'orders');
+  gotoAdminPage(allowedPage);
   startAdminOrderPoll();
+}
+function roleAllowedPages(){ return (ROLE_MATRIX_JS[state.admin.role||'sale']||ROLE_MATRIX_JS.sale).pages; }
+function roleHasPage(page){ return roleAllowedPages().indexOf(page) > -1; }
+function canDeleteRole(){ return (ROLE_MATRIX_JS[state.admin.role||'sale']||ROLE_MATRIX_JS.sale).canDelete; }
+function canApproveFinanceRole(){ return (ROLE_MATRIX_JS[state.admin.role||'sale']||ROLE_MATRIX_JS.sale).canApproveFinance; }
+function canManageUsersRole(){ return (ROLE_MATRIX_JS[state.admin.role||'sale']||ROLE_MATRIX_JS.sale).canManageUsers; }
+function applyRoleUI(){
+  const allowed = roleAllowedPages();
+  document.querySelectorAll('.a-nav-item').forEach(function(el){
+    el.style.display = allowed.indexOf(el.dataset.page) > -1 ? 'flex' : 'none';
+  });
+  const roleTag = document.getElementById('admin-role-tag');
+  if(roleTag) roleTag.textContent = (state.admin.fullName||state.admin.username||'') + ' · ' + (ROLE_LABELS_JS[state.admin.role]||state.admin.role||'');
 }
 function viewStorefront(){
   document.getElementById('admin-root').classList.remove('show');
@@ -1945,7 +2008,11 @@ async function checkNewOrders(){
   }
 }
 function handleSessionExpired(){
-  state.admin.token=null; localStorage.removeItem('pk_admin_token');
+  state.admin.token=null; state.admin.role=null; state.admin.username=null; state.admin.fullName=null;
+  localStorage.removeItem('pk_admin_token');
+  localStorage.removeItem('pk_admin_role');
+  localStorage.removeItem('pk_admin_username');
+  localStorage.removeItem('pk_admin_fullname');
   document.getElementById('admin-root').classList.remove('show');
   stopAdminOrderPoll();
   toast('⏰ ໝົດເວລາເຂົ້າສູ່ລະບົບ ກະລຸນາເຂົ້າສູ່ລະບົບໃໝ່','⏰');
@@ -1956,14 +2023,18 @@ function adminEntry(){
 }
 
 /* ── admin nav ─────────────────────────────────────────────── */
-const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ & ໂຕນຮັບ'};
+const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', users:'ຜູ້ໃຊ້ງານ', settings:'ຮ້ານ & ໂຕນຮັບ'};
 function gotoAdminPage(page){
+  if(!roleHasPage(page)){
+    toast('ບໍ່ມີສິດເຂົ້າໜ້ານີ້','⛔');
+    page = roleAllowedPages()[0] || 'orders';
+  }
   state.admin.page = page;
-  localStorage.setItem('pk_admin_page', page); // ຈື່ໜ້າຫຼ້າສຸດ
+  localStorage.setItem('pk_admin_page', page);
   document.querySelectorAll('.a-nav-item').forEach(el=>el.classList.toggle('active', el.dataset.page===page));
   closeAdminSidebar();
   document.getElementById('admin-page-title').textContent = ADMIN_TITLES[page];
-  const renderers = {dashboard:renderAdminDashboard, orders:renderAdminOrders, products:renderAdminProducts, categories:renderAdminCategories, banners:renderAdminBanners, finance:renderAdminFinance, settings:renderAdminSettings};
+  const renderers = {dashboard:renderAdminDashboard, orders:renderAdminOrders, products:renderAdminProducts, categories:renderAdminCategories, banners:renderAdminBanners, finance:renderAdminFinance, users:renderAdminUsers, settings:renderAdminSettings};
   renderers[page]();
 }
 function refreshAdminCurrentView(){
@@ -2316,7 +2387,11 @@ function financeToolbarHTML(){
   const presets = [['today','ມື້ນີ້'],['7d','7 ວັນ'],['month','ເດືອນນີ້'],['year','ປີນີ້']];
   const rangeText = r.start===r.end ? r.start : (r.start+' ຫາ '+r.end);
   return '<div class="a-title-row"><h2>💰 ລາຍຮັບ - ລາຍຈ່າຍ</h2>'+
-    '<button class="btn-sm primary" onclick="openTransactionForm()">+ ບັນທຶກລາຍການ</button></div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;">'+
+      '<button class="btn-sm" onclick="exportFinanceCsv()">⬇️ Export CSV</button>'+
+      '<button class="btn-sm" onclick="printFinanceReport()">🖨️ ພິມລາຍງານ</button>'+
+      '<button class="btn-sm primary" onclick="openTransactionForm()">+ ບັນທຶກລາຍການ</button>'+
+    '</div></div>'+
     '<div class="dash-toolbar">'+
     '<div class="dash-presets">'+presets.map(p=>'<button class="dash-preset-btn '+(r.preset===p[0]?'active':'')+'" onclick="setFinancePreset(\''+p[0]+'\')">'+p[1]+'</button>').join('')+'</div>'+
     '<div class="dash-daterange">'+
@@ -2373,13 +2448,26 @@ async function loadFinanceData(){
 
 function buildFinanceHTML(s, tx){
   state.admin.financeTx = tx || state.admin.financeTx || [];
+  const includeCogs = state.admin.financeIncludeCogs !== false; // default true
+  const netProfit = includeCogs ? s.netProfitAfterCogs : s.netProfitBeforeCogs;
   return '<div class="kpi-grid">'+
       kpi('ລາຍຮັບທັງໝົດ', money(s.totalIncome), '', 'herb')+
       kpi('— ຈາກຍອດຂາຍ', money(s.salesIncome), '', '')+
       kpi('— ລາຍຮັບອື່ນໆ', money(s.otherIncome), '', '')+
-      kpi('ລາຍຈ່າຍທັງໝົດ', money(s.totalExpense), '', 'chili')+
-      kpi('ກຳໄລ/ຂາດທຶນສຸດທິ', money(s.netProfit), '', s.netProfit>=0?'herb':'chili')+
-      kpi('ຈຳນວນລາຍການບັນທຶກ', s.transactionCount, '', '')+
+      kpi('ລາຍຈ່າຍທີ່ບັນທຶກເອງ', money(s.totalExpense), '', 'chili')+
+      kpi('ຕົ້ນທຶນສິນຄ້າ (ອັດຕະໂນມັດ)', money(s.costOfGoods), '', 'orange')+
+      kpi('ກຳໄລ/ຂາດທຶນສຸດທິ', money(netProfit), '', netProfit>=0?'herb':'chili')+
+    '</div>'+
+    (s.pendingCount>0? '<div class="a-panel" style="border-color:#F0C875;background:color-mix(in srgb, var(--c-accent) 8%, var(--c-surface));">'+
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">'+
+        '<span style="font-size:20px;">⏳</span>'+
+        '<div style="flex:1;"><b>ມີ '+s.pendingCount+' ລາຍການລໍຖ້າອະນຸມັດ</b> (ລວມ '+money(s.pendingTotal)+') — ຍັງບໍ່ຖືກນັບເຂົ້າຍອດລວມຂ້າງເທິງ</div>'+
+      '</div></div>' : '')+
+    '<div class="a-panel" style="padding:12px 18px;">'+
+      '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;">'+
+        '<input type="checkbox" id="fin-include-cogs" '+(includeCogs?'checked':'')+' onchange="toggleFinanceCogs(this.checked)" style="width:18px;height:18px;">'+
+        '<span style="font-size:13px;font-weight:600;">ຫັກຕົ້ນທຶນສິນຄ້າ (COGS) ອອກຈາກກຳໄລສຸດທິ — ປິດໄວ້ຖ້າ Dashboard ຫຼັກໄດ້ຫັກໄປແລ້ວ ແລະ ບໍ່ຢາກນັບຊ້ຳ</span>'+
+      '</label>'+
     '</div>'+
     '<div class="grid-2">'+
       '<div class="a-panel"><h4>📈 ລາຍຮັບ ທຽບ ລາຍຈ່າຍ'+(s.range.monthly?' (ຕໍ່ເດືອນ)':' (ຕໍ່ວັນ)')+'</h4>'+
@@ -2391,7 +2479,14 @@ function buildFinanceHTML(s, tx){
     '</div>'+
     '<div class="a-panel"><h4>📋 ລາຍການລາຍຮັບ-ລາຍຈ່າຍ (ບັນທຶກເອງ)</h4>'+
     '<div id="fin-tx-holder">'+buildFinanceTxTableHTML(state.admin.financeTx)+'</div></div>'+
-    '<div id="finance-form-holder"></div>';
+    '<div id="finance-form-holder"></div>'+
+    '<div id="finance-print-holder"></div>';
+}
+function toggleFinanceCogs(checked){
+  state.admin.financeIncludeCogs = checked;
+  const cacheKey = 'pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end;
+  const cached = localStorage.getItem(cacheKey);
+  if(cached){ try{ const c = JSON.parse(cached); document.getElementById('finance-content').innerHTML = buildFinanceHTML(c.stats, c.tx); drawFinanceCharts(c.stats); }catch(e){} }
 }
 
 function buildFinanceTxTableHTML(list){
@@ -2399,20 +2494,30 @@ function buildFinanceTxTableHTML(list){
     return '<div class="empty-state"><div class="ico">💰</div><h4>ຍັງບໍ່ມີລາຍການ</h4><p>ກົດ "+ ບັນທຶກລາຍການ" ເພື່ອເພີ່ມລາຍຮັບ/ລາຍຈ່າຍ</p></div>';
   }
   return '<div style="overflow-x:auto;"><table class="a-table"><thead><tr>'+
-    '<th>ວັນທີ</th><th>ປະເພດ</th><th>ໝວດ</th><th>ຈຳນວນເງິນ</th><th>ໝາຍເຫດ</th><th>ຈັດການ</th></tr></thead><tbody>'+
+    '<th>ວັນທີ</th><th>ປະເພດ</th><th>ໝວດ</th><th>ຈຳນວນເງິນ</th><th>ສະຖານະ</th><th>ຜູ້ບັນທຶກ</th><th>ໝາຍເຫດ</th><th>ຈັດການ</th></tr></thead><tbody>'+
     list.map(function(t){
       const isIncome = t.type==='income';
-      return '<tr><td style="font-size:12px;">'+new Date(t.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</td>'+
+      const isPending = t.status==='pending';
+      return '<tr'+(isPending?' style="background:color-mix(in srgb, var(--c-accent) 6%, transparent);"':'')+'><td style="font-size:12px;">'+new Date(t.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</td>'+
       '<td><span class="pill" style="background:'+(isIncome?'#DFEEDB':'#FBDADA')+';color:'+(isIncome?'var(--success)':'var(--danger)')+';">'+(isIncome?'ລາຍຮັບ':'ລາຍຈ່າຍ')+'</span></td>'+
       '<td>'+(t.category||'-')+'</td>'+
       '<td class="num" style="color:'+(isIncome?'var(--success)':'var(--danger)')+';font-weight:700;">'+(isIncome?'+':'-')+money(t.amount)+'</td>'+
+      '<td>'+(isPending? '<span class="pill" style="background:#FBEBD1;color:#946200;">ລໍຖ້າອະນຸມັດ</span>' : '<span class="pill active">ອະນຸມັດແລ້ວ</span>')+'</td>'+
+      '<td style="font-size:12px;">'+(t.recordedBy||'-')+'</td>'+
       '<td style="font-size:12px;">'+(t.note||'-')+'</td>'+
       '<td><div class="ord-action-icons">'+
+        (isPending && canApproveFinanceRole()? '<button class="ord-icon-btn view" title="ອະນຸມັດ" onclick="doApproveTransaction(\''+t.id+'\')" style="color:var(--success);">✅</button>' : '')+
         '<button class="ord-icon-btn view" onclick=\'openTransactionForm(JSON.parse(this.dataset.t))\' data-t=\''+JSON.stringify(t).replace(/'/g,"&apos;")+'\'>✏️</button>'+
-        '<button class="ord-icon-btn del" onclick="removeTransaction(\''+t.id+'\')">🗑️</button>'+
+        (canApproveFinanceRole()? '<button class="ord-icon-btn del" onclick="removeTransaction(\''+t.id+'\')">🗑️</button>' : '')+
       '</div></td></tr>';
     }).join('')+
     '</tbody></table></div>';
+}
+async function doApproveTransaction(id){
+  await api.approveTransaction(state.admin.token, id);
+  localStorage.removeItem('pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end);
+  renderAdminFinance();
+  toast('ອະນຸມັດລາຍການແລ້ວ','✅');
 }
 
 function drawFinanceCharts(s){
@@ -2459,7 +2564,7 @@ function drawFinanceCharts(s){
 }
 
 function openTransactionForm(t){
-  t = t || {id:'', date:new Date().toISOString().slice(0,10), type:'expense', category:EXPENSE_CATEGORIES_JS[0], amount:0, note:''};
+  t = t || {id:'', date:new Date().toISOString().slice(0,10), type:'expense', category:EXPENSE_CATEGORIES_JS[0], amount:0, note:'', status:'approved', recordedBy:''};
   const catList = t.type==='income' ? INCOME_CATEGORIES_JS : EXPENSE_CATEGORIES_JS;
   document.getElementById('finance-form-holder').innerHTML =
     '<div class="overlay show" onclick="closeTransactionForm()"></div>'+
@@ -2475,10 +2580,21 @@ function openTransactionForm(t){
     '<div class="field"><label>ວັນທີ</label><input type="date" id="tx-date" value="'+String(t.date).slice(0,10)+'"></div>'+
     '<div class="field"><label>ໝວດ</label><select id="tx-category">'+catList.map(c=>'<option value="'+c+'" '+(t.category===c?'selected':'')+'>'+c+'</option>').join('')+'</select></div>'+
     '<div class="field"><label>ຈຳນວນເງິນ (₭)</label><input type="number" id="tx-amount" value="'+t.amount+'"></div>'+
+    '<div class="field"><label>ຜູ້ບັນທຶກ (ຊື່ພະນັກງານ)</label><input id="tx-recordedby" value="'+(t.recordedBy||'')+'" placeholder="ຊື່ຜູ້ບັນທຶກ..."></div>'+
     '<div class="field"><label>ໝາຍເຫດ</label><textarea id="tx-note">'+(t.note||'')+'</textarea></div>'+
-    '<button class="btn-primary" onclick="submitTransactionForm()">ບັນທຶກ</button>'+
+    '<div class="field"><label>ສະຖານະ</label><div class="seg">'+
+      '<div class="seg-btn '+(t.status!=='pending'?'active':'')+'" onclick="setTxStatus(\'approved\')" id="tx-status-approved">✅ ອະນຸມັດເລີຍ</div>'+
+      '<div class="seg-btn '+(t.status==='pending'?'active':'')+'" onclick="setTxStatus(\'pending\')" id="tx-status-pending">⏳ ລໍຖ້າອະນຸມັດ</div>'+
+    '</div><p style="font-size:11px;color:var(--ink-soft);margin:6px 0 0;">ໃຊ້ "ລໍຖ້າອະນຸມັດ" ຖ້າພະນັກງານບັນທຶກລ່ວງໜ້າ ໃຫ້ເຈົ້າຂອງຮ້ານກວດກ່ອນນັບເຂົ້າຍອດ</p></div>'+
+    '<input type="hidden" id="tx-status" value="'+(t.status||'approved')+'">'+
+    '<button class="btn-primary" style="margin-top:10px;" onclick="submitTransactionForm()">ບັນທຶກ</button>'+
     (t.id? '<button class="btn-ghost" style="width:100%;margin-top:8px;" onclick="removeTransaction(\''+t.id+'\');closeTransactionForm();">🗑️ ລຶບລາຍການນີ້</button>' : '')+
     '</div></div>';
+}
+function setTxStatus(status){
+  document.getElementById('tx-status').value = status;
+  document.getElementById('tx-status-approved').classList.toggle('active', status!=='pending');
+  document.getElementById('tx-status-pending').classList.toggle('active', status==='pending');
 }
 function switchTxType(type){
   document.getElementById('tx-type').value = type;
@@ -2492,7 +2608,8 @@ function closeTransactionForm(){ document.getElementById('finance-form-holder').
 async function submitTransactionForm(){
   const t = {
     id: val('tx-id'), type: val('tx-type'), date: val('tx-date'),
-    category: val('tx-category'), amount: Number(val('tx-amount'))||0, note: val('tx-note')
+    category: val('tx-category'), amount: Number(val('tx-amount'))||0, note: val('tx-note'),
+    status: val('tx-status'), recordedBy: val('tx-recordedby')
   };
   if(!t.date || !t.amount){ toast('ກະລຸນາປ້ອນວັນທີ ແລະ ຈຳນວນເງິນ','⚠️'); return; }
   await api.saveTransaction(state.admin.token, t);
@@ -2507,6 +2624,73 @@ async function removeTransaction(id){
   localStorage.removeItem('pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end);
   renderAdminFinance();
   toast('ລຶບແລ້ວ','🗑️');
+}
+
+/* ── export CSV / ພິມລາຍງານການເງິນ ─────────────────────────── */
+function exportFinanceCsv(){
+  const headers = ['date','type','category','amount','status','recordedBy','note'];
+  const labels = ['ວັນທີ','ປະເພດ','ໝວດ','ຈຳນວນເງິນ','ສະຖານະ','ຜູ້ບັນທຶກ','ໝາຍເຫດ'];
+  const lines = [labels.join(',')];
+  (state.admin.financeTx||[]).forEach(function(t){
+    const row = [
+      new Date(t.date).toISOString().slice(0,10),
+      t.type==='income'?'ລາຍຮັບ':'ລາຍຈ່າຍ',
+      t.category||'', t.amount||0,
+      t.status==='pending'?'ລໍຖ້າອະນຸມັດ':'ອະນຸມັດແລ້ວ',
+      t.recordedBy||'', t.note||''
+    ];
+    lines.push(row.map(csvEscape).join(','));
+  });
+  const blob = new Blob(['\uFEFF'+lines.join('\n')], {type:'text/csv;charset=utf-8;'}); // \uFEFF = BOM ໃຫ້ Excel ອ່ານພາສາລາວຖືກ
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'finance_'+state.admin.financeRange.start+'_to_'+state.admin.financeRange.end+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('ສົ່ງອອກ CSV ສຳເລັດ','⬇️');
+}
+
+async function printFinanceReport(){
+  const cacheKey = 'pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end;
+  const cached = localStorage.getItem(cacheKey);
+  if(!cached){ toast('ຍັງບໍ່ມີຂໍ້ມູນໃຫ້ພິມ','⚠️'); return; }
+  const c = JSON.parse(cached);
+  const s = c.stats, tx = c.tx || [];
+  const includeCogs = state.admin.financeIncludeCogs !== false;
+  const netProfit = includeCogs ? s.netProfitAfterCogs : s.netProfitBeforeCogs;
+  const storeS = state.settings;
+  const rowsHtml = tx.map(function(t){
+    const isIncome = t.type==='income';
+    return '<tr><td>'+new Date(t.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</td>'+
+      '<td>'+(isIncome?'ລາຍຮັບ':'ລາຍຈ່າຍ')+'</td><td>'+(t.category||'-')+'</td>'+
+      '<td style="text-align:right;">'+(isIncome?'+':'-')+money(t.amount)+'</td>'+
+      '<td>'+(t.status==='pending'?'ລໍຖ້າອະນຸມັດ':'ອະນຸມັດແລ້ວ')+'</td>'+
+      '<td>'+(t.note||'-')+'</td></tr>';
+  }).join('');
+  const w = window.open('', '_blank', 'width=560,height:800');
+  w.document.write('<html><head><title>ລາຍງານການເງິນ '+s.range.start+' ຫາ '+s.range.end+'</title><meta charset="UTF-8">'+
+    '<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;600;700;800&display=swap" rel="stylesheet">'+
+    '<style>body{font-family:"Noto Sans Lao",sans-serif;background:#fff;margin:0;padding:24px;color:#241C15;}'+
+    'h2{margin:0 0 2px;} .sub{color:#8A7C6C;font-size:12.5px;margin-bottom:18px;}'+
+    'table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:6px;} td,th{padding:7px 6px;border-bottom:1px solid #eee;text-align:left;}'+
+    '.kpis{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0;}'+
+    '.kpi{flex:1;min-width:140px;border:1px solid #eee;border-radius:10px;padding:10px 12px;}'+
+    '.kpi b{display:block;font-size:16px;} .kpi span{font-size:11px;color:#8A7C6C;}'+
+    '@media print{ body{padding:0;} }</style></head><body>'+
+    '<h2>'+(storeS.storeName||'')+' — ລາຍງານລາຍຮັບ-ລາຍຈ່າຍ</h2>'+
+    '<div class="sub">ຊ່ວງວັນທີ: '+s.range.start+' ຫາ '+s.range.end+' | ພິມເມື່ອ: '+new Date().toLocaleString('lo-LA')+'</div>'+
+    '<div class="kpis">'+
+      '<div class="kpi"><b>'+money(s.totalIncome)+'</b><span>ລາຍຮັບທັງໝົດ</span></div>'+
+      '<div class="kpi"><b>'+money(s.totalExpense)+'</b><span>ລາຍຈ່າຍ (ບັນທຶກເອງ)</span></div>'+
+      '<div class="kpi"><b>'+money(s.costOfGoods)+'</b><span>ຕົ້ນທຶນສິນຄ້າ (ອັດຕະໂນມັດ)</span></div>'+
+      '<div class="kpi"><b>'+money(netProfit)+'</b><span>ກຳໄລ/ຂາດທຶນສຸດທິ'+(includeCogs?' (ຫັກ COGS)':' (ບໍ່ຫັກ COGS)')+'</span></div>'+
+    '</div>'+
+    '<table><thead><tr><th>ວັນທີ</th><th>ປະເພດ</th><th>ໝວດ</th><th style="text-align:right;">ຈຳນວນເງິນ</th><th>ສະຖານະ</th><th>ໝາຍເຫດ</th></tr></thead><tbody>'+
+    (rowsHtml || '<tr><td colspan="6" style="text-align:center;color:#8A7C6C;">ບໍ່ມີລາຍການ</td></tr>')+
+    '</tbody></table>'+
+    '</body></html>');
+  w.document.close();
+  w.onload = function(){ setTimeout(()=>{ w.print(); }, 400); };
 }
 
 /* ── orders admin ──────────────────────────────────────────── */
@@ -2602,7 +2786,7 @@ function buildOrdersTableOnlyHTML(orders){
       '<td><div class="ord-action-icons">'+
         '<button class="ord-icon-btn view" title="ລາຍລະອຽດ" onclick="openOrderDetailModal(\''+o.orderId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>'+
         '<button class="ord-icon-btn print" title="ພິມບິນ" onclick="openReceiptModal(\''+o.orderId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg></button>'+
-        '<button class="ord-icon-btn del" title="ລຶບ" onclick="removeOrder(\''+o.orderId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg></button>'+
+        (canDeleteRole()? '<button class="ord-icon-btn del" title="ລຶບ" onclick="removeOrder(\''+o.orderId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg></button>' : '')+
       '</div></td></tr>'
     ).join('')+
     '</tbody></table></div>';
@@ -2852,7 +3036,7 @@ function buildProductsGridHTML(list){
           '<button class="btn-sm" onclick=\'openProductForm(JSON.parse(this.dataset.p))\' data-p=\''+JSON.stringify(p).replace(/'/g,"&apos;")+'\'>✏️</button>'+
           '<button class="btn-sm" onclick="duplicateProduct(\''+p.id+'\')">📋</button>'+
           '<button class="btn-sm" onclick="openProductHistoryModal(\''+p.id+'\')">🕒</button>'+
-          '<button class="btn-sm danger" onclick="removeProduct(\''+p.id+'\')">🗑️</button>'+
+          (canDeleteRole()? '<button class="btn-sm danger" onclick="removeProduct(\''+p.id+'\')">🗑️</button>' : '')+
         '</div>'+
       '</div>'+
     '</div>';
@@ -3147,7 +3331,7 @@ async function renderAdminCategories(){
       '<span class="pill '+(c.status==='active'?'active':'inactive')+'">'+c.status+'</span>'+
       '<div style="display:flex;gap:6px;justify-content:center;margin-top:10px;">'+
       '<button class="btn-sm" onclick=\'openCategoryForm(JSON.parse(this.dataset.c))\' data-c=\''+JSON.stringify(c).replace(/'/g,"&apos;")+'\'>ແກ້ໄຂ</button>'+
-      '<button class="btn-sm danger" onclick="removeCategory(\''+c.id+'\')">ລຶບ</button></div></div>'
+      (canDeleteRole()? '<button class="btn-sm danger" onclick="removeCategory(\''+c.id+'\')">ລຶບ</button>' : '')+'</div></div>'
     ).join('')+'</div><div id="category-form-holder"></div>';
 }
 function openCategoryForm(c){
@@ -3180,7 +3364,7 @@ async function renderAdminBanners(){
     '<div class="thumb-row">'+state.banners.map(b=>
       '<div class="admin-thumb"><img src="'+b.image+'"><div class="cap">'+b.title+'</div>'+
       '<div style="display:flex;gap:4px;padding:0 6px 6px;"><button class="btn-sm" style="flex:1;padding:4px;" onclick=\'openBannerForm(JSON.parse(this.dataset.b))\' data-b=\''+JSON.stringify(b).replace(/'/g,"&apos;")+'\'>ແກ້ໄຂ</button>'+
-      '<button class="btn-sm danger" style="flex:1;padding:4px;" onclick="removeBanner(\''+b.id+'\')">ລຶບ</button></div></div>'
+      (canDeleteRole()? '<button class="btn-sm danger" style="flex:1;padding:4px;" onclick="removeBanner(\''+b.id+'\')">ລຶບ</button>' : '')+'</div></div>'
     ).join('')+'</div><div id="banner-form-holder"></div>';
 }
 function openBannerForm(b){
@@ -3363,6 +3547,132 @@ async function saveAllSettings(){
 document.addEventListener('input', e=>{
   if(e.target && e.target.id && e.target.id.startsWith('st-color')) previewTheme();
 });
+
+/* ═══════════════════════════════════════════════════════════════
+   ADMIN — ຜູ້ໃຊ້ງານ / Role (director ເທົ່ານັ້ນ)
+   ═══════════════════════════════════════════════════════════════ */
+const ROLE_OPTIONS_JS = [['director','ຜູ້ອຳນວຍການ'],['manager','ຜູ້ຈັດການ'],['admin','ແອັດມິນ'],['sale','ພະນັກງານຂາຍ']];
+
+async function renderAdminUsers(){
+  const main = document.getElementById('admin-main');
+  if(!canManageUsersRole()){
+    main.innerHTML = '<div class="empty-state"><div class="ico">⛔</div><h4>ບໍ່ມີສິດເຂົ້າໜ້ານີ້</h4><p>ສະເພາະຜູ້ອຳນວຍການເທົ່ານັ້ນ</p></div>';
+    return;
+  }
+  main.innerHTML = '<div class="a-title-row"><h2>ຜູ້ໃຊ້ງານ</h2><button class="btn-sm primary" onclick="openUserForm()">+ ເພີ່ມຜູ້ໃຊ້</button></div>'+
+    '<div id="users-table-holder"><div class="a-panel skel" style="height:200px;"></div></div>'+
+    '<div id="user-form-holder"></div>';
+  try{
+    const users = await api.getUsers(state.admin.token);
+    state.admin.usersList = users;
+    document.getElementById('users-table-holder').innerHTML = buildUsersTableHTML(users);
+  }catch(e){ document.getElementById('users-table-holder').innerHTML = '<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; console.error(e); }
+}
+function buildUsersTableHTML(users){
+  const legacyRow = '<tr><td>admin</td><td>Admin (ບັນຊີເກົ່າ)</td><td><span class="pill" style="background:#DCEBFF;color:#1D5FC7;">ຜູ້ອຳນວຍການ</span></td><td><span class="pill active">ໃຊ້ງານ</span></td>'+
+    '<td style="font-size:11px;color:var(--ink-soft);">ປ່ຽນລະຫັດຜ່ານທີ່ "ຮ້ານ &amp; ໂຕນຮັບ"</td></tr>';
+  return '<div class="a-panel" style="padding:0;overflow-x:auto;"><table class="a-table"><thead><tr><th>Username</th><th>ຊື່ເຕັມ</th><th>Role</th><th>ສະຖານະ</th><th>ຈັດການ</th></tr></thead><tbody>'+
+    legacyRow +
+    (users||[]).map(function(u){
+      return '<tr><td class="num">'+u.username+'</td><td>'+(u.fullName||'-')+'</td>'+
+      '<td><span class="pill" style="background:#DCEBFF;color:#1D5FC7;">'+(ROLE_LABELS_JS[u.role]||u.role)+'</span></td>'+
+      '<td><span class="pill '+(u.status==='inactive'?'inactive':'active')+'">'+(u.status==='inactive'?'ປິດ':'ໃຊ້ງານ')+'</span></td>'+
+      '<td><div class="ord-action-icons">'+
+        '<button class="ord-icon-btn view" onclick=\'openUserForm(JSON.parse(this.dataset.u))\' data-u=\''+JSON.stringify(u).replace(/'/g,"&apos;")+'\'>✏️</button>'+
+        '<button class="ord-icon-btn del" onclick="removeUser(\''+u.id+'\')">🗑️</button>'+
+      '</div></td></tr>';
+    }).join('')+
+    '</tbody></table></div>';
+}
+function openUserForm(u){
+  u = u || {id:'', username:'', password:'', fullName:'', role:'sale', status:'active'};
+  document.getElementById('user-form-holder').innerHTML =
+    '<div class="overlay show" onclick="closeUserForm()"></div>'+
+    '<div class="sheet show" style="position:fixed;"><div class="sheet-handle"></div>'+
+    '<div class="sheet-head"><h3>'+(u.id?'ແກ້ໄຂຜູ້ໃຊ້':'ເພີ່ມຜູ້ໃຊ້ໃໝ່')+'</h3><button class="sheet-close" onclick="closeUserForm()">✕</button></div>'+
+    '<div class="sheet-body">'+
+    '<input type="hidden" id="uf-id" value="'+u.id+'">'+
+    '<div class="field"><label>Username</label><input id="uf-username" value="'+u.username+'" '+(u.id?'readonly style="opacity:.6;"':'placeholder="ຕົວອັກສອນ/ໂຕເລກ ບໍ່ມີວັກ"')+'></div>'+
+    '<div class="field"><label>'+(u.id?'ລະຫັດຜ່ານໃໝ່ (ຫວ່າງໄວ້ = ບໍ່ປ່ຽນ)':'ລະຫັດຜ່ານ')+'</label><input type="password" id="uf-password" placeholder="'+(u.id?'ຫວ່າງໄວ້ = ບໍ່ປ່ຽນ':'ລະຫັດຜ່ານ')+'"></div>'+
+    '<div class="field"><label>ຊື່ເຕັມ</label><input id="uf-fullname" value="'+(u.fullName||'')+'" placeholder="ຊື່ ແລະ ນາມສະກຸນ"></div>'+
+    '<div class="field"><label>ບົດບາດ (Role)</label><select id="uf-role">'+
+      ROLE_OPTIONS_JS.map(function(r){return '<option value="'+r[0]+'" '+(u.role===r[0]?'selected':'')+'>'+r[1]+'</option>';}).join('')+
+    '</select></div>'+
+    '<div class="field"><label>ສະຖານະ</label><select id="uf-status"><option value="active" '+(u.status!=='inactive'?'selected':'')+'>ໃຊ້ງານ</option><option value="inactive" '+(u.status==='inactive'?'selected':'')+'>ປິດການໃຊ້ງານ</option></select></div>'+
+    '<button class="btn-primary" onclick="submitUserForm()">ບັນທຶກ</button>'+
+    '</div></div>';
+}
+function closeUserForm(){ document.getElementById('user-form-holder').innerHTML=''; }
+async function submitUserForm(){
+  const u = {
+    id: val('uf-id'), username: val('uf-username').trim(), password: val('uf-password'),
+    fullName: val('uf-fullname'), role: val('uf-role'), status: val('uf-status')
+  };
+  if(!u.id && !u.username){ toast('ກະລຸນາປ້ອນ Username','⚠️'); return; }
+  if(!u.id && !u.password){ toast('ກະລຸນາປ້ອນລະຫັດຜ່ານ','⚠️'); return; }
+  try{
+    const users = await api.saveUser(state.admin.token, u);
+    state.admin.usersList = users;
+    document.getElementById('users-table-holder').innerHTML = buildUsersTableHTML(users);
+    closeUserForm();
+    toast('ບັນທຶກແລ້ວ','✅');
+  }catch(e){
+    const msg = String(e.message||'');
+    if(msg.indexOf('USERNAME_EXISTS')>-1) toast('Username ນີ້ຖືກໃຊ້ແລ້ວ','⚠️');
+    else toast('ບັນທຶກບໍ່ສຳເລັດ','⚠️');
+    console.error(e);
+  }
+}
+async function removeUser(id){
+  if(!confirm('ຢືນຢັນລຶບຜູ້ໃຊ້ນີ້?')) return;
+  try{
+    const users = await api.deleteUser(state.admin.token, id);
+    state.admin.usersList = users;
+    document.getElementById('users-table-holder').innerHTML = buildUsersTableHTML(users);
+    toast('ລຶບແລ້ວ','🗑️');
+  }catch(e){
+    const msg = String(e.message||'');
+    if(msg.indexOf('CANNOT_DELETE_SELF')>-1) toast('ບໍ່ສາມາດລຶບບັນຊີຂອງຕົນເອງໄດ້','⚠️');
+    else toast('ລຶບບໍ່ສຳເລັດ','⚠️');
+  }
+}
+
+/* ── ປ່ຽນລະຫັດຜ່ານຂອງຕົນເອງ ─────────────────────────────────── */
+function openChangePasswordModal(){
+  if(!state.admin.role || state.admin.username==='admin'){
+    document.getElementById('change-password-holder').innerHTML =
+      '<div class="overlay show" onclick="closeChangePasswordModal()"></div>'+
+      '<div class="sheet show" style="position:fixed;"><div class="sheet-handle"></div>'+
+      '<div class="sheet-head"><h3>ບັນຊີ Admin (ເກົ່າ)</h3><button class="sheet-close" onclick="closeChangePasswordModal()">✕</button></div>'+
+      '<div class="sheet-body"><p style="font-size:13px;color:var(--ink-soft);">ບັນຊີ "admin" ເປັນບັນຊີເກົ່າ — ປ່ຽນລະຫັດຜ່ານໄດ້ທີ່ໜ້າ <b>ຮ້ານ &amp; ໂຕນຮັບ → ຄວາມປອດໄພ</b>.</p>'+
+      '<button class="btn-ghost" style="width:100%;margin-top:8px;" onclick="adminLogout();closeChangePasswordModal();">🚪 ອອກຈາກລະບົບ</button></div></div>';
+    return;
+  }
+  document.getElementById('change-password-holder').innerHTML =
+    '<div class="overlay show" onclick="closeChangePasswordModal()"></div>'+
+    '<div class="sheet show" style="position:fixed;"><div class="sheet-handle"></div>'+
+    '<div class="sheet-head"><h3>👤 '+(state.admin.fullName||state.admin.username)+' ('+(ROLE_LABELS_JS[state.admin.role]||'')+')</h3><button class="sheet-close" onclick="closeChangePasswordModal()">✕</button></div>'+
+    '<div class="sheet-body">'+
+    '<div class="field"><label>ລະຫັດຜ່ານປັດຈຸບັນ</label><input type="password" id="cp-old"></div>'+
+    '<div class="field"><label>ລະຫັດຜ່ານໃໝ່</label><input type="password" id="cp-new"></div>'+
+    '<button class="btn-primary" onclick="submitChangePassword()">ປ່ຽນລະຫັດຜ່ານ</button>'+
+    '<button class="btn-ghost" style="width:100%;margin-top:8px;" onclick="adminLogout();closeChangePasswordModal();">🚪 ອອກຈາກລະບົບ</button>'+
+    '</div></div>';
+}
+function closeChangePasswordModal(){ document.getElementById('change-password-holder').innerHTML=''; }
+async function submitChangePassword(){
+  const oldPw = val('cp-old'), newPw = val('cp-new');
+  if(!oldPw || !newPw){ toast('ກະລຸນາປ້ອນລະຫັດຜ່ານໃຫ້ຄົບ','⚠️'); return; }
+  try{
+    await api.changeMyPassword(state.admin.token, oldPw, newPw);
+    toast('ປ່ຽນລະຫັດຜ່ານແລ້ວ','✅');
+    closeChangePasswordModal();
+  }catch(e){
+    const msg = String(e.message||'');
+    if(msg.indexOf('WRONG_PASSWORD')>-1) toast('ລະຫັດຜ່ານປັດຈຸບັນບໍ່ຖືກຕ້ອງ','⚠️');
+    else toast('ປ່ຽນລະຫັດຜ່ານບໍ່ສຳເລັດ','⚠️');
+  }
+}
 
 applyAllIcons();
 init();
