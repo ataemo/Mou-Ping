@@ -129,16 +129,16 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
   position:sticky;top:0;z-index:200;
   background:linear-gradient(120deg, var(--c-header), color-mix(in srgb, var(--c-header) 85%, var(--c-secondary)));
   color:var(--c-header-text);
-  padding:13px 10px;display:flex;align-items:center;gap:6px;
+  padding:16px 10px;display:flex;align-items:center;gap:6px;
   box-shadow:0 8px 24px rgba(0,0,0,.24);
   border-bottom:1px solid color-mix(in srgb, var(--c-accent) 35%, transparent);
 }
 .brand{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;overflow:hidden;}
-.brand img.logo{width:40px;height:40px;border-radius:12px;object-fit:cover;background:var(--c-primary);box-shadow:0 0 0 1.5px rgba(199,154,73,.4);}
-.brand .logo-fallback{width:40px;height:40px;border-radius:12px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;font-size:19px;flex:none;box-shadow:0 0 0 1.5px rgba(199,154,73,.4);}
+.brand img.logo{width:55px;height:55px;border-radius:12px;object-fit:cover;background:var(--c-primary);box-shadow:0 0 0 1.5px rgba(199,154,73,.4);}
+.brand .logo-fallback{width:55px;height:55px;border-radius:12px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;font-size:24px;flex:none;box-shadow:0 0 0 1.5px rgba(199,154,73,.4);}
 .brand-text{min-width:0;}
-.brand-text .name{font-family:var(--font-display);font-weight:700;font-size:16.5px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.brand-text .tag{font-size:10.5px;color:var(--c-accent);opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.03em;}
+.brand-text .name{font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.brand-text .tag{font-size:15px;color:var(--c-accent);opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.03em;}
 .icon-btn{
   width:39px;height:39px;border-radius:13px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.07);
   color:var(--c-header-text);display:flex;align-items:center;justify-content:center;position:relative;flex:none;
@@ -819,7 +819,6 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
     </button>
     <h2 id="admin-page-title">Dashboard</h2>
-    <span id="admin-user-label" style="font-size:11px;opacity:.85;margin-right:4px;white-space:nowrap;"></span>
     <button class="icon-btn" onclick="viewStorefront()" title="ເບິ່ງໜ້າຮ້ານ" style="width:32px;height:32px;">
       <svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
     </button>
@@ -846,6 +845,9 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <div class="a-nav-sec">ຕັ້ງຄ່າ</div>
       <div class="a-nav-item" data-page="settings" onclick="gotoAdminPage('settings')" id="sb-settings"><span>ຮ້ານ &amp; ໂຕນຮັບ</span></div>
       <div class="a-nav-item" data-page="users" onclick="gotoAdminPage('users')" id="sb-users"><span>ຈັດການຜູ້ໃຊ້ງານ</span></div>
+      <div style="margin-top:auto;padding:14px 20px;border-top:1px solid color-mix(in srgb, var(--c-accent) 20%, transparent);">
+        <span id="admin-user-label" style="font-size:12px;opacity:.9;display:block;"></span>
+      </div>
     </div>
     <div id="admin-main"></div>
   </div>
