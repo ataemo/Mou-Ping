@@ -2030,8 +2030,12 @@ function adminEntry(){
 /* ── admin nav ─────────────────────────────────────────────── */
 const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', featured:'ເມນູແນະນຳ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ & ໂຕນຮັບ', users:'ຈັດການຜູ້ໃຊ້ງານ'};
 function gotoAdminPage(page){
-  const allowed = ROLE_PAGE_ACCESS[state.admin.role] || [];
-  if(allowed.indexOf(page)===-1){ page = allowed[0] || 'orders'; }   // ★ ເພີ່ມ 2 ແຖວນີ້
+  let allowed = ROLE_PAGE_ACCESS[state.admin.role] || [];
+  if (state.admin.pageAccess) {
+    const custom = String(state.admin.pageAccess).split(',').map(function(s){return s.trim();}).filter(Boolean);
+    if (custom.length) allowed = custom;
+  }
+  if(allowed.indexOf(page)===-1){ page = allowed[0] || 'orders'; }
   state.admin.page = page;
   localStorage.setItem('pk_admin_page', page);
   document.querySelectorAll('.a-nav-item').forEach(el=>el.classList.toggle('active', el.dataset.page===page));
