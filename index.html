@@ -136,7 +136,7 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
   border-bottom:1px solid color-mix(in srgb, var(--c-accent) 35%, transparent);
 }
 .brand{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;overflow:hidden;}
-.brand img.logo{width:55px;height:55px;border-radius:12px;object-fit:cover;background:var(--c-primary);box-shadow:0 0 0 1.5px rgba(199,154,73,.4);}
+.brand img.logo{width:55px;height:55px;border-radius:12px;object-fit:cover;background:var(--c-primary);}
 .brand .logo-fallback{width:55px;height:55px;border-radius:12px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;font-size:24px;flex:none;box-shadow:0 0 0 1.5px rgba(199,154,73,.4);}
 .brand-text{min-width:0;}
 .brand-text .name{font-family:var(--font-display);font-weight:700;font-size:20px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -553,8 +553,8 @@ table.a-table tr:hover td{background:var(--c-bg);}
 
 /* ── QR ຢືນຢັນການສັ່ງຊື້ (ຈັດຢູ່ກາງ) ─────────────────────────── */
 .qr-card-wrap{display:flex;justify-content:center;margin:6px 0 16px;}
-.qr-card{background:var(--c-bg);border:1px solid var(--line);border-radius:20px;padding:18px;display:inline-flex;box-shadow:var(--shadow-soft);}
-.qr-card img{width:190px;height:190px;object-fit:contain;border-radius:12px;display:block;}
+.qr-card{background:var(--c-bg);border:1px solid var(--line);border-radius:20px;padding:0;display:inline-flex;box-shadow:var(--shadow-soft);overflow:hidden;}
+.qr-card img{width:280px;height:280px;object-fit:cover;border-radius:20px;display:block;}
 
 /* ── ຊ່ອງອັບໂຫລດ Slip (dashed dropzone) ─────────────────────── */
 .slip-dropzone{border:2px dashed var(--c-accent);border-radius:18px;padding:26px 16px;text-align:center;cursor:pointer;background:var(--c-bg);transition:.18s;}
