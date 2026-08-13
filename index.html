@@ -888,14 +888,18 @@ const ROLE_PAGE_ACCESS = {
   admin:    ['dashboard','orders','products','categories','banners'],
   sale:     ['orders']
 };
+function normalizeRole_(r){ return String(r||'').trim().toLowerCase(); }
 function getAllowedAdminPages(){
-  const role = state.admin.role;
+  const role = normalizeRole_(state.admin.role);
   const roleDefault = ROLE_PAGE_ACCESS[role] || [];
-  if(role === 'director') return roleDefault; // ★ director ເຫັນທຸກໜ້າສະເໝີ ບໍ່ຖືກຈຳກັດ
+  if(!roleDefault.length){
+    // ★ role ບໍ່ກົງກັບທີ່ລະບົບຮູ້ຈັກ (ຕົວພິມ/ຊ່ອງຫວ່າງຜິດ) — ເຕືອນໃນ console ເພື່ອຊ່ວຍ debug
+    console.warn('⚠️ ບໍ່ຮູ້ຈັກ role: "'+state.admin.role+'" — ກວດຄໍລຳ role ໃນຊີດ Users (ຕ້ອງເປັນ director/manager/admin/sale ໂຕພິມນ້ອຍ)');
+  }
+  if(role === 'director') return roleDefault;
   const custom = (state.admin.pageAccess||'').split(',').map(s=>s.trim()).filter(Boolean);
   if(custom.length){
     const filtered = custom.filter(p=>roleDefault.indexOf(p)>-1);
-    // ★ ຖ້າຕັ້ງຄ່າຜິດຈົນເຫຼືອ 0 ໜ້າ ໃຫ້ຄືນສິດເຕັມຕາມ role ແທນທີ່ຈະລ໊ອກອອກໝົດ
     return filtered.length ? filtered : roleDefault;
   }
   return roleDefault;
@@ -3439,6 +3443,7 @@ function buildUsersListHTML(users){
         '<td><span class="pill '+(u.status==='active'?'active':'inactive')+'">'+(u.status==='active'?'ເປີດໃຊ້':'ປິດໃຊ້')+'</span></td>'+
         '<td><div class="ord-action-icons">'+
           '<button class="ord-icon-btn view" onclick=\'openUserForm(JSON.parse(this.dataset.u))\' data-u=\''+JSON.stringify(u).replace(/'/g,"&apos;")+'\'>✏️</button>'+
+          (custom.length? '<button class="ord-icon-btn view" title="ລ້າງສິດຈຳກັດ" onclick="resetUserAccess(\''+u.username+'\')" style="color:var(--success);">🔓</button>' : '')+
           '<button class="ord-icon-btn del" onclick="removeUser(\''+u.username+'\')">🗑️</button>'+
         '</div></td></tr>';
     }).join('')+
@@ -3543,6 +3548,20 @@ async function removeUser(username){
     document.getElementById('users-list-holder').innerHTML = buildUsersListHTML(users);
     toast('ລຶບແລ້ວ','🗑️');
   }catch(e){ toast('ລຶບບໍ່ສຳເລັດ: '+e.message,'⚠️'); console.error(e); }
+}
+
+async function resetUserAccess(username){
+  const u = (state.admin.usersList||[]).find(function(x){ return x.username===username; });
+  if(!u) return;
+  if(!confirm('ລ້າງການຈຳກັດສິດຂອງ '+username+' ໃຫ້ກັບເປັນ "ເຕັມຕາມ Role" ບໍ?')) return;
+  try{
+    const users = await api.saveUser(state.admin.token, {
+      username:u.username, fullName:u.fullName, role:u.role, status:u.status, pageAccess:''
+    });
+    state.admin.usersList = users;
+    document.getElementById('users-list-holder').innerHTML = buildUsersListHTML(users);
+    toast('ລ້າງສິດຈຳກັດແລ້ວ ('+username+' ໄດ້ສິດເຕັມຕາມ Role ຄືນ)','🔓');
+  }catch(e){ toast('ລ້າງບໍ່ສຳເລັດ: '+e.message,'⚠️'); console.error(e); }
 }
 
 /* ── settings / theme / font / icon admin ────────────────────── */
