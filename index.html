@@ -991,15 +991,24 @@ const state = {
 const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbxq3b114K4f_8zVQIh9HlC_5NLRGLNEeZAIJqorP6faLTsvGpX9AiInsL-9AUZavFvgMg/exec';
 
 function callApi(action, params){
+  const controller = new AbortController();
+  const timeoutId = setTimeout(()=>controller.abort(), 20000); // ★ 20 ວິນາທີ ຕັດ ບໍ່ໃຫ້ຄ້າງຕະຫຼອດ
   return fetch(API_BASE_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action: action, params: params || {} })
+    body: JSON.stringify({ action: action, params: params || {} }),
+    signal: controller.signal
   })
   .then(r=>r.json())
   .then(res=>{
+    clearTimeout(timeoutId);
     if(!res.success) throw new Error(res.error || 'API error');
     return res.data;
+  })
+  .catch(err=>{
+    clearTimeout(timeoutId);
+    if(err.name==='AbortError') throw new Error('ການເຊື່ອມຕໍ່ຊ້າເກີນໄປ ລອງໃໝ່ອີກຄັ້ງ');
+    throw err;
   });
 }
 
@@ -1090,7 +1099,12 @@ async function init(){
       applyTheme(); renderHeader(); applyAllIcons(); renderHero(); renderCategories(); renderProducts(); updateCartBadge();
       state._prodJson = JSON.stringify(state.products);
       state._banJson = JSON.stringify(state.banners);
+      document.getElementById('loader')?.classList.add('hide'); // ★ ຖ້າມີ loader ໃຫ້ເຊື່ອງທັນທີເມື່ອມີ cache
     }catch(e){}
+  }
+  // ★ ກວດ session ຄຽງຄູ່ໄປນຳ (ບໍ່ລໍ) — ໃຫ້ admin ເຂົ້າໄວຂຶ້ນ ຖ້າ token ຍັງໃຊ້ໄດ້
+  if(state.admin.token){
+    api.checkAdminSession ? null : null; // placeholder ຖ້າຍັງບໍ່ມີ wrapper
   }
   try{
     const data = await api.getInitialData();
@@ -1102,12 +1116,10 @@ async function init(){
       state._prodJson = JSON.stringify(state.products);
       state._banJson = JSON.stringify(state.banners);
     } else {
-      await syncPublicData(); // ຂໍ້ມູນເກົ່າໂຊວ໌ຢູ່ແລ້ວ, ອັນນີ້ຈະປຽບທຽບ ແລະ ອັບເດດງຽບໆຖ້າມີການປ່ຽນແປງ
+      await syncPublicData();
     }
-    setInterval(syncPublicData, 30000);
+    setInterval(syncPublicData, 20000); // ★ ຫຼຸດຈາກ 30s -> 20s ໃຫ້ອັບເດດໄວຂຶ້ນເລັກນ້ອຍ
     updateAdminNavButton();
-    // ເປີດ Admin ອັດຕະໂນມັດສະເພາະຄັ້ງທຳອິດຫຼັງ login ເທົ່ານັ້ນ —
-    // ຖ້າ user ເລືອກ "ເບິ່ງໜ້າຮ້ານ" ໄປແລ້ວ, ຄັ້ງຕໍ່ໄປ (ແມ່ນແຕ່ refresh) ຈະບໍ່ເດັ້ງກັບໄປ Admin ເອງ
     if(state.admin.token && localStorage.getItem('pk_last_view')!=='storefront'){ showAdmin(); }
   }catch(e){
     if(!cached){ toast('ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ ກະລຸນາໂຫຼດໃໝ່','⚠️'); }
