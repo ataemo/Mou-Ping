@@ -422,6 +422,10 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
   .kpi-card .val{font-size:17px;}
 
   .chart-box{height:200px;}
+  .dash-daterange{flex-wrap:nowrap;padding:6px 6px 6px 10px;gap:4px;}
+  .dash-daterange-ico{display:none;}
+  .dash-daterange input{flex:1;min-width:0;padding:6px 2px;font-size:11.5px;}
+  .dash-apply-btn{padding:8px 10px;font-size:11px;}
 }
 .kpi-card{background:var(--c-surface);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow-card);border:1px solid var(--line);position:relative;overflow:hidden;}
 .kpi-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--c-primary),var(--c-accent));}
@@ -916,6 +920,7 @@ function applyAllIcons(){
   document.getElementById('nav-home').innerHTML = iconHtml('home')+'<span>ໜ້າຫຼັກ</span>';
   document.getElementById('nav-menu').innerHTML = iconHtml('grid')+'<span>ເມນູ</span>';
   document.getElementById('nav-orders').innerHTML = iconHtml('orders')+'<span>ອອເດີ</span>';
+  document.getElementById('nav-cart').innerHTML = iconHtml('cart')+'<span>ກະຕ່າ</span><span class="badge-dot" id="nav-cart-badge" style="display:none;">0</span>';
   document.getElementById('nav-account').innerHTML = iconHtml('account')+'<span>ບັນຊີ</span>';
   const sb = {dashboard:'dashboard', orders:'a_orders', products:'a_products', categories:'a_categories', banners:'a_banners', finance:'a_finance', settings:'a_settings', users:'a_users'};
   const labels = {dashboard:'Dashboard', orders:'ອອເດີ', products:'ສິນຄ້າ', categories:'ໝວດໝູ່', banners:'Banner', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ &amp; ໂຕນຮັບ', users:'ຜູ້ໃຊ້ງານ'};
