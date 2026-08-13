@@ -895,7 +895,7 @@ const ROLE_PAGE_ACCESS = {
   director: ['dashboard','orders','products','featured','categories','banners','finance','settings','users'],
   manager:  ['dashboard','orders','products','featured','categories','banners','finance','users'],
   admin:    ['dashboard','orders','products','featured','categories','banners'],
-  sale:     ['orders']
+  sale:     ['orders', 'featured']
 };
 function applyRolePermissions(){
   const role = state.admin.role;
@@ -3391,7 +3391,7 @@ async function removeCategory(id){
    ADMIN — ຈັດການຜູ້ໃຊ້ງານ (Users)
    ═══════════════════════════════════════════════════════════════ */
 const ADMIN_PAGE_LABELS_FOR_ACCESS = {
-  dashboard:'Dashboard', orders:'ອອເດີ', products:'ສິນຄ້າ', categories:'ໝວດໝູ່',
+  dashboard:'Dashboard', orders:'ອອເດີ', products:'ສິນຄ້າ', featured:'ເມນູແນະນຳ', categories:'ໝວດໝູ່',
   banners:'Banner', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ & ໂຕນຮັບ', users:'ຜູ້ໃຊ້ງານ'
 };
 let ufSelectedPages = [];
