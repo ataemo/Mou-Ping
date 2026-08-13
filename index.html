@@ -842,8 +842,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <div class="a-nav-item" data-page="banners" onclick="gotoAdminPage('banners')" id="sb-banners"><span>Banner</span></div>
       <div class="a-nav-item" data-page="finance" onclick="gotoAdminPage('finance')" id="sb-finance"><span>ລາຍຮັບ-ລາຍຈ່າຍ</span></div>
       <div class="a-nav-sec">ຕັ້ງຄ່າ</div>
-      <div class="a-nav-item" data-page="settings" onclick="gotoAdminPage('settings')" id="sb-settings"><span>ຮ້ານ & ໂຕນຮັບ</span></div>
-      <div class="a-nav-item" data-page="users" onclick="gotoAdminPage('users')" id="sb-users"><span>ຜູ້ໃຊ້ງານ</span></div>
+      <div class="a-nav-item" data-page="settings" onclick="gotoAdminPage('settings')" id="sb-settings"><span>ຮ້ານ &amp; ໂຕນຮັບ</span></div>
       <div style="margin-top:auto;padding:14px 20px;border-top:1px solid color-mix(in srgb, var(--c-accent) 20%, transparent);">
         <span id="admin-user-label" style="font-size:12px;opacity:.9;display:block;"></span>
       </div>
@@ -872,46 +871,30 @@ const DEFAULT_ICONS = {
   a_categories:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
   a_banners:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 5-5 4 4"/></svg>',
   a_finance:'<svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
-  a_settings:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
-  a_users:'<svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+  a_settings:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>'
 };
 const ICON_LABELS = {
   search:'ຄົ້ນຫາ (Header)', orders:'ອອເດີ (Header)', cart:'ກະຕ່າ (Header)', menu:'ເມນູ (Header)',
   home:'ໜ້າຫຼັກ (Nav)', grid:'ເມນູອາຫານ (Nav)', account:'ບັນຊີ (Nav)',
   dashboard:'Dashboard (Admin)', a_orders:'ອອເດີ (Admin)', a_products:'ສິນຄ້າ (Admin)',
-  a_categories:'ໝວດໝູ່ (Admin)', a_banners:'Banner (Admin)',a_finance:'ລາຍຮັບ-ລາຍຈ່າຍ (Admin)', a_settings:'ຮ້ານ & ໂຕນຮັບ (Admin)', a_users:'ຜູ້ໃຊ້ງານ (Admin)'
+  a_categories:'ໝວດໝູ່ (Admin)', a_banners:'Banner (Admin)',a_finance:'ລາຍຮັບ-ລາຍຈ່າຍ (Admin)', a_settings:'ຮ້ານ & ໂຕນຮັບ (Admin)'
 };
 const ROLE_LABELS = {director:'ຜູ້ອຳນວຍການ', manager:'ຜູ້ຈັດການ', admin:'ແອັດມິນ', sale:'ພະນັກງານຂາຍ'};
 const ROLE_PAGE_ACCESS = {
-  director: ['dashboard','orders','products','categories','banners','finance','settings','users'],
+  director: ['dashboard','orders','products','categories','banners','finance','settings'],
   manager:  ['dashboard','orders','products','categories','banners','finance'],
   admin:    ['dashboard','orders','products','categories','banners'],
   sale:     ['orders']
 };
-function normalizeRole_(r){ return String(r||'').trim().toLowerCase(); }
-function getAllowedAdminPages(){
-  const role = normalizeRole_(state.admin.role);
-  const roleDefault = ROLE_PAGE_ACCESS[role] || [];
-  if(!roleDefault.length){
-    // ★ role ບໍ່ກົງກັບທີ່ລະບົບຮູ້ຈັກ (ຕົວພິມ/ຊ່ອງຫວ່າງຜິດ) — ເຕືອນໃນ console ເພື່ອຊ່ວຍ debug
-    console.warn('⚠️ ບໍ່ຮູ້ຈັກ role: "'+state.admin.role+'" — ກວດຄໍລຳ role ໃນຊີດ Users (ຕ້ອງເປັນ director/manager/admin/sale ໂຕພິມນ້ອຍ)');
-  }
-  if(role === 'director') return roleDefault;
-  const custom = (state.admin.pageAccess||'').split(',').map(s=>s.trim()).filter(Boolean);
-  if(custom.length){
-    const filtered = custom.filter(p=>roleDefault.indexOf(p)>-1);
-    return filtered.length ? filtered : roleDefault;
-  }
-  return roleDefault;
-}
 function applyRolePermissions(){
-  const allowed = getAllowedAdminPages();
+  const role = state.admin.role;
+  const allowed = ROLE_PAGE_ACCESS[role] || [];
   document.querySelectorAll('.a-nav-item').forEach(function(el){
     el.style.display = allowed.indexOf(el.dataset.page)>-1 ? 'flex' : 'none';
   });
-  if(allowed.indexOf(state.admin.page)===-1){ state.admin.page = allowed[0] || 'dashboard'; }
+  if(allowed.indexOf(state.admin.page)===-1){ state.admin.page = allowed[0] || 'orders'; }
   const lbl = document.getElementById('admin-user-label');
-  if(lbl) lbl.textContent = (state.admin.fullName||state.admin.username||'')+' · '+(ROLE_LABELS[state.admin.role]||state.admin.role||'');
+  if(lbl) lbl.textContent = (state.admin.fullName||state.admin.username||'')+' · '+(ROLE_LABELS[role]||role||'');
 }
 function iconHtml(key){
   const custom = state.settings && state.settings['icon_'+key];
@@ -928,8 +911,8 @@ function applyAllIcons(){
   document.getElementById('nav-menu').innerHTML = iconHtml('grid')+'<span>ເມນູ</span>';
   document.getElementById('nav-orders').innerHTML = iconHtml('orders')+'<span>ອອເດີ</span>';
   document.getElementById('nav-account').innerHTML = iconHtml('account')+'<span>ບັນຊີ</span>';
-  const sb = {dashboard:'dashboard', orders:'a_orders', products:'a_products', categories:'a_categories', banners:'a_banners', finance:'a_finance', settings:'a_settings', users:'a_users'};
-  const labels = {dashboard:'Dashboard', orders:'ອອເດີ', products:'ສິນຄ້າ', categories:'ໝວດໝູ່', banners:'Banner', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ &amp; ໂຕນຮັບ', users:'ຜູ້ໃຊ້ງານ'};
+  const sb = {dashboard:'dashboard', orders:'a_orders', products:'a_products', categories:'a_categories', banners:'a_banners', finance:'a_finance', settings:'a_settings'};
+  const labels = {dashboard:'Dashboard', orders:'ອອເດີ', products:'ສິນຄ້າ', categories:'ໝວດໝູ່', banners:'Banner', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ &amp; ໂຕນຮັບ'};
   Object.keys(sb).forEach(function(page){
     const el = document.getElementById('sb-'+page);
     if(!el) return;
@@ -979,7 +962,6 @@ const state = {
     username: JSON.parse(localStorage.getItem('pk_admin_user')||'{}').username||null,
     fullName: JSON.parse(localStorage.getItem('pk_admin_user')||'{}').fullName||null,
     role: JSON.parse(localStorage.getItem('pk_admin_user')||'{}').role||null,
-    pageAccess: JSON.parse(localStorage.getItem('pk_admin_user')||'{}').pageAccess||'',
     page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'',
     dashRange:{preset:'7d', start:null, end:null}, financeRange:{preset:null, start:null, end:null},
     financeTx:[], charts:{line:null, pie:null, financeLine:null, financePie:null},
@@ -1026,10 +1008,6 @@ const api = {
   deleteBanner: (token, id) => callApi('deleteBanner', {token, id}),
   saveSettings: (token, settings) => callApi('saveSettings', {token, settings}),
   getSettings: () => callApi('getSettings'),
-  getUsers: (token) => callApi('getUsers', {token}),
-  saveUser: (token, user) => callApi('saveUser', {token, user}),
-  deleteUser: (token, id) => callApi('deleteUser', {token, id}),
-  checkAdminSession: (token) => callApi('checkAdminSession', {token}),
   uploadSlip: (base64, fileName, mimeType) => callApi('uploadSlip', {base64, fileName, mimeType}),
   uploadAvatar: (base64, fileName, mimeType) => callApi('uploadAvatar', {base64, fileName, mimeType}),
   getOrdersByPhone: (phone) => callApi('getOrdersByPhone', {phone}),
@@ -1915,9 +1893,8 @@ async function doAdminLogin(){
       state.admin.username = res.username;
       state.admin.fullName = res.fullName;
       state.admin.role = res.role;
-      state.admin.pageAccess = res.pageAccess||'';
       localStorage.setItem('pk_admin_token', res.token);
-      localStorage.setItem('pk_admin_user', JSON.stringify({username:res.username, fullName:res.fullName, role:res.role, pageAccess:res.pageAccess||''}));
+      localStorage.setItem('pk_admin_user', JSON.stringify({username:res.username, fullName:res.fullName, role:res.role}));
       closeSheet('login');
       showAdmin();
       toast('ຍິນດີຕ້ອນຮັບ '+res.fullName+' ('+(ROLE_LABELS[res.role]||res.role)+')', '🔓');
@@ -1934,17 +1911,10 @@ function adminLogout(){
   updateAdminNavButton();
 }
 
-async function showAdmin(){
+function showAdmin(){
   document.getElementById('admin-root').classList.add('show');
   localStorage.setItem('pk_last_view','admin');
   updateAdminNavButton();
-  try{
-    const sess = await api.checkAdminSession(state.admin.token);
-    if(sess.valid){
-      state.admin.role = sess.role; state.admin.pageAccess = sess.pageAccess||'';
-      localStorage.setItem('pk_admin_user', JSON.stringify({username:state.admin.username, fullName:state.admin.fullName, role:sess.role, pageAccess:sess.pageAccess||''}));
-    } else { handleSessionExpired(); return; }
-  }catch(e){}
   applyRolePermissions();
   gotoAdminPage(localStorage.getItem('pk_admin_page') || 'dashboard');
   // ★ ໜ່ວງ poll ຄັ້ງທຳອິດ 15 ວິນາທີ ເພາະ gotoAdminPage ໄດ້ໂຫຼດອອເດີ້ຄັ້ງທຳອິດໄປແລ້ວ
@@ -2032,16 +2002,16 @@ function adminEntry(){
 }
 
 /* ── admin nav ─────────────────────────────────────────────── */
-const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ & ໂຕນຮັບ', users:'ຈັດການຜູ້ໃຊ້ງານ'};
+const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ & ໂຕນຮັບ'};
 function gotoAdminPage(page){
-  const allowed = getAllowedAdminPages();
-  if(allowed.indexOf(page)===-1){ page = allowed[0] || 'dashboard'; }
+  const allowed = ROLE_PAGE_ACCESS[state.admin.role] || [];
+  if(allowed.indexOf(page)===-1){ page = allowed[0] || 'orders'; }   // ★ ເພີ່ມ 2 ແຖວນີ້
   state.admin.page = page;
   localStorage.setItem('pk_admin_page', page);
   document.querySelectorAll('.a-nav-item').forEach(el=>el.classList.toggle('active', el.dataset.page===page));
   closeAdminSidebar();
   document.getElementById('admin-page-title').textContent = ADMIN_TITLES[page];
-  const renderers = {dashboard:renderAdminDashboard, orders:renderAdminOrders, products:renderAdminProducts, categories:renderAdminCategories, banners:renderAdminBanners, finance:renderAdminFinance, settings:renderAdminSettings, users:renderAdminUsers};
+  const renderers = {dashboard:renderAdminDashboard, orders:renderAdminOrders, products:renderAdminProducts, categories:renderAdminCategories, banners:renderAdminBanners, finance:renderAdminFinance, settings:renderAdminSettings};
   renderers[page]();
 }
 function refreshAdminCurrentView(){
@@ -3403,165 +3373,6 @@ async function removeBanner(id){
   if(!confirm('ຢືນຢັນລຶບ Banner ນີ້?')) return;
   state.banners = await api.deleteBanner(state.admin.token, id);
   renderAdminBanners(); renderHero(); toast('ລຶບແລ້ວ','🗑️');
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   ADMIN — ຈັດການຜູ້ໃຊ້ງານ (Users) — ສະເພາະ director ເທົ່ານັ້ນ
-   ═══════════════════════════════════════════════════════════════ */
-const ALL_PAGES_JS = [
-  ['dashboard','Dashboard'], ['orders','ອອເດີ'], ['products','ສິນຄ້າ'], ['categories','ໝວດໝູ່'],
-  ['banners','Banner'], ['finance','ລາຍຮັບ-ລາຍຈ່າຍ'], ['settings','ຮ້ານ & ໂຕນຮັບ'], ['users','ຜູ້ໃຊ້ງານ']
-];
-
-async function renderAdminUsers(){
-  const main = document.getElementById('admin-main');
-  main.innerHTML = '<div class="a-title-row"><h2>ຜູ້ໃຊ້ງານ</h2><button class="btn-sm primary" onclick="openUserForm()">+ ເພີ່ມຜູ້ໃຊ້</button></div>'+
-    '<div id="users-list-holder"><div class="a-panel skel" style="height:260px;"></div></div>'+
-    '<div id="user-form-holder"></div>';
-  try{
-    const users = await api.getUsers(state.admin.token);
-    state.admin.usersList = users;
-    document.getElementById('users-list-holder').innerHTML = buildUsersListHTML(users);
-  }catch(e){
-    document.getElementById('users-list-holder').innerHTML = '<div class="a-panel"><p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ (ອາດຈະບໍ່ມີສິດເຂົ້າໜ້ານີ້)</p></div>';
-    console.error(e);
-  }
-}
-function buildUsersListHTML(users){
-  if(!users.length) return '<div class="a-panel"><div class="empty-state"><div class="ico">👤</div><h4>ຍັງບໍ່ມີຜູ້ໃຊ້</h4></div></div>';
-  return '<div class="a-panel" style="padding:0;overflow-x:auto;"><table class="a-table"><thead><tr>'+
-    '<th>ຊື່ຜູ້ໃຊ້</th><th>ຊື່ເຕັມ</th><th>ສິດ (Role)</th><th>ໜ້າທີ່ເຂົ້າໄດ້</th><th>ສະຖານະ</th><th>ຈັດການ</th></tr></thead><tbody>'+
-    users.map(function(u){
-      const custom = (u.pageAccess||'').split(',').map(s=>s.trim()).filter(Boolean);
-      const pagesLabel = custom.length
-        ? custom.map(function(p){ const f=ALL_PAGES_JS.find(function(x){return x[0]===p;}); return f?f[1]:p; }).join(', ')
-        : 'ຄົບຕາມສິດ ('+(ROLE_LABELS[u.role]||u.role)+')';
-      return '<tr><td style="font-weight:700;">'+u.username+(u.username===state.admin.username?' <span style="font-size:10px;color:var(--ink-soft);">(ຕົນເອງ)</span>':'')+'</td>'+
-        '<td>'+(u.fullName||'-')+'</td>'+
-        '<td><span class="pill" style="background:#DCEBFF;color:#1D5FC7;">'+(ROLE_LABELS[u.role]||u.role)+'</span></td>'+
-        '<td style="font-size:11.5px;color:var(--ink-soft);max-width:220px;">'+pagesLabel+'</td>'+
-        '<td><span class="pill '+(u.status==='active'?'active':'inactive')+'">'+(u.status==='active'?'ເປີດໃຊ້':'ປິດໃຊ້')+'</span></td>'+
-        '<td><div class="ord-action-icons">'+
-          '<button class="ord-icon-btn view" onclick=\'openUserForm(JSON.parse(this.dataset.u))\' data-u=\''+JSON.stringify(u).replace(/'/g,"&apos;")+'\'>✏️</button>'+
-          (custom.length? '<button class="ord-icon-btn view" title="ລ້າງສິດຈຳກັດ" onclick="resetUserAccess(\''+u.username+'\')" style="color:var(--success);">🔓</button>' : '')+
-          '<button class="ord-icon-btn del" onclick="removeUser(\''+u.username+'\')">🗑️</button>'+
-        '</div></td></tr>';
-    }).join('')+
-    '</tbody></table></div>';
-}
-function openUserForm(u){
-  u = u || {username:'', password:'', fullName:'', role:'sale', status:'active', pageAccess:''};
-  const isEdit = !!u.username;
-  document.getElementById('user-form-holder').innerHTML =
-    '<div class="overlay show" onclick="closeUserForm()"></div>'+
-    '<div class="sheet show" style="position:fixed;"><div class="sheet-handle"></div>'+
-    '<div class="sheet-head"><h3>'+(isEdit?'ແກ້ໄຂຜູ້ໃຊ້':'ເພີ່ມຜູ້ໃຊ້')+'</h3><button class="sheet-close" onclick="closeUserForm()">✕</button></div>'+
-    '<div class="sheet-body">'+
-    '<div class="field"><label>ຊື່ຜູ້ໃຊ້ (username)</label><input id="uf-username" value="'+u.username+'" '+(isEdit?'readonly style="opacity:.6;"':'')+'></div>'+
-    '<div class="field"><label>ລະຫັດຜ່ານ'+(isEdit?' (ຫວ່າງໄວ້ = ບໍ່ປ່ຽນ)':'')+'</label><input type="password" id="uf-password" placeholder="'+(isEdit?'••••••':'ລະຫັດຜ່ານໃໝ່')+'"></div>'+
-    '<div class="field"><label>ຊື່ເຕັມ</label><input id="uf-fullname" value="'+(u.fullName||'')+'"></div>'+
-    '<div class="field"><label>ສິດ (Role)</label><select id="uf-role" onchange="renderUserPagesCheckboxes()">'+
-      Object.keys(ROLE_LABELS).map(function(r){ return '<option value="'+r+'" '+(u.role===r?'selected':'')+'>'+ROLE_LABELS[r]+'</option>'; }).join('')+
-    '</select></div>'+
-    '<div class="field"><label>ສະຖານະ</label><select id="uf-status">'+
-      '<option value="active" '+(u.status==='active'?'selected':'')+'>ເປີດໃຊ້ງານ</option>'+
-      '<option value="inactive" '+(u.status==='inactive'?'selected':'')+'>ປິດໃຊ້ງານ</option>'+
-    '</select></div>'+
-    '<div class="field">'+
-      '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;">'+
-        '<input type="checkbox" id="uf-restrict-toggle" onchange="toggleUfRestrictMode(this.checked)" style="width:18px;height:18px;">'+
-        '<span style="font-size:13px;font-weight:600;">🔐 ຈຳກັດສິດການເຂົ້າໜ້າສະເພາະ (ປົກກະຕິປິດໄວ້ = ໃຫ້ສິດເຕັມຕາມ Role ອັດຕະໂນມັດ)</span>'+
-      '</label>'+
-      '<div id="uf-pages-wrap" style="display:none;margin-top:10px;border-left:2px solid var(--c-accent);padding-left:12px;">'+
-        '<div style="display:flex;gap:8px;margin-bottom:8px;">'+
-          '<button type="button" class="btn-sm" onclick="ufSelectAllPages()">✅ ເລືອກທັງໝົດ</button>'+
-          '<button type="button" class="btn-sm" onclick="ufClearAllPages()">✕ ລ້າງທັງໝົດ</button>'+
-        '</div>'+
-        '<div id="uf-pages-holder"></div>'+
-      '</div>'+
-    '</div>'+
-    '<button class="btn-primary" onclick="submitUserForm(\''+(isEdit?u.username:'')+'\')">ບັນທຶກ</button>'+
-    (isEdit && u.username!==state.admin.username ? '<button class="btn-ghost" style="width:100%;margin-top:8px;" onclick="removeUser(\''+u.username+'\');closeUserForm();">🗑️ ລຶບຜູ້ໃຊ້ນີ້</button>' : '')+
-    '</div></div>';
-  window._ufSelectedPages = (u.pageAccess||'').split(',').map(s=>s.trim()).filter(Boolean);
-  renderUserPagesCheckboxes();
-  setTimeout(function(){
-    const toggle = document.getElementById('uf-restrict-toggle');
-    const wrap = document.getElementById('uf-pages-wrap');
-    if(toggle){
-      toggle.checked = window._ufSelectedPages.length > 0;
-      wrap.style.display = toggle.checked ? 'block' : 'none';
-    }
-  }, 0);
-}
-function toggleUfRestrictMode(checked){
-  document.getElementById('uf-pages-wrap').style.display = checked ? 'block' : 'none';
-  if(!checked){ window._ufSelectedPages = []; renderUserPagesCheckboxes(); }
-}
-function ufSelectAllPages(){
-  const role = document.getElementById('uf-role').value;
-  window._ufSelectedPages = (ROLE_PAGE_ACCESS[role]||[]).slice();
-  renderUserPagesCheckboxes();
-}
-function ufClearAllPages(){ window._ufSelectedPages = []; renderUserPagesCheckboxes(); }
-function renderUserPagesCheckboxes(){
-  const role = document.getElementById('uf-role').value;
-  const maxPages = ROLE_PAGE_ACCESS[role] || [];
-  const holder = document.getElementById('uf-pages-holder');
-  holder.innerHTML = ALL_PAGES_JS.filter(function(p){ return maxPages.indexOf(p[0])>-1; }).map(function(p){
-    const checked = window._ufSelectedPages.indexOf(p[0])>-1;
-    return '<label style="display:flex;align-items:center;gap:8px;padding:7px 0;font-size:13px;">'+
-      '<input type="checkbox" value="'+p[0]+'" '+(checked?'checked':'')+' onchange="toggleUfPage(\''+p[0]+'\',this.checked)"> '+p[1]+'</label>';
-  }).join('');
-}
-function toggleUfPage(page, checked){
-  const idx = window._ufSelectedPages.indexOf(page);
-  if(checked && idx===-1) window._ufSelectedPages.push(page);
-  if(!checked && idx>-1) window._ufSelectedPages.splice(idx,1);
-}
-function closeUserForm(){ document.getElementById('user-form-holder').innerHTML=''; }
-async function submitUserForm(originalUsername){
-  const username = val('uf-username').trim();
-  const password = val('uf-password');
-  if(!username){ toast('ກະລຸນາປ້ອນຊື່ຜູ້ໃຊ້','⚠️'); return; }
-  if(!originalUsername && !password){ toast('ກະລຸນາປ້ອນລະຫັດຜ່ານສຳລັບຜູ້ໃຊ້ໃໝ່','⚠️'); return; }
-  const restrictOn = document.getElementById('uf-restrict-toggle').checked;
-  const u = {
-    username: username, fullName: val('uf-fullname'), role: val('uf-role'), status: val('uf-status'),
-    pageAccess: restrictOn ? (window._ufSelectedPages||[]).join(',') : ''  // ★ ປິດສະວິດ = ບໍ່ຈຳກັດ
-  };
-  if(password) u.password = password;
-  try{
-    const users = await api.saveUser(state.admin.token, u);
-    state.admin.usersList = users;
-    closeUserForm();
-    document.getElementById('users-list-holder').innerHTML = buildUsersListHTML(users);
-    toast('ບັນທຶກຜູ້ໃຊ້ແລ້ວ','✅');
-  }catch(e){ toast('ບັນທຶກບໍ່ສຳເລັດ: '+e.message,'⚠️'); console.error(e); }
-}
-async function removeUser(username){
-  if(username === state.admin.username){ toast('ບໍ່ສາມາດລຶບບັນຊີຕົນເອງໄດ້','⚠️'); return; }
-  if(!confirm('ຢືນຢັນລຶບຜູ້ໃຊ້ '+username+' ນີ້?')) return;
-  try{
-    const users = await api.deleteUser(state.admin.token, username);
-    state.admin.usersList = users;
-    document.getElementById('users-list-holder').innerHTML = buildUsersListHTML(users);
-    toast('ລຶບແລ້ວ','🗑️');
-  }catch(e){ toast('ລຶບບໍ່ສຳເລັດ: '+e.message,'⚠️'); console.error(e); }
-}
-
-async function resetUserAccess(username){
-  const u = (state.admin.usersList||[]).find(function(x){ return x.username===username; });
-  if(!u) return;
-  if(!confirm('ລ້າງການຈຳກັດສິດຂອງ '+username+' ໃຫ້ກັບເປັນ "ເຕັມຕາມ Role" ບໍ?')) return;
-  try{
-    const users = await api.saveUser(state.admin.token, {
-      username:u.username, fullName:u.fullName, role:u.role, status:u.status, pageAccess:''
-    });
-    state.admin.usersList = users;
-    document.getElementById('users-list-holder').innerHTML = buildUsersListHTML(users);
-    toast('ລ້າງສິດຈຳກັດແລ້ວ ('+username+' ໄດ້ສິດເຕັມຕາມ Role ຄືນ)','🔓');
-  }catch(e){ toast('ລ້າງບໍ່ສຳເລັດ: '+e.message,'⚠️'); console.error(e); }
 }
 
 /* ── settings / theme / font / icon admin ────────────────────── */
