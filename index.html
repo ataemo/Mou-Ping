@@ -707,12 +707,6 @@ table.a-table tr:hover td{background:var(--c-bg);}
     <div class="cat-pill skel" style="height:82px;"></div>
   </div>
 
- <div class="section" id="featured-section-head" style="display:none;">
-    <div class="section-head"><h3 id="featured-title">⭐ ສິນຄ້າແນະນຳ</h3></div>
-    <div class="gilt-divider"><div class="ln"></div><div class="gem"></div><div class="ln"></div></div>
-  </div>
-  <div id="featured-grid" style="display:none;"></div>
-
   <div class="section">
     <div class="section-head"><h3 id="grid-title">🔥 ເມນູແນະນຳ</h3></div>
     <div class="gilt-divider"><div class="ln"></div><div class="gem"></div><div class="ln"></div></div>
@@ -850,7 +844,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <div class="a-nav-sec">ຂາຍ / ສິນຄ້າ</div>
       <div class="a-nav-item" data-page="orders" onclick="gotoAdminPage('orders')" id="sb-orders"><span>ອອເດີ</span></div>
       <div class="a-nav-item" data-page="products" onclick="gotoAdminPage('products')" id="sb-products"><span>ສິນຄ້າ</span></div>
-      <div class="a-nav-item" data-page="featured" onclick="gotoAdminPage('featured')" id="sb-featured"><span>ສິນຄ້າແນະນຳ</span></div>
+      <div class="a-nav-item" data-page="featured" onclick="gotoAdminPage('featured')" id="sb-featured"><span>ເມນູແນະນຳ</span></div>
       <div class="a-nav-item" data-page="categories" onclick="gotoAdminPage('categories')" id="sb-categories"><span>ໝວດໝູ່</span></div>
       <div class="a-nav-item" data-page="banners" onclick="gotoAdminPage('banners')" id="sb-banners"><span>Banner</span></div>
       <div class="a-nav-item" data-page="finance" onclick="gotoAdminPage('finance')" id="sb-finance"><span>ລາຍຮັບ-ລາຍຈ່າຍ</span></div>
@@ -1093,8 +1087,7 @@ async function init(){
       const data = JSON.parse(cached);
       state.settings = data.settings; state.categories = data.categories;
       state.products = data.products; state.banners = data.banners;
-      applyTheme(); renderHeader(); applyAllIcons(); renderHero(); renderCategories(); renderProducts(); renderFeaturedStorefront(); updateCartBadge();
-      state._catJson = JSON.stringify(state.categories);
+      applyTheme(); renderHeader(); applyAllIcons(); renderHero(); renderCategories(); renderProducts(); updateCartBadge();
       state._prodJson = JSON.stringify(state.products);
       state._banJson = JSON.stringify(state.banners);
     }catch(e){}
@@ -1105,8 +1098,7 @@ async function init(){
     if(!cached){
       state.settings = data.settings; state.categories = data.categories;
       state.products = data.products; state.banners = data.banners;
-      applyTheme(); renderHeader(); applyAllIcons(); renderHero(); renderCategories(); renderProducts(); renderFeaturedStorefront(); updateCartBadge();
-      state._catJson = JSON.stringify(state.categories);
+      applyTheme(); renderHeader(); applyAllIcons(); renderHero(); renderCategories(); renderProducts(); updateCartBadge();
       state._prodJson = JSON.stringify(state.products);
       state._banJson = JSON.stringify(state.banners);
     } else {
@@ -1139,7 +1131,7 @@ async function syncPublicData(){
       state.products = data.products; state._prodJson = newProdJson;
       const grid = document.getElementById('product-grid');
       grid.style.opacity = '0';
-      setTimeout(()=>{ renderProducts(); renderFeaturedStorefront(); grid.style.opacity = '1'; }, 220);
+      setTimeout(()=>{ renderProducts(); grid.style.opacity = '1'; }, 220);
     }
 
     const newBanJson = JSON.stringify(data.banners);
@@ -1242,12 +1234,18 @@ function selectCategory(id){ state.activeCategory=id; renderCategories(); render
 function renderProducts(){
   const grid = document.getElementById('product-grid');
   const q = (document.getElementById('search-input')?.value||'').trim().toLowerCase();
-  let list = (state.products||[]).filter(p=>p.status==='active');
-  if(state.activeCategory!=='all') list = list.filter(p=>p.categoryId===state.activeCategory);
-  if(q) list = list.filter(p=>p.name.toLowerCase().includes(q));
-  list = list.sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
+  const isHomeDefault = state.activeCategory==='all' && !q;
+  let list;
+  if(isHomeDefault){
+    list = computeFeaturedListForHome();
+  } else {
+    list = (state.products||[]).filter(p=>p.status==='active');
+    if(state.activeCategory!=='all') list = list.filter(p=>p.categoryId===state.activeCategory);
+    if(q) list = list.filter(p=>p.name.toLowerCase().includes(q));
+    list = list.sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
+  }
 
-  document.getElementById('grid-title').textContent = q? '🔎 ຜົນການຄົ້ນຫາ' : (state.activeCategory==='all'? '🔥 ເມນູແນະນຳ' : (state.categories.find(c=>c.id===state.activeCategory)?.name||'ເມນູ'));
+  document.getElementById('grid-title').textContent = q? '🔎 ຜົນການຄົ້ນຫາ' : (state.activeCategory==='all'? '🔥 '+(state.settings.featuredTitle||'ເມນູແນະນຳ') : (state.categories.find(c=>c.id===state.activeCategory)?.name||'ເມນູ'));
 
   if(list.length===0){
     grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="ico">🍢</div><h4>ບໍ່ພົບເມນູ</h4><p>ລອງຄົ້ນຫາຄຳອື່ນ ຫຼື ເລືອກໝວດໝູ່ອື່ນ</p></div>';
@@ -2030,7 +2028,7 @@ function adminEntry(){
 }
 
 /* ── admin nav ─────────────────────────────────────────────── */
-const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', featured:'ສິນຄ້າແນະນຳ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ & ໂຕນຮັບ', users:'ຈັດການຜູ້ໃຊ້ງານ'};
+const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', featured:'ເມນູແນະນຳ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ & ໂຕນຮັບ', users:'ຈັດການຜູ້ໃຊ້ງານ'};
 function gotoAdminPage(page){
   const allowed = ROLE_PAGE_ACCESS[state.admin.role] || [];
   if(allowed.indexOf(page)===-1){ page = allowed[0] || 'orders'; }   // ★ ເພີ່ມ 2 ແຖວນີ້
@@ -3580,13 +3578,13 @@ function renderAdminFeatured(){
   const mode = s.featuredMode||'auto';
   const selectedIds = (s.featuredProductIds||'').split(',').map(x=>x.trim()).filter(Boolean);
   main.innerHTML =
-    '<div class="a-title-row"><h2>⭐ ສິນຄ້າແນະນຳ</h2><button class="btn-sm primary" onclick="saveFeaturedSettings()">💾 ບັນທຶກ</button></div>'+
+    '<div class="a-title-row"><h2>⭐ ເມນູແນະນຳ</h2><button class="btn-sm primary" onclick="saveFeaturedSettings()">💾 ບັນທຶກ</button></div>'+
     '<div class="a-panel">'+
       '<div class="field"><label>ຮູບແບບສະແດງ</label><div class="seg">'+
         FEATURED_MODES.map(m=>'<div class="seg-btn '+(mode===m.k?'active':'')+'" onclick="setFeaturedMode(\''+m.k+'\')">'+m.l+'</div>').join('')+
       '</div></div>'+
       '<div class="grid-2">'+
-        '<div class="field"><label>ຫົວຂໍ້ສະແດງ</label><input id="ft-title" value="'+(s.featuredTitle||'ສິນຄ້າແນະນຳ')+'"></div>'+
+        '<div class="field"><label>ຫົວຂໍ້ສະແດງ</label><input id="ft-title" value="'+(s.featuredTitle||'ເມນູແນະນຳ')+'"></div>'+
         '<div class="field"><label>ຈຳນວນສະແດງ</label><input type="number" id="ft-count" value="'+(s.featuredCount||6)+'" oninput="renderFeaturedPreview()"></div>'+
       '</div>'+
       '<div class="field"><label>ນັບຖອຍຫຼັງໂປຣໂມຊັນ (ຫວ່າງໄວ້ = ບໍ່ສະແດງ)</label><input type="datetime-local" id="ft-endtime" value="'+(s.featuredEndTime?String(s.featuredEndTime).slice(0,16):'')+'" oninput="renderFeaturedPreview()"></div>'+
@@ -3640,6 +3638,28 @@ function computeFeaturedProductsAdmin(){
   }
   return list.slice(0, count||6);
 }
+
+function computeFeaturedListForHome(){
+  const s = state.settings;
+  const mode = s.featuredMode||'auto';
+  const count = Number(s.featuredCount)||6;
+  const base = (state.products||[]).filter(p=>p.status==='active');
+  let list = base;
+  if(mode==='bestseller'){
+    list = base.filter(p=>p.badgeBestSeller===true||p.badgeBestSeller==='TRUE');
+  } else if(mode==='discount'){
+    list = base.filter(p=>Number(p.promoPrice)>0 && Number(p.promoPrice)<Number(p.regularPrice))
+      .sort((a,b)=>(1-b.promoPrice/b.regularPrice)-(1-a.promoPrice/a.regularPrice));
+  } else if(mode==='manual'){
+    const ids=(s.featuredProductIds||'').split(',').map(x=>x.trim()).filter(Boolean);
+    list = ids.map(id=>base.find(p=>p.id===id)).filter(Boolean);
+  } else {
+    list = base.slice().sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
+  }
+  if(list.length===0) list = base.slice().sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0)); // ກັນກໍລະນີ list ຫວ່າງ
+  return mode==='auto' ? list : list.slice(0, count||6);
+}
+
 function featuredCountdownText(){
   const endInput = document.getElementById('ft-endtime');
   const endVal = endInput? endInput.value : state.settings.featuredEndTime;
@@ -3681,7 +3701,7 @@ async function saveFeaturedSettings(){
   state.settings = await api.saveSettings(state.admin.token, newS);
   ftSelectedIds = null;
   toast('ບັນທຶກແລ້ວ','✅');
-  renderFeaturedStorefront();
+  renderProducts();
 }
 
 /* ── featured products storefront ──────────────────────────────── */
