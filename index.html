@@ -60,6 +60,8 @@
   --c-sidebar:#1B140F;
   --c-sidebar-text:#F1E7D6;
   --c-danger-accent:#C23A4B;
+  --c-price:#C23A4B;
+  --c-price-old:#8A7C6C;
 
   --radius-s:12px;
   --radius-m:18px;
@@ -243,8 +245,8 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }
 .pcard .prices{display:flex;flex-direction:column;gap:1px;margin-top:4px;}
-.pcard .price-now{font-family:var(--font-num);font-weight:900;color:var(--c-danger-accent);font-size:19px;line-height:1.1;}
-.pcard .price-old{font-family:var(--font-num);font-size:12.5px;color:var(--ink-soft);text-decoration:line-through;order:-1;}
+.pcard .price-now{font-family:var(--font-num);font-weight:900;color:var(--c-price);font-size:19px;line-height:1.1;}
+.pcard .price-old{font-family:var(--font-num);font-size:12.5px;color:var(--c-price-old);text-decoration:line-through;order:-1;}
 .pcard .addbtn{
   margin-top:6px;width:35px;height:35px;border-radius:12px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));color:#fff;border:none;
   display:flex;align-items:center;justify-content:center;position:absolute;right:11px;bottom:11px;box-shadow:0 8px 18px -6px rgba(181,82,42,.6);
@@ -289,8 +291,8 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 .pd-title{font-size:19.5px;margin:0 0 5px;}
 .pd-desc{font-size:13px;color:var(--ink-soft);line-height:1.65;margin:0 0 12px;}
 .pd-price{display:flex;align-items:baseline;gap:9px;margin-bottom:16px;}
-.pd-price .now{font-size:22px;font-weight:800;color:var(--c-primary);font-family:var(--font-num);}
-.pd-price .old{font-size:14px;text-decoration:line-through;color:var(--ink-soft);font-family:var(--font-num);}
+.pd-price .now{font-size:22px;font-weight:800;color:var(--c-price);font-family:var(--font-num);}
+.pd-price .old{font-size:14px;text-decoration:line-through;color:var(--c-price-old);font-family:var(--font-num);}
 .qty-row{display:flex;align-items:center;gap:14px;margin-bottom:18px;}
 .qty-btn{width:38px;height:38px;border-radius:12px;border:1.5px solid var(--line);background:var(--c-bg);font-size:18px;display:flex;align-items:center;justify-content:center;font-weight:700;}
 .qty-val{font-size:17px;font-weight:700;min-width:24px;text-align:center;font-family:var(--font-num);}
@@ -536,8 +538,8 @@ table.a-table tr:hover td{background:var(--c-bg);}
 .padm-card .padm-name{font-size:13.5px;font-weight:700;line-height:1.3;min-height:35px;}
 .padm-card .padm-cat{font-size:11px;color:var(--ink-soft);font-weight:600;}
 .padm-card .padm-prices{display:flex;align-items:baseline;gap:7px;margin-top:2px;}
-.padm-card .padm-price-now{font-family:var(--font-num);font-weight:900;color:var(--c-secondary);font-size:16px;}
-.padm-card .padm-price-old{font-family:var(--font-num);font-size:11.5px;color:var(--ink-soft);text-decoration:line-through;}
+.padm-card .padm-price-now{font-family:var(--font-num);font-weight:900;color:var(--c-price);font-size:16px;}
+.padm-card .padm-price-old{font-family:var(--font-num);font-size:11.5px;color:var(--c-price-old);text-decoration:line-through;}
 .padm-card .padm-margin{font-size:10.5px;color:var(--success);font-weight:700;}
 .padm-card .padm-stock-row{font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
 .padm-card .padm-actions{display:flex;gap:8px;margin-top:8px;}
@@ -1167,6 +1169,8 @@ function applyTheme(){
   r.setProperty('--c-sidebar', s.colorSidebar||'#1B140F');
   r.setProperty('--c-sidebar-text', s.colorSidebarText||'#F1E7D6');
   r.setProperty('--c-danger-accent', s.colorDangerAccent||'#C23A4B');
+  r.setProperty('--c-price', s.colorPriceNow||'#C23A4B');
+  r.setProperty('--c-price-old', s.colorPriceOld||'#8A7C6C');
   const pair = FONT_PAIRS[s.fontPairing] || FONT_PAIRS['ຄລາສສິກ'];
   r.setProperty('--font-display', pair.display);
   r.setProperty('--font-body', pair.body);
@@ -3757,6 +3761,8 @@ function renderAdminSettings(){
     colorField('colorHeader','ພື້ນ Header', s.colorHeader||'#1B140F')+colorField('colorHeaderText','ໂຕໜັງສື Header', s.colorHeaderText||'#FBF6EE')+
     colorField('colorSidebar','ພື້ນ Sidebar', s.colorSidebar||'#1B140F')+colorField('colorSidebarText','ໂຕໜັງສື Sidebar', s.colorSidebarText||'#F1E7D6')+
     colorField('colorDangerAccent','ສີແດງເນັ້ນ (ໝວດ/ລາຄາ)', s.colorDangerAccent||'#C23A4B')+
+    colorField('colorPriceNow','ສີລາຄາຂາຍ/ຫຼັງຫຼຸດ', s.colorPriceNow||'#C23A4B')+
+    colorField('colorPriceOld','ສີລາຄາເດີມ (ຂີດຄ່ອມ)', s.colorPriceOld||'#8A7C6C')+
   '</div>'+
   '<p style="font-size:11.5px;color:var(--ink-soft);margin:10px 0 0;">💡 ຖ້າສີພື້ນ ແລະ ສີໂຕໜັງສີໃກ້ກັນເກີນໄປ (ເຊັ່ນ ພື້ນຂາວ + ໂຕໜັງສືຂາວ) ຕົວໜັງສືຈະເບິ່ງບໍ່ເຫັນ — ໃຫ້ປັບສີໂຕໜັງສືກົງກັນຂ້າມກັບພື້ນສະເໝີ.</p>'+
   '<div style="display:flex;align-items:center;gap:10px;margin-top:14px;"><label class="switch"><input type="checkbox" id="st-dark" '+(s.darkMode==='true'?'checked':'')+'><span class="slider"></span></label><span style="font-size:13px;font-weight:600;">ໂໝດມືດເປັນຄ່າເລີ່ມຕົ້ນ</span></div>'+
@@ -3835,7 +3841,7 @@ function applyPreset(name){
   event.currentTarget.classList.add('active');
 }
 function previewTheme(){
-  ['colorPrimary','colorSecondary','colorAccent','colorBg','colorSurface','colorText','colorHeader','colorHeaderText','colorSidebar','colorSidebarText'].forEach(k=>{
+  ['colorPrimary','colorSecondary','colorAccent','colorBg','colorSurface','colorText','colorHeader','colorHeaderText','colorSidebar','colorSidebarText','colorPriceNow','colorPriceOld'].forEach(k=>{
     const el = document.getElementById('st-'+k); if(el) state.settings[k]=el.value;
   });
   applyTheme();
@@ -3848,6 +3854,8 @@ async function saveAllSettings(){
     colorHeader:val('st-colorHeader'), colorHeaderText:val('st-colorHeaderText'),
     colorSidebar:val('st-colorSidebar'), colorSidebarText:val('st-colorSidebarText'),
     colorDangerAccent:val('st-colorDangerAccent'),
+    colorPriceNow: val('st-colorPriceNow'),
+    colorPriceOld: val('st-colorPriceOld'),
     darkMode: document.getElementById('st-dark').checked?'true':'false',
     fontPairing: val('st-font'),
     deliveryFeeDefault:val('st-delivery'), taxPercent:val('st-tax'), serviceFeePercent:val('st-service'),
