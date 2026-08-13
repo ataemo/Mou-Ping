@@ -982,7 +982,7 @@ const state = {
     page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'',
     dashRange:{preset:'7d', start:null, end:null}, financeRange:{preset:null, start:null, end:null},
     financeTx:[], charts:{line:null, pie:null, financeLine:null, financePie:null},
-    productFilter:'all', productSearchQuery:'', productSort:'name', dashLoading:false, _hasPendingOrders:false, _usersLoadedOnce:false },
+    productFilter:'all', productSearchQuery:'', productSort:'name', dashLoading:false, _hasPendingOrders:false },
   customer: JSON.parse(localStorage.getItem('pk_customer')||'{}'),
   _catJson:'', _prodJson:'', _banJson:''
 };
@@ -1930,11 +1930,8 @@ async function doAdminLogin(){
 function adminLogout(){
   state.admin.token=null; state.admin.username=null; state.admin.fullName=null; state.admin.role=null;
   localStorage.removeItem('pk_admin_token');
-  localStorage.removeItem('pk_admin_user');
+  localStorage.removeItem('pk_admin_user');   // ★ ເພີ່ມແຖວນີ້
   localStorage.removeItem('pk_last_view');
-  localStorage.removeItem('pk_cache_admin_users');   // ★ ລ້າງ cache ຜູ້ໃຊ້ງານ ກັນຂໍ້ມູນຄ້າງຂ້າມບັນຊີ
-  state.admin.usersList = null;
-  state.admin._usersLoadedOnce = false;
   document.getElementById('admin-root').classList.remove('show');
   stopAdminOrderPoll();
   updateAdminNavButton();
@@ -2047,10 +2044,6 @@ function refreshAdminCurrentView(){
   state.admin._ordersLoadedOnce = false;
   if(state.admin.page==='finance'){
     localStorage.removeItem('pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end);
-  }
-  if(state.admin.page==='users'){
-    state.admin._usersLoadedOnce = false;
-    localStorage.removeItem('pk_cache_admin_users');
   }
   gotoAdminPage(state.admin.page);
   toast('ອັບເດດແລ້ວ','🔄');
@@ -3408,29 +3401,12 @@ async function renderAdminUsers(){
   main.innerHTML = '<div class="a-title-row"><h2>ຜູ້ໃຊ້ງານ</h2><button class="btn-sm primary" onclick="openUserForm()">+ ເພີ່ມຜູ້ໃຊ້ງານ</button></div>'+
     '<div id="users-grid-holder">'+dashboardSkeletonHTML()+'</div>'+
     '<div id="user-form-holder"></div>';
-
-  // ★ ໂຊວ໌ຂໍ້ມູນຈາກ cache ທັນທີ ຖ້າມີ (ບໍ່ຕ້ອງລໍຖ້າ API)
-  let users = state.admin.usersList;
-  if(!users){
-    const cached = localStorage.getItem('pk_cache_admin_users');
-    if(cached){ try{ users = JSON.parse(cached); state.admin.usersList = users; }catch(e){} }
-  }
-  if(users){
-    document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(users);
-  }
-
-  // ★ ຍິງ API ຈິງພຽງຄັ້ງດຽວຕໍ່ session — ຄັ້ງຕໍ່ໄປໃຊ້ cache ເລີຍ ບໍ່ຍິງຊ້ຳ
-  if(state.admin._usersLoadedOnce) return;
   try{
-    const fresh = await api.getUsers(state.admin.token);
-    state.admin.usersList = fresh;
-    state.admin._usersLoadedOnce = true;
-    localStorage.setItem('pk_cache_admin_users', JSON.stringify(fresh));
-    if(state.admin.page==='users'){
-      document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(fresh);
-    }
+    const users = await api.getUsers(state.admin.token);
+    state.admin.usersList = users;
+    document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(users);
   }catch(e){
-    if(!users) document.getElementById('users-grid-holder').innerHTML = '<div class="a-panel"><p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: '+(e.message||'')+'</p></div>';
+    document.getElementById('users-grid-holder').innerHTML = '<div class="a-panel"><p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: '+(e.message||'')+'</p></div>';
     console.error(e);
   }
 }
@@ -3529,7 +3505,6 @@ async function submitUserForm(originalUsername){
   try{
     const users = await api.saveUser(state.admin.token, payload);
     state.admin.usersList = users;
-    localStorage.setItem('pk_cache_admin_users', JSON.stringify(users));   // ★ ອັບເດດ cache
     closeUserForm();
     document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(users);
     toast('ບັນທຶກຜູ້ໃຊ້ງານແລ້ວ','✅');
@@ -3547,7 +3522,6 @@ async function removeUser(username){
   try{
     const users = await api.deleteUser(state.admin.token, username);
     state.admin.usersList = users;
-    localStorage.setItem('pk_cache_admin_users', JSON.stringify(users));   // ★ ອັບເດດ cache
     document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(users);
     toast('ລຶບແລ້ວ','🗑️');
   }catch(e){ toast('ລຶບບໍ່ສຳເລັດ: '+(e.message||''),'⚠️'); console.error(e); }
