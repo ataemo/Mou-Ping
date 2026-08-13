@@ -897,17 +897,6 @@ const ROLE_PAGE_ACCESS = {
   admin:    ['dashboard','orders','products','featured','categories','banners'],
   sale:     ['orders', 'featured']
 };
-function requirePage_(token, page) {
-  const sessUser = getSessionUser_(token);
-  if (!sessUser) throw new Error('UNAUTHORIZED');
-  const u = readAll_(SHEETS.USERS).find(function(x){ return String(x.username)===String(sessUser.username); });
-  if (!u || u.status !== 'active') throw new Error('UNAUTHORIZED');
-  let allowed = SERVER_ROLE_PAGE_ACCESS[u.role] || [];
-  const custom = String(u.pageAccess||'').split(',').map(function(s){return s.trim();}).filter(Boolean);
-  if (custom.length) allowed = custom;
-  if (allowed.indexOf(page) === -1) throw new Error('FORBIDDEN: ບໍ່ມີສິດເຂົ້າໜ້ານີ້');
-  return sessUser;
-}
 function applyRolePermissions(){
   const role = state.admin.role;
   let allowed = ROLE_PAGE_ACCESS[role] || [];
@@ -3409,24 +3398,15 @@ let ufSelectedPages = [];
 
 async function renderAdminUsers(){
   const main = document.getElementById('admin-main');
-  let users = state.admin.usersList;
-  if(!users){
-    const cached = localStorage.getItem('pk_cache_admin_users');
-    if(cached){ try{ users = JSON.parse(cached); }catch(e){} }
-  }
   main.innerHTML = '<div class="a-title-row"><h2>ຜູ້ໃຊ້ງານ</h2><button class="btn-sm primary" onclick="openUserForm()">+ ເພີ່ມຜູ້ໃຊ້ງານ</button></div>'+
-    '<div id="users-grid-holder">'+(users ? buildUsersGridHTML(users) : dashboardSkeletonHTML())+'</div>'+
+    '<div id="users-grid-holder">'+dashboardSkeletonHTML()+'</div>'+
     '<div id="user-form-holder"></div>';
   try{
-    const freshUsers = await api.getUsers(state.admin.token);
-    state.admin.usersList = freshUsers;
-    localStorage.setItem('pk_cache_admin_users', JSON.stringify(freshUsers));
-    // ອັບເດດໜ້າຈໍ ສະເພາະຖ້າຂໍ້ມູນປ່ຽນແປງ ຫຼື ຍັງບໍ່ມີ cache ມາກ່ອນ
-    if(state.admin.page==='users' && (!users || JSON.stringify(users)!==JSON.stringify(freshUsers))){
-      document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(freshUsers);
-    }
+    const users = await api.getUsers(state.admin.token);
+    state.admin.usersList = users;
+    document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(users);
   }catch(e){
-    if(!users) document.getElementById('users-grid-holder').innerHTML = '<div class="a-panel"><p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: '+(e.message||'')+'</p></div>';
+    document.getElementById('users-grid-holder').innerHTML = '<div class="a-panel"><p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: '+(e.message||'')+'</p></div>';
     console.error(e);
   }
 }
@@ -3525,7 +3505,6 @@ async function submitUserForm(originalUsername){
   try{
     const users = await api.saveUser(state.admin.token, payload);
     state.admin.usersList = users;
-    localStorage.setItem('pk_cache_admin_users', JSON.stringify(users));
     closeUserForm();
     document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(users);
     toast('ບັນທຶກຜູ້ໃຊ້ງານແລ້ວ','✅');
@@ -3543,7 +3522,6 @@ async function removeUser(username){
   try{
     const users = await api.deleteUser(state.admin.token, username);
     state.admin.usersList = users;
-    localStorage.setItem('pk_cache_admin_users', JSON.stringify(users));
     document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(users);
     toast('ລຶບແລ້ວ','🗑️');
   }catch(e){ toast('ລຶບບໍ່ສຳເລັດ: '+(e.message||''),'⚠️'); console.error(e); }
