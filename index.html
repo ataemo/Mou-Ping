@@ -3398,17 +3398,37 @@ let ufSelectedPages = [];
 
 async function renderAdminUsers(){
   const main = document.getElementById('admin-main');
+  let users = state.admin.usersList;
+  if(!users){
+    const cached = localStorage.getItem('pk_cache_admin_users');
+    if(cached){ try{ users = JSON.parse(cached); }catch(e){} }
+  }
   main.innerHTML = '<div class="a-title-row"><h2>ຜູ້ໃຊ້ງານ</h2><button class="btn-sm primary" onclick="openUserForm()">+ ເພີ່ມຜູ້ໃຊ້ງານ</button></div>'+
-    '<div id="users-grid-holder">'+dashboardSkeletonHTML()+'</div>'+
+    '<div id="users-grid-holder">'+(users ? buildUsersGridHTML(users) : dashboardSkeletonHTML())+'</div>'+
     '<div id="user-form-holder"></div>';
   try{
-    const users = await api.getUsers(state.admin.token);
-    state.admin.usersList = users;
-    document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(users);
+    const freshUsers = await withTimeout(api.getUsers(state.admin.token), 15000);
+    state.admin.usersList = freshUsers;
+    localStorage.setItem('pk_cache_admin_users', JSON.stringify(freshUsers));
+    if(state.admin.page==='users' && (!users || JSON.stringify(users)!==JSON.stringify(freshUsers))){
+      const holder = document.getElementById('users-grid-holder');
+      if(holder) holder.innerHTML = buildUsersGridHTML(freshUsers);
+    }
   }catch(e){
-    document.getElementById('users-grid-holder').innerHTML = '<div class="a-panel"><p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: '+(e.message||'')+'</p></div>';
+    const holder = document.getElementById('users-grid-holder');
+    if(!users && holder){
+      holder.innerHTML = '<div class="a-panel"><div class="empty-state"><div class="ico">⚠️</div><h4>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</h4><p>'+(e.message||'ບໍ່ຮູ້ສາເຫດ')+'</p></div>'+
+        '<button class="btn-sm primary" style="width:100%;margin-top:10px;" onclick="renderAdminUsers()">🔄 ລອງໃໝ່</button></div>';
+    }
     console.error(e);
   }
+}
+
+function withTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('ໝົດເວລາລໍຖ້າ — ກວດ 1) Deploy Code.gs ໃໝ່ຫຼືບໍ່ 2) API_BASE_URL ຖືກຕ້ອງບໍ່ 3) ອິນເຕີເນັດ')), ms))
+  ]);
 }
 
 function buildUsersGridHTML(users){
