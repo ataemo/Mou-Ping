@@ -2054,7 +2054,6 @@ function gotoAdminPage(page){
 }
 function refreshAdminCurrentView(){
   state.admin._ordersLoadedOnce = false;
-  state.admin._usersLoadedOnce = false;   // ★ ເພີ່ມແຖວນີ້
   if(state.admin.page==='finance'){
     localStorage.removeItem('pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end);
   }
@@ -3411,28 +3410,16 @@ let ufSelectedPages = [];
 
 async function renderAdminUsers(){
   const main = document.getElementById('admin-main');
-  let users = state.admin.usersList;
-  if(!users){
-    const cached = localStorage.getItem('pk_cache_admin_users');
-    if(cached){ try{ users = JSON.parse(cached); }catch(e){} }
-  }
   main.innerHTML = '<div class="a-title-row"><h2>ຜູ້ໃຊ້ງານ</h2><button class="btn-sm primary" onclick="openUserForm()">+ ເພີ່ມຜູ້ໃຊ້ງານ</button></div>'+
-    '<div id="users-grid-holder">'+(users ? buildUsersGridHTML(users) : dashboardSkeletonHTML())+'</div>'+
+    '<div id="users-grid-holder">'+dashboardSkeletonHTML()+'</div>'+
     '<div id="user-form-holder"></div>';
-
-  if(!state.admin._usersLoadedOnce){
-    try{
-      const freshUsers = await api.getUsers(state.admin.token);
-      state.admin.usersList = freshUsers;
-      state.admin._usersLoadedOnce = true;
-      localStorage.setItem('pk_cache_admin_users', JSON.stringify(freshUsers));
-      if(state.admin.page==='users'){
-        document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(freshUsers);
-      }
-    }catch(e){
-      if(!users) document.getElementById('users-grid-holder').innerHTML = '<div class="a-panel"><p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: '+(e.message||'')+'</p></div>';
-      console.error(e);
-    }
+  try{
+    const users = await api.getUsers(state.admin.token);
+    state.admin.usersList = users;
+    document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(users);
+  }catch(e){
+    document.getElementById('users-grid-holder').innerHTML = '<div class="a-panel"><p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: '+(e.message||'')+'</p></div>';
+    console.error(e);
   }
 }
 
@@ -3530,7 +3517,6 @@ async function submitUserForm(originalUsername){
   try{
     const users = await api.saveUser(state.admin.token, payload);
     state.admin.usersList = users;
-    localStorage.setItem('pk_cache_admin_users', JSON.stringify(users));
     closeUserForm();
     document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(users);
     toast('ບັນທຶກຜູ້ໃຊ້ງານແລ້ວ','✅');
@@ -3548,7 +3534,6 @@ async function removeUser(username){
   try{
     const users = await api.deleteUser(state.admin.token, username);
     state.admin.usersList = users;
-    localStorage.setItem('pk_cache_admin_users', JSON.stringify(users));
     document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(users);
     toast('ລຶບແລ້ວ','🗑️');
   }catch(e){ toast('ລຶບບໍ່ສຳເລັດ: '+(e.message||''),'⚠️'); console.error(e); }
