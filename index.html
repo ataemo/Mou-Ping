@@ -1036,6 +1036,7 @@ const api = {
   getSettings: () => callApi('getSettings'),
   uploadSlip: (base64, fileName, mimeType) => callApi('uploadSlip', {base64, fileName, mimeType}),
   uploadAvatar: (base64, fileName, mimeType) => callApi('uploadAvatar', {base64, fileName, mimeType}),
+  uploadPhoto: (base64, fileName, mimeType) => callApi('uploadPhoto', {base64, fileName, mimeType}),
   getOrdersByPhone: (phone) => callApi('getOrdersByPhone', {phone}),
   saveTransaction: (token, transaction) => callApi('saveTransaction', {token, transaction}),
   deleteTransaction: (token, id) => callApi('deleteTransaction', {token, id}),
@@ -3321,7 +3322,7 @@ function handlePfImageUpload(input){
   const reader = new FileReader();
   reader.onload = async function(e){
     try{
-      const res = await api.uploadSlip(e.target.result, file.name, file.type);
+      const res = await api.uploadPhoto(e.target.result, file.name, file.type);
       document.getElementById('pf-image').value = res.url;
       previewPfImage(res.url);
       statusEl.textContent = '✅ ອັບໂຫລດສຳເລັດ';
@@ -3556,13 +3557,43 @@ function openBannerForm(b){
     '<div class="sheet show" style="position:fixed;"><div class="sheet-handle"></div>'+
     '<div class="sheet-head"><h3>Banner</h3><button class="sheet-close" onclick="document.getElementById(\'banner-form-holder\').innerHTML=\'\'">✕</button></div>'+
     '<div class="sheet-body">'+
-    '<div class="field"><label>URL ຮູບພາບ (ຫຼື Google Drive URL)</label><input id="bf-image" value="'+b.image+'"></div>'+
+    '<div class="field"><label>URL ຮູບພາບ</label>'+
+    '<div id="bf-image-preview" style="width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:var(--c-bg);border:1px solid var(--line);margin-bottom:8px;">'+
+    (b.image? '<img src="'+b.image+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="imgFallback(this)">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:12px;">ຍັງບໍ່ມີຮູບ</div>')+
+    '</div>'+
+    '<input id="bf-image" value="'+b.image+'" oninput="previewBfImage(this.value)" style="margin-bottom:8px;">'+
+    '<input type="file" accept="image/*" id="bf-image-file" style="display:none" onchange="handleBannerImageUpload(this)">'+
+    '<button type="button" class="btn-ghost" style="width:100%;" onclick="document.getElementById(\'bf-image-file\').click()">📷 ອັບໂຫລດຮູບຈາກເຄື່ອງ</button>'+
+    '<div id="bf-image-status" style="font-size:11px;color:var(--ink-soft);margin-top:6px;"></div></div>'+
     '<div class="field"><label>ຫົວຂໍ້</label><input id="bf-title" value="'+b.title+'"></div>'+
     '<div class="field"><label>ຄຳອະທິບາຍຍ່ອຍ</label><input id="bf-sub" value="'+b.subtitle+'"></div>'+
     '<div class="field"><label>ຂໍ້ຄວາມປຸ່ມ</label><input id="bf-btn" value="'+b.buttonText+'"></div>'+
     '<div class="field"><label>ສະຖານະ</label><select id="bf-status"><option value="active" '+(b.status==='active'?'selected':'')+'>ເປີດ</option><option value="inactive" '+(b.status==='inactive'?'selected':'')+'>ປິດ</option></select></div>'+
     '<button class="btn-primary" onclick="submitBannerForm(\''+b.id+'\')">ບັນທຶກ</button></div></div>';
 }
+
+function previewBfImage(url){
+  const holder = document.getElementById('bf-image-preview');
+  if(!holder) return;
+  holder.innerHTML = url? '<img src="'+url+'" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="imgFallback(this)">' : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--ink-soft);font-size:12px;">ຍັງບໍ່ມີຮູບ</div>';
+}
+function handleBannerImageUpload(input){
+  const file = input.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('bf-image-status');
+  statusEl.textContent = 'ກຳລັງອັບໂຫລດ...';
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    try{
+      const res = await api.uploadPhoto(e.target.result, file.name, file.type);
+      document.getElementById('bf-image').value = res.url;
+      previewBfImage(res.url);
+      statusEl.textContent = '✅ ອັບໂຫລດສຳເລັດ';
+    }catch(err){ statusEl.textContent='⚠️ ອັບໂຫລດບໍ່ສຳເລັດ'; console.error(err); }
+  };
+  reader.readAsDataURL(file);
+}
+
 async function submitBannerForm(id){
   const b = {id:id||'', image:val('bf-image'), title:val('bf-title'), subtitle:val('bf-sub'), buttonText:val('bf-btn'), buttonLink:'#products', status:val('bf-status'), sortOrder:state.banners.length+1};
   state.banners = await api.saveBanner(state.admin.token, b);
@@ -3764,7 +3795,12 @@ function renderAdminSettings(){
   '<div class="field"><label>ຊື່ຮ້ານ</label><input id="st-name" value="'+s.storeName+'"></div>'+
   '<div class="field"><label>ຄຳຂວັນ (Tagline)</label><input id="st-tag" value="'+s.tagline+'"></div>'+
   '</div>'+
-  '<div class="field"><label>ໂລໂກ້ URL</label><input id="st-logo" value="'+s.logoUrl+'"></div>'+
+  '<div class="field"><label>ໂລໂກ້ URL</label><input id="st-logo" value="'+s.logoUrl+'" oninput="previewLogoUpload(this.value)"></div>'+
+  '<div class="field"><label>ຫຼື ອັບໂຫລດໂລໂກ້ຈາກເຄື່ອງ</label>'+
+  '<input type="file" accept="image/*" id="st-logo-file" style="display:none" onchange="handleLogoUpload(this)">'+
+  '<button type="button" class="btn-ghost" style="width:100%;" onclick="document.getElementById(\'st-logo-file\').click()">📷 ອັບໂຫລດຮູບຈາກເຄື່ອງ</button>'+
+  '<div id="st-logo-status" style="font-size:11.5px;color:var(--ink-soft);margin-top:6px;"></div></div>'+
+  (s.logoUrl? '<img id="st-logo-preview" src="'+s.logoUrl+'" referrerpolicy="no-referrer" style="width:80px;height:80px;object-fit:cover;border-radius:12px;border:1px solid var(--line);" onerror="imgFallback(this)">' : '')+
   '<div class="grid-2">'+
   '<div class="field"><label>ເບີໂທ</label><input id="st-phone" value="'+s.phone+'"></div>'+
   '<div class="field"><label>ທີ່ຢູ່</label><input id="st-addr" value="'+s.address+'"></div>'+
@@ -3849,8 +3885,29 @@ function handleQrUpload(input){
   const reader = new FileReader();
   reader.onload = async function(e){
     try{
-      const res = await api.uploadSlip(e.target.result, file.name, file.type);
+      const res = await api.uploadPhoto(e.target.result, file.name, file.type);
       document.getElementById('st-bankqr').value = res.url;
+      statusEl.textContent = '✅ ອັບໂຫລດສຳເລັດ — ກົດ "ບັນທຶກການຕັ້ງຄ່າ" ເພື່ອບັນທຶກ';
+    }catch(err){ statusEl.textContent='⚠️ ອັບໂຫລດບໍ່ສຳເລັດ'; console.error(err); }
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewLogoUpload(url){
+  const el = document.getElementById('st-logo-preview');
+  if(el) el.src = url;
+}
+function handleLogoUpload(input){
+  const file = input.files[0];
+  if(!file) return;
+  const statusEl = document.getElementById('st-logo-status');
+  statusEl.textContent = 'ກຳລັງອັບໂຫລດ...';
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    try{
+      const res = await api.uploadPhoto(e.target.result, file.name, file.type);
+      document.getElementById('st-logo').value = res.url;
+      previewLogoUpload(res.url);
       statusEl.textContent = '✅ ອັບໂຫລດສຳເລັດ — ກົດ "ບັນທຶກການຕັ້ງຄ່າ" ເພື່ອບັນທຶກ';
     }catch(err){ statusEl.textContent='⚠️ ອັບໂຫລດບໍ່ສຳເລັດ'; console.error(err); }
   };
