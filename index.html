@@ -504,6 +504,11 @@ table.a-table tr:hover td{background:var(--c-bg);}
 .icon-edit-row .preview{width:38px;height:38px;border-radius:11px;background:var(--c-bg);display:flex;align-items:center;justify-content:center;font-size:18px;flex:none;border:1px solid var(--line);}
 .icon-edit-row .lbl{flex:1;font-size:12.5px;font-weight:600;}
 .icon-edit-row input{width:66px;text-align:center;padding:8px;border-radius:10px;border:1.5px solid var(--line);background:var(--c-bg);color:var(--c-text);font-size:16px;}
+.user-avatar-wrap{position:relative;width:64px;height:64px;flex:none;}
+.user-avatar-img{width:64px;height:64px;border-radius:20px;object-fit:cover;display:block;box-shadow:0 0 0 1.5px rgba(199,154,73,.4);}
+.user-avatar-fallback{width:64px;height:64px;border-radius:20px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 1.5px rgba(199,154,73,.4);}
+.user-avatar-fallback svg{width:32px;height:32px;color:#fff;stroke:#fff;}
+.user-avatar-cam-btn{position:absolute;bottom:-5px;right:-5px;width:28px;height:28px;border-radius:50%;background:var(--c-accent);border:3px solid var(--c-surface);display:flex;align-items:center;justify-content:center;font-size:13px;padding:0;box-shadow:0 2px 6px rgba(0,0,0,.25);}
 /* sidebar outside-click overlay */
 #admin-sidebar-overlay{position:fixed;inset:0;background:rgba(10,7,5,.45);z-index:840;display:none;}
 #admin-sidebar-overlay.show{display:block;}
@@ -3436,7 +3441,15 @@ function buildUsersGridHTML(users){
       : '<span class="pill inactive" style="margin:2px 0 0;">ຕາມສິດ Role ('+(ROLE_LABELS[u.role]||u.role)+')</span>';
     return '<div class="a-panel">'+
       '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">'+
-        '<div style="width:42px;height:42px;border-radius:12px;background:linear-gradient(150deg,var(--c-primary),var(--c-secondary));display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;flex:none;">'+(u.fullName||u.username||'?').charAt(0).toUpperCase()+'</div>'+
+        '<div class="user-avatar-wrap">'+
+          (u.avatar?
+            '<img class="user-avatar-img" src="'+u.avatar+'" referrerpolicy="no-referrer" onerror="imgFallback(this)">'
+            :
+            '<div class="user-avatar-fallback"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>'
+          )+
+          '<button type="button" class="user-avatar-cam-btn" onclick="document.getElementById(\'uavatar-'+u.username+'\').click()">📷</button>'+
+          '<input type="file" accept="image/*" id="uavatar-'+u.username+'" style="display:none" onchange="handleUserAvatarUpload(this,\''+u.username+'\')">'+
+        '</div>'+
         '<div><div style="font-weight:800;font-size:14px;">'+(u.fullName||'-')+(isSelf?' <span style="font-size:10.5px;color:var(--ink-soft);">(ບັນຊີຂອງທ່ານ)</span>':'')+'</div>'+
         '<div style="font-size:11.5px;color:var(--ink-soft);">@'+u.username+'</div></div>'+
       '</div>'+
@@ -3530,6 +3543,42 @@ async function submitUserForm(originalUsername){
     }
   }catch(e){ toast('ບັນທຶກບໍ່ສຳເລັດ: '+(e.message||''),'⚠️'); console.error(e); }
 }
+
+function handleUserAvatarUpload(input, username){
+  const file = input.files[0];
+  if(!file) return;
+  if(file.size > 8*1024*1024){ toast('ຮູບໃຫຍ່ເກີນໄປ (ສູງສຸດ 8MB)','⚠️'); return; }
+  const reader = new FileReader();
+  reader.onload = function(e){
+    const img = new Image();
+    img.onload = async function(){
+      const maxSize = 400;
+      let w = img.width, h = img.height;
+      if(w > h){ if(w > maxSize){ h = Math.round(h*maxSize/w); w = maxSize; } }
+      else { if(h > maxSize){ w = Math.round(w*maxSize/h); h = maxSize; } }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+      toast('ກຳລັງອັບໂຫລດຮູບ...','⏳');
+      try{
+        const res = await api.uploadPhoto(dataUrl, 'avatar_'+username+'_'+Date.now()+'.jpg', 'image/jpeg');
+        const existing = (state.admin.usersList||[]).find(x=>x.username===username) || {username: username};
+        const payload = Object.assign({}, existing, {avatar: res.url});
+        const users = await api.saveUser(state.admin.token, payload);
+        state.admin.usersList = users;
+        document.getElementById('users-grid-holder').innerHTML = buildUsersGridHTML(users);
+        toast('ອັບເດດຮູບໂປຣໄຟລ໌ແລ້ວ','📷');
+      }catch(err){
+        toast('ອັບໂຫລດຮູບບໍ່ສຳເລັດ ລອງໃໝ່','⚠️'); console.error(err);
+      }
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 async function removeUser(username){
   if(!confirm('ຢືນຢັນລຶບຜູ້ໃຊ້ງານ "'+username+'"?')) return;
   try{
