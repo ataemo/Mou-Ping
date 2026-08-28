@@ -1537,7 +1537,7 @@ function rerenderWlQty(id){
 /* ═══════════════════════════════════════════════════════════════
    ກະຕ່າ + ຢືນຢັນສັ່ງຊື້ (ລວມກັນເປັນໜ້າດຽວ)
    ═══════════════════════════════════════════════════════════════ */
-let checkoutState = {orderType:'delivery', payment:'cash', slipUrl:'', slipBase64:'', slipFileName:'', slipMimeType:'', draft:{}};
+let checkoutState = {orderType:'delivery', payment:'cash', slipUrl:'', slipBase64:'', slipFileName:'', slipMimeType:'', locationLat:'', locationLng:'', locationLink:'', draft:{}};
 
 function captureCheckoutDraft(){
   const ids = ['co-name','co-phone','co-province','co-district','co-village','co-detail','co-note'];
@@ -1602,7 +1602,8 @@ function checkoutFormHtml(){
       '</select></div>'+
       '<div class="field"><label>ເມືອງ *</label><select id="co-district"><option value="">— ກະລຸນາເລືອກແຂວງກ່ອນ —</option></select></div>'+
       '<div class="field"><label>ບ້ານ / ໝູ່ບ້ານ</label><input id="co-village" value="'+draftVal('co-village', c.village)+'" placeholder="ບ້ານ..."></div>'+
-      '<div class="field"><label>ລາຍລະອຽດເພີ່ມເຕີມ (ຖະໜົນ, ຈຸດສັງເກດ)</label><textarea id="co-detail" placeholder="ຫຼັງຫ້າງ, ໃກ້ວັດ...">'+draftVal('co-detail', c.detail)+'</textarea></div>'
+      '<div class="field"><label>ລາຍລະອຽດເພີ່ມເຕີມ (ຖະໜົນ, ຈຸດສັງເກດ)</label><textarea id="co-detail" placeholder="ຫຼັງຫ້າງ, ໃກ້ວັດ...">'+draftVal('co-detail', c.detail)+'</textarea></div>'+
+      locationCaptureHtml()
     : '')+
     '<div class="field"><label>ໝາຍເຫດ</label><textarea id="co-note" placeholder="ເຊັ່ນ: ບໍ່ເອົາຜັກ, ເຜັດໜ້ອຍ...">'+draftVal('co-note','')+'</textarea></div>'+
     '<div class="field"><label>ຊຳລະເງິນ</label><div class="seg" id="co-pay">'+
@@ -1712,6 +1713,65 @@ function removeSlip(){
   renderCartBody();
 }
 
+/* ═══════ ພິກັດຈັດສົ່ງ (GPS + ລິ້ງ Google Maps) ═══════ */
+function locationCaptureHtml(){
+  const hasLoc = checkoutState.locationLat && checkoutState.locationLng;
+  return '<div class="field"><label>📍 ພິກັດຈັດສົ່ງ (ຊ່ວຍໃຫ້ຮ້ານຫາທີ່ຢູ່ໄດ້ແມ່ນຍຳຂຶ້ນ)</label>'+
+    '<button type="button" class="btn-secondary" id="gps-capture-btn" onclick="captureGPSLocation()" style="margin-bottom:8px;">📍 ຈັບພິກັດປັດຈຸບັນ</button>'+
+    '<input id="co-maplink" value="'+(checkoutState.locationLink||'')+'" placeholder="ຫຼືວາງລິ້ງ Google Maps ທີ່ນີ້..." oninput="handleMapsLinkInput(this.value)">'+
+    (hasLoc?
+      '<div style="font-size:11.5px;color:var(--success);margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'+
+        '✅ ຈັບພິກັດແລ້ວ ('+Number(checkoutState.locationLat).toFixed(5)+', '+Number(checkoutState.locationLng).toFixed(5)+')'+
+        '<a href="https://www.google.com/maps?q='+checkoutState.locationLat+','+checkoutState.locationLng+'" target="_blank" style="color:var(--c-primary);font-weight:700;">ເບິ່ງແຜນທີ່</a>'+
+        '<button type="button" onclick="removeLocation()" style="background:none;border:none;color:var(--danger);font-weight:700;cursor:pointer;padding:0;">ລຶບ</button>'+
+      '</div>'
+    : (checkoutState.locationLink? '<div style="font-size:11.5px;color:var(--ink-soft);margin-top:8px;">🔗 ບັນທຶກລິ້ງແຜນທີ່ໄວ້ແລ້ວ (ບໍ່ໄດ້ພິກັດແທ້ ແຕ່ຮ້ານກົດເປີດໄດ້)</div>' : ''))+
+    '<p style="font-size:10.5px;color:var(--ink-soft);margin:6px 0 0;">💡 ຖ້າກົດ "ຈັບພິກັດ" ບໍ່ໄດ້ ໃຫ້ເປີດ Google Maps ຫາຈຸດຂອງທ່ານ ແລ້ວກົດ "ແບ່ງປັນ" > "ຄັດລອກລິ້ງ" ມາວາງໃສ່ຊ່ອງລຸ່ມ</p>'+
+  '</div>';
+}
+function captureGPSLocation(){
+  if(!navigator.geolocation){ toast('ອຸປະກອນນີ້ບໍ່ຮອງຮັບ GPS','⚠️'); return; }
+  captureCheckoutDraft();
+  const btn = document.getElementById('gps-capture-btn');
+  if(btn){ btn.disabled = true; btn.textContent = '📡 ກຳລັງຈັບພິກັດ...'; }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    checkoutState.locationLat = pos.coords.latitude;
+    checkoutState.locationLng = pos.coords.longitude;
+    checkoutState.locationLink = 'https://www.google.com/maps?q='+pos.coords.latitude+','+pos.coords.longitude;
+    renderCartBody();
+    toast('ຈັບພິກັດສຳເລັດ','📍');
+  }, function(err){
+    toast('ຈັບພິກັດບໍ່ສຳເລັດ ກະລຸນາອະນຸຍາດ GPS ໃນ browser','⚠️');
+    if(btn){ btn.disabled=false; btn.textContent='📍 ຈັບພິກັດປັດຈຸບັນ'; }
+  }, {enableHighAccuracy:true, timeout:12000});
+}
+function parseGoogleMapsLink(url){
+  if(!url) return null;
+  let m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if(m) return {lat:parseFloat(m[1]), lng:parseFloat(m[2])};
+  m = url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if(m) return {lat:parseFloat(m[1]), lng:parseFloat(m[2])};
+  m = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+  if(m) return {lat:parseFloat(m[1]), lng:parseFloat(m[2])};
+  return null;
+}
+function handleMapsLinkInput(v){
+  captureCheckoutDraft();
+  checkoutState.locationLink = v.trim();
+  const coords = parseGoogleMapsLink(v);
+  if(coords){
+    checkoutState.locationLat = coords.lat;
+    checkoutState.locationLng = coords.lng;
+    renderCartBody();
+    toast('ດຶງພິກັດຈາກລິ້ງສຳເລັດ','📍');
+  }
+}
+function removeLocation(){
+  captureCheckoutDraft();
+  checkoutState.locationLat=''; checkoutState.locationLng=''; checkoutState.locationLink='';
+  renderCartBody();
+}
+
 async function submitOrder(){
   const name = document.getElementById('co-name').value.trim();
   const phone = document.getElementById('co-phone').value.trim();
@@ -1750,14 +1810,15 @@ async function submitOrder(){
     items: state.cart.map(i=>({id:i.id,name:i.name,price:i.price,qty:i.qty,options:i.options||[],note:i.note||''})),
     subtotal:t.subtotal, discount:0, deliveryFee:t.deliveryFee, serviceFee:t.serviceFee, tax:t.tax, total:t.total,
     paymentMethod:checkoutState.payment, slipUrl:uploadedSlipUrl,
-    note:document.getElementById('co-note').value.trim(), branch:'Main'
+    note:document.getElementById('co-note').value.trim(), branch:'Main',
+    locationLat: checkoutState.locationLat||'', locationLng: checkoutState.locationLng||'', locationLink: checkoutState.locationLink||''
   };
   try{
     const res = await api.createOrder(orderInput);
     state.customer = Object.assign({name:name, phone:phone, address:address}, addrParts);
     localStorage.setItem('pk_customer', JSON.stringify(state.customer));
     state.cart = []; saveCart();
-    checkoutState = {orderType:'delivery', payment:'cash', slipUrl:'', slipBase64:'', slipFileName:'', slipMimeType:'', draft:{}};
+    checkoutState = {orderType:'delivery', payment:'cash', slipUrl:'', slipBase64:'', slipFileName:'', slipMimeType:'', locationLat:'', locationLng:'', locationLink:'', draft:{}};
     closeSheet('cart');
     toast('ສັ່ງຊື້ສຳເລັດ! ລະຫັດ '+res.orderId,'🎉');
     showOrderConfirmation(res.orderId);
@@ -2811,6 +2872,7 @@ function buildOrdersTableOnlyHTML(orders){
       '<td style="font-size:12px;">'+new Date(o.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</td>'+
       '<td><div class="ord-action-icons">'+
         '<button class="ord-icon-btn view" title="ລາຍລະອຽດ" onclick="openOrderDetailModal(\''+o.orderId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>'+
+        (o.locationLat||o.locationLink? '<button class="ord-icon-btn" title="ພິກັດຈັດສົ່ງ" style="color:#C23A4B;" onclick="window.open(\''+(o.locationLat? 'https://www.google.com/maps?q='+o.locationLat+','+o.locationLng : o.locationLink)+'\',\'_blank\')">📍</button>' : '')+
         '<button class="ord-icon-btn print" title="ພິມບິນ" onclick="openReceiptModal(\''+o.orderId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg></button>'+
         '<button class="ord-icon-btn del" title="ລຶບ" onclick="removeOrder(\''+o.orderId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg></button>'+
       '</div></td></tr>'
@@ -2883,6 +2945,16 @@ function openOrderDetailModal(orderId){
         '<input id="od-tracking-input" value="'+(o.trackingNumber||'')+'" placeholder="ໃສ່ Tracking Number..." style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:var(--c-bg);color:var(--c-text);">'+
         '<button class="btn-sm primary" onclick="saveTrackingNumber(\''+o.orderId+'\')">ບັນທຶກ</button>'+
       '</div>'+
+      (o.locationLat? 
+        '<h4 style="margin:18px 0 8px;font-size:13.5px;">📍 ພິກັດຈັດສົ່ງ</h4>'+
+        '<div style="border-radius:14px;overflow:hidden;border:1px solid var(--line);margin-bottom:8px;">'+
+          '<iframe src="https://maps.google.com/maps?q='+o.locationLat+','+o.locationLng+'&z=16&output=embed" style="width:100%;height:220px;border:0;" loading="lazy"></iframe>'+
+        '</div>'+
+        '<a href="https://www.google.com/maps?q='+o.locationLat+','+o.locationLng+'" target="_blank" class="btn-secondary" style="display:block;text-align:center;text-decoration:none;">🗺️ ເປີດໃນ Google Maps</a>'
+      : (o.locationLink? 
+        '<h4 style="margin:18px 0 8px;font-size:13.5px;">📍 ລິ້ງແຜນທີ່ຈາກລູກຄ້າ</h4>'+
+        '<a href="'+o.locationLink+'" target="_blank" class="btn-secondary" style="display:block;text-align:center;text-decoration:none;">🗺️ ເປີດລິ້ງແຜນທີ່</a>'
+      : ''))+
       (o.slipUrl? '<h4 style="margin:18px 0 8px;font-size:13.5px;">🧾 Slip ການໂອນ</h4><img src="'+o.slipUrl+'" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;border:1px solid var(--line);cursor:pointer;" onclick="openSlipLightbox(\''+o.slipUrl+'\')" onerror="imgFallback(this)">' : '')+
     '</div></div>';
 }
