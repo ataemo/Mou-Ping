@@ -1745,6 +1745,17 @@ function captureGPSLocation(){
     if(btn){ btn.disabled=false; btn.textContent='📍 ຈັບພິກັດປັດຈຸບັນ'; }
   }, {enableHighAccuracy:true, timeout:12000});
 }
+
+/* ═══════ ຄິດໄລ່ໄລຍະທາງເສັ້ນຊື່ (Haversine) ═══════ */
+function haversineKm(lat1, lng1, lat2, lng2){
+  const R = 6371;
+  const toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
 function parseGoogleMapsLink(url){
   if(!url) return null;
   let m = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
@@ -2850,7 +2861,8 @@ function buildOrdersTableHTML(orders){
     '<div id="ord-table-holder">'+buildOrdersTableOnlyHTML(filterOrdersList(orders))+'</div>'+
     '<div id="slip-lightbox" class="lightbox-overlay" onclick="closeSlipLightbox(event)"><button class="lightbox-close" onclick="closeSlipLightbox(event)">✕</button><img id="slip-lightbox-img" src=""></div>'+
     '<div id="order-detail-holder"></div>'+
-    '<div id="receipt-modal-holder"></div>';
+    '<div id="receipt-modal-holder"></div>'+
+    '<div id="location-modal-holder"></div>';
 }
 
 function buildOrdersTableOnlyHTML(orders){
@@ -2872,7 +2884,7 @@ function buildOrdersTableOnlyHTML(orders){
       '<td style="font-size:12px;">'+new Date(o.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+'</td>'+
       '<td><div class="ord-action-icons">'+
         '<button class="ord-icon-btn view" title="ລາຍລະອຽດ" onclick="openOrderDetailModal(\''+o.orderId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>'+
-        (o.locationLat||o.locationLink? '<button class="ord-icon-btn" title="ພິກັດຈັດສົ່ງ" style="color:#C23A4B;" onclick="window.open(\''+(o.locationLat? 'https://www.google.com/maps?q='+o.locationLat+','+o.locationLng : o.locationLink)+'\',\'_blank\')">📍</button>' : '')+
+        (o.locationLat||o.locationLink? '<button class="ord-icon-btn" title="ພິກັດຈັດສົ່ງ" style="color:#C23A4B;" onclick="openLocationModal(\''+o.orderId+'\')">📍</button>' : '')+
         '<button class="ord-icon-btn print" title="ພິມບິນ" onclick="openReceiptModal(\''+o.orderId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg></button>'+
         '<button class="ord-icon-btn del" title="ລຶບ" onclick="removeOrder(\''+o.orderId+'\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z"/></svg></button>'+
       '</div></td></tr>'
@@ -2945,20 +2957,59 @@ function openOrderDetailModal(orderId){
         '<input id="od-tracking-input" value="'+(o.trackingNumber||'')+'" placeholder="ໃສ່ Tracking Number..." style="flex:1;padding:11px;border-radius:12px;border:1.5px solid var(--line);background:var(--c-bg);color:var(--c-text);">'+
         '<button class="btn-sm primary" onclick="saveTrackingNumber(\''+o.orderId+'\')">ບັນທຶກ</button>'+
       '</div>'+
-      (o.locationLat? 
+      (o.locationLat||o.locationLink? 
         '<h4 style="margin:18px 0 8px;font-size:13.5px;">📍 ພິກັດຈັດສົ່ງ</h4>'+
-        '<div style="border-radius:14px;overflow:hidden;border:1px solid var(--line);margin-bottom:8px;">'+
-          '<iframe src="https://maps.google.com/maps?q='+o.locationLat+','+o.locationLng+'&z=16&output=embed" style="width:100%;height:220px;border:0;" loading="lazy"></iframe>'+
-        '</div>'+
-        '<a href="https://www.google.com/maps?q='+o.locationLat+','+o.locationLng+'" target="_blank" class="btn-secondary" style="display:block;text-align:center;text-decoration:none;">🗺️ ເປີດໃນ Google Maps</a>'
-      : (o.locationLink? 
-        '<h4 style="margin:18px 0 8px;font-size:13.5px;">📍 ລິ້ງແຜນທີ່ຈາກລູກຄ້າ</h4>'+
-        '<a href="'+o.locationLink+'" target="_blank" class="btn-secondary" style="display:block;text-align:center;text-decoration:none;">🗺️ ເປີດລິ້ງແຜນທີ່</a>'
-      : ''))+
+        '<button type="button" class="btn-secondary" style="width:100%;" onclick="closeOrderDetailModal();openLocationModal(\''+o.orderId+'\')">🗺️ ເບິ່ງແຜນທີ່ ແລະ ໄລຍະທາງ</button>'
+      : '')+
       (o.slipUrl? '<h4 style="margin:18px 0 8px;font-size:13.5px;">🧾 Slip ການໂອນ</h4><img src="'+o.slipUrl+'" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;border:1px solid var(--line);cursor:pointer;" onclick="openSlipLightbox(\''+o.slipUrl+'\')" onerror="imgFallback(this)">' : '')+
     '</div></div>';
 }
 function closeOrderDetailModal(){ document.getElementById('order-detail-holder').innerHTML=''; }
+
+/* ── location popup (map + address + distance + open in maps) ─────────── */
+function openLocationModal(orderId){
+  const o = state.admin.orders.find(x=>x.orderId===orderId);
+  if(!o || (!o.locationLat && !o.locationLink)) return;
+  const hasCoords = !!o.locationLat;
+  const s = state.settings;
+  const hasStoreCoords = s.storeLat && s.storeLng;
+
+  let distanceHtml = '';
+  if(hasCoords && hasStoreCoords){
+    const km = haversineKm(Number(s.storeLat), Number(s.storeLng), Number(o.locationLat), Number(o.locationLng));
+    const estMin = Math.round(km / 30 * 60); // ປະເມີນຄວາມໄວສະເລ່ຍ 30km/h ໃນຕົວເມືອງ
+    distanceHtml = '<div class="od-row"><span class="od-label">📏 ໄລຍະທາງຈາກຮ້ານ</span><span class="od-value">~'+km.toFixed(1)+' km</span></div>'+
+      '<div class="od-row"><span class="od-label">⏱️ ເວລາຂັບຂີ່ໂດຍປະມານ</span><span class="od-value">~'+estMin+' ນາທີ</span></div>';
+  }
+
+  const mapEmbed = hasCoords
+    ? '<iframe src="https://maps.google.com/maps?q='+o.locationLat+','+o.locationLng+'&z=16&output=embed" style="width:100%;height:260px;border:0;" loading="lazy"></iframe>'
+    : '';
+  const mapsUrl = hasCoords ? ('https://www.google.com/maps?q='+o.locationLat+','+o.locationLng) : o.locationLink;
+  const dirUrl = (hasCoords && hasStoreCoords)
+    ? ('https://www.google.com/maps/dir/?api=1&origin='+s.storeLat+','+s.storeLng+'&destination='+o.locationLat+','+o.locationLng)
+    : mapsUrl;
+
+  document.getElementById('location-modal-holder').innerHTML =
+    '<div class="overlay show" onclick="closeLocationModal()"></div>'+
+    '<div class="sheet show" style="position:fixed;">'+
+    '<div class="sheet-handle"></div>'+
+    '<div class="sheet-head"><h3>📍 ພິກັດຈັດສົ່ງ — '+o.orderId+'</h3><button class="sheet-close" onclick="closeLocationModal()">✕</button></div>'+
+    '<div class="sheet-body">'+
+      (mapEmbed? '<div style="border-radius:14px;overflow:hidden;border:1px solid var(--line);margin-bottom:14px;">'+mapEmbed+'</div>' : '<div class="empty-state" style="padding:20px 0;"><div class="ico">🔗</div><p>ມີແຕ່ລິ້ງແຜນທີ່ຈາກລູກຄ້າ (ບໍ່ໄດ້ພິກັດແທ້)</p></div>')+
+      '<div class="od-row"><span class="od-label">👤 ລູກຄ້າ</span><span class="od-value">'+o.customerName+'</span></div>'+
+      '<div class="od-row"><span class="od-label">📞 ເບີໂທ</span><span class="od-value">'+o.phone+'</span></div>'+
+      '<div class="od-row"><span class="od-label">🏠 ທີ່ຢູ່ (ທີ່ລູກຄ້າພິມ)</span><span class="od-value">'+(o.address||'-')+'</span></div>'+
+      (hasCoords? '<div class="od-row"><span class="od-label">🧭 ພິກັດ GPS</span><span class="od-value">'+Number(o.locationLat).toFixed(5)+', '+Number(o.locationLng).toFixed(5)+'</span></div>' : '')+
+      distanceHtml+
+      (hasCoords && !hasStoreCoords? '<p style="font-size:11px;color:var(--ink-soft);margin:10px 0 0;">💡 ຕັ້ງຄ່າ "ຕຳແໜ່ງຮ້ານ" ໃນ ໜ້າ ຮ້ານ & ໂຕນຮັບ ເພື່ອໃຫ້ລະບົບຄິດໄລ່ໄລຍະທາງ ແລະ ເວລາຂັບຂີ່ໃຫ້ອັດຕະໂນມັດ</p>' : '')+
+      '<div style="display:flex;gap:8px;margin-top:18px;">'+
+        '<a href="'+mapsUrl+'" target="_blank" class="btn-secondary" style="text-decoration:none;text-align:center;flex:1;">🗺️ ເປີດແຜນທີ່</a>'+
+        (hasStoreCoords && hasCoords? '<a href="'+dirUrl+'" target="_blank" class="btn-primary" style="text-decoration:none;text-align:center;flex:1;">🛵 ນຳທາງ</a>' : '')+
+      '</div>'+
+    '</div></div>';
+}
+function closeLocationModal(){ document.getElementById('location-modal-holder').innerHTML=''; }
 async function updateOrderStatusFromDetail(orderId){
   const status = document.getElementById('od-status-select').value;
   syncOrdersCacheAndDashboard(await api.updateOrderStatus(state.admin.token, orderId, status));
@@ -3927,6 +3978,16 @@ function renderAdminSettings(){
   '<div class="field"><label>ທີ່ຢູ່</label><input id="st-addr" value="'+s.address+'"></div>'+
   '</div></div>'+
 
+  '<div class="a-panel"><h4>📍 ຕຳແໜ່ງຮ້ານ (ສຳລັບຄິດໄລ່ໄລຍະທາງຈັດສົ່ງ)</h4>'+
+  '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 12px;">ຕັ້ງຄ່າຄັ້ງດຽວ ລະບົບຈະໃຊ້ຄິດໄລ່ໄລຍະທາງ ແລະ ເວລາຂັບຂີ່ ຈາກຮ້ານໄປຫາລູກຄ້າອັດຕະໂນມັດ ໃນໜ້າ "ພິກັດຈັດສົ່ງ"</p>'+
+  '<button type="button" class="btn-secondary" id="store-gps-btn" onclick="captureStoreLocation()" style="margin-bottom:10px;">📍 ຈັບພິກັດຮ້ານປັດຈຸບັນ</button>'+
+  '<div class="grid-2">'+
+  '<div class="field"><label>Latitude</label><input type="text" id="st-storelat" value="'+(s.storeLat||'')+'"></div>'+
+  '<div class="field"><label>Longitude</label><input type="text" id="st-storelng" value="'+(s.storeLng||'')+'"></div>'+
+  '</div>'+
+  (s.storeLat && s.storeLng? '<div style="border-radius:14px;overflow:hidden;border:1px solid var(--line);"><iframe src="https://maps.google.com/maps?q='+s.storeLat+','+s.storeLng+'&z=16&output=embed" style="width:100%;height:180px;border:0;" loading="lazy"></iframe></div>' : '')+
+  '</div>'+
+
   '<div class="a-panel"><h4>🏦 ຂໍ້ມູນຊຳລະເງິນ (ໂອນ/QR)</h4>'+
   '<div class="grid-2">'+
   '<div class="field"><label>ຊື່ທະນາຄານ</label><input id="st-bankname" value="'+(s.bankName||'')+'"></div>'+
@@ -3989,6 +4050,21 @@ function renderAdminSettings(){
 
   updateFontPreview();
   document.getElementById('st-font').addEventListener('change', updateFontPreview);
+}
+
+function captureStoreLocation(){
+  if(!navigator.geolocation){ toast('ອຸປະກອນນີ້ບໍ່ຮອງຮັບ GPS','⚠️'); return; }
+  const btn = document.getElementById('store-gps-btn');
+  if(btn){ btn.disabled=true; btn.textContent='📡 ກຳລັງຈັບພິກັດ...'; }
+  navigator.geolocation.getCurrentPosition(function(pos){
+    document.getElementById('st-storelat').value = pos.coords.latitude;
+    document.getElementById('st-storelng').value = pos.coords.longitude;
+    toast('ຈັບພິກັດຮ້ານສຳເລັດ — ຢ່າລືມກົດ "ບັນທຶກການຕັ້ງຄ່າ"','📍');
+    if(btn){ btn.disabled=false; btn.textContent='📍 ຈັບພິກັດຮ້ານປັດຈຸບັນ'; }
+  }, function(){
+    toast('ຈັບພິກັດບໍ່ສຳເລັດ ກະລຸນາອະນຸຍາດ GPS','⚠️');
+    if(btn){ btn.disabled=false; btn.textContent='📍 ຈັບພິກັດຮ້ານປັດຈຸບັນ'; }
+  }, {enableHighAccuracy:true, timeout:12000});
 }
 
 function updateFontPreview(){
@@ -4070,7 +4146,8 @@ async function saveAllSettings(){
     fontPairing: val('st-font'),
     deliveryFeeDefault:val('st-delivery'), taxPercent:val('st-tax'), serviceFeePercent:val('st-service'),
     themePreset: state.settings.themePreset||'Ivory Aurum',
-    bankName:val('st-bankname'), bankAccountNumber:val('st-bankacc'), bankAccountHolder:val('st-bankholder'), bankQrUrl:val('st-bankqr')
+    bankName:val('st-bankname'), bankAccountNumber:val('st-bankacc'), bankAccountHolder:val('st-bankholder'), bankQrUrl:val('st-bankqr'),
+    storeLat: val('st-storelat'), storeLng: val('st-storelng')
   };
   Object.keys(ICON_LABELS).forEach(function(key){
     newS['icon_'+key] = document.getElementById('icon-in-'+key).value.trim();
