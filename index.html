@@ -685,7 +685,6 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <button class="btn-ghost" onclick="openAccountSheet();closeHamburger();" style="text-align:left;">👤 ບັນຊີຂອງຂ້ອຍ</button>
       <button class="btn-ghost" onclick="toggleDarkMode();closeHamburger();" style="text-align:left;">🌓 ໂໝດມືດ / ສະຫວ່າງ</button>
       <button class="btn-secondary" onclick="openRiderSheet();closeHamburger();" style="margin-bottom:8px;">🛵 ຮັບອໍເດີ (Rider)</button>
-      <button class="btn-secondary" onclick="openRiderSheet();closeHamburger();" style="margin-bottom:8px;">🛵 ຮັບອໍເດີ (Rider)</button>
       <div class="gilt-divider"><div class="ln"></div><div class="gem"></div><div class="ln"></div></div>
       <button class="btn-primary" onclick="adminEntry();closeHamburger();">🔐 ເຂົ້າລະບົບຫຼັງບ້ານ (Admin)</button>
     </div>
@@ -898,7 +897,7 @@ const DEFAULT_ICONS = {
   a_banners:'<svg class="ico" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 15l5-5 4 4 5-5 4 4"/></svg>',
   a_finance:'<svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
   a_settings:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
-  a_users:'<svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+  a_users:'<svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
   a_riders:'<svg class="ico" viewBox="0 0 24 24"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M5 18l4-9h4l3 5h3M9 9l3-4h3"/></svg>',
 };
 const ICON_LABELS = {
@@ -1000,6 +999,7 @@ const state = {
     pageAccess: JSON.parse(localStorage.getItem('pk_admin_user')||'{}').pageAccess||'',
     page:'dashboard', orders:[], stats:null, seenOrderIds:null, pollTimer:null, orderFilter:'all', orderSearchQuery:'',
     dashRange:{preset:'7d', start:null, end:null}, financeRange:{preset:null, start:null, end:null},
+    riderStatsRange:{preset:null, start:null, end:null},
     financeTx:[], charts:{line:null, pie:null, financeLine:null, financePie:null},
     productFilter:'all', productSearchQuery:'', productSort:'name', dashLoading:false, _hasPendingOrders:false },
   customer: JSON.parse(localStorage.getItem('pk_customer')||'{}'),
@@ -1075,10 +1075,12 @@ const api = {
   riderLogin: (username, password) => callApi('riderLogin', {username, password}),
   riderLogout: (token) => callApi('riderLogout', {token}),
   riderLookupOrders: (token, code) => callApi('riderLookupOrders', {token, code}),
+  riderGetPendingOrders: (token) => callApi('riderGetPendingOrders', {token}),
   riderMarkDelivered: (token, orderId) => callApi('riderMarkDelivered', {token, orderId}),
   getRiders: (token) => callApi('getRiders', {token}),
   saveRider: (token, rider) => callApi('saveRider', {token, rider}),
-  deleteRider: (token, username) => callApi('deleteRider', {token, username})
+  deleteRider: (token, username) => callApi('deleteRider', {token, username}),
+  getRiderStats: (token, startDate, endDate) => callApi('getRiderStats', {token, startDate, endDate})
 };
 /* ── formatting ─────────────────────────────────────────────── */
 function money(n){
@@ -1373,6 +1375,7 @@ function closeSheet(id){
   document.getElementById(id+'-overlay').classList.remove('show');
   document.getElementById(id+'-sheet').classList.remove('show');
   if(id==='track'){ clearInterval(state._trackTimer); }
+  if(id==='rider'){ clearInterval(state.rider._pendingTimer); }
 }
 function toggleHamburger(){
   document.getElementById('hamburger-overlay').classList.add('show');
@@ -1997,11 +2000,47 @@ function renderRiderBody(){
       '</div>';
     return;
   }
+  const tab = state.rider.viewTab || 'search';
   body.innerHTML =
     '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">🛵 ສະບາຍດີ <b>'+(state.rider.fullName||state.rider.username)+'</b> — <a href="javascript:void(0)" onclick="riderDoLogout()" style="color:var(--c-primary);font-weight:700;">ອອກຈາກລະບົບ</a></p>'+
-    '<div class="field"><label>ໃສ່ 4 ໂຕທ້າຍລະຫັດອໍເດີ (ຫຼືລະຫັດເຕັມ)</label><input id="rider-code-input" placeholder="ເຊັ່ນ: 8636" onkeydown="if(event.key===\'Enter\')riderSearch()"></div>'+
-    '<button class="btn-primary" onclick="riderSearch()">🔍 ຄົ້ນຫາອໍເດີ</button>'+
-    '<div id="rider-result" style="margin-top:16px;"></div>';
+    '<div class="seg" style="margin-bottom:14px;">'+
+      '<div class="seg-btn '+(tab==='search'?'active':'')+'" onclick="riderSwitchTab(\'search\')">🔍 ຄົ້ນຫາ</div>'+
+      '<div class="seg-btn '+(tab==='pending'?'active':'')+'" onclick="riderSwitchTab(\'pending\')">📦 ລໍຖ້າຈັດສົ່ງ</div>'+
+    '</div>'+
+    (tab==='search'?
+      '<div class="field"><label>ໃສ່ 4 ໂຕທ້າຍລະຫັດອໍເດີ (ຫຼືລະຫັດເຕັມ)</label><input id="rider-code-input" placeholder="ເຊັ່ນ: 8636" onkeydown="if(event.key===\'Enter\')riderSearch()"></div>'+
+      '<button class="btn-primary" onclick="riderSearch()">🔍 ຄົ້ນຫາອໍເດີ</button>'+
+      '<div id="rider-result" style="margin-top:16px;"></div>'
+    :
+      '<div id="rider-pending-result"><p style="text-align:center;color:var(--ink-soft);">ກຳລັງໂຫຼດ...</p></div>'
+    );
+  if(tab==='pending'){
+    riderLoadPending();
+    clearInterval(state.rider._pendingTimer);
+    state.rider._pendingTimer = setInterval(riderLoadPending, 15000); // ອັບເດດອັດຕະໂນມັດທຸກ 15s
+  } else {
+    clearInterval(state.rider._pendingTimer);
+  }
+}
+function riderSwitchTab(tab){
+  state.rider.viewTab = tab;
+  renderRiderBody();
+}
+async function riderLoadPending(){
+  const box = document.getElementById('rider-pending-result');
+  if(!box) return;
+  try{
+    const orders = await api.riderGetPendingOrders(state.rider.token);
+    if(!orders.length){
+      box.innerHTML = '<div class="empty-state"><div class="ico">✅</div><h4>ບໍ່ມີອອເດີຄ້າງ</h4><p>ອອເດີທັງໝົດຖືກຈັດສົ່ງ ຫຼື ຈັດການແລ້ວ</p></div>';
+      return;
+    }
+    box.innerHTML = orders.map(o=>riderOrderCardHtml(o)).join('');
+  }catch(e){
+    if(String(e.message||'').indexOf('UNAUTHORIZED')>-1){ toast('ໝົດເວລາເຂົ້າສູ່ລະບົບ','⏰'); riderDoLogout(); }
+    else box.innerHTML = '<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>';
+    console.error(e);
+  }
 }
 async function riderDoLogin(){
   const username = document.getElementById('rider-username-input').value.trim();
@@ -2019,6 +2058,7 @@ async function riderDoLogin(){
   }catch(e){ toast('ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ','⚠️'); console.error(e); }
 }
 async function riderDoLogout(){
+  clearInterval(state.rider._pendingTimer);
   try{ await api.riderLogout(state.rider.token); }catch(e){}
   state.rider = {token:null, username:null, fullName:null};
   localStorage.removeItem('pk_rider_token'); localStorage.removeItem('pk_rider_user');
@@ -2063,7 +2103,7 @@ async function riderConfirmDelivered(orderId){
   try{
     await api.riderMarkDelivered(state.rider.token, orderId);
     toast('ບັນທຶກການສົ່ງສຳເລັດແລ້ວ','🎉');
-    riderSearch();
+    if((state.rider.viewTab||'search')==='pending') riderLoadPending(); else riderSearch();
   }catch(e){
     if(String(e.message||'').indexOf('UNAUTHORIZED')>-1){ toast('ໝົດເວລາເຂົ້າສູ່ລະບົບ','⏰'); riderDoLogout(); }
     else toast('ບັນທຶກບໍ່ສຳເລັດ','⚠️');
@@ -3883,9 +3923,17 @@ async function removeUser(username){
    ═══════════════════════════════════════════════════════════════ */
 async function renderAdminRiders(){
   const main = document.getElementById('admin-main');
+  if(!state.admin.riderStatsRange.start){
+    const r = dashRangeFor('7d');
+    state.admin.riderStatsRange = {preset:'7d', start:r.start, end:r.end};
+  }
   main.innerHTML = '<div class="a-title-row"><h2>🛵 ບັນຊີ Rider</h2><button class="btn-sm primary" onclick="openRiderAccountForm()">+ ເພີ່ມ Rider</button></div>'+
     '<div id="riders-grid-holder">'+dashboardSkeletonHTML()+'</div>'+
-    '<div id="rider-account-form-holder"></div>';
+    '<div id="rider-account-form-holder"></div>'+
+    '<div class="a-panel"><h4>💰 ສະຫຼຸບຄ່າຄອມມິດຊັ່ນ / ຈຳນວນອອເດີທີ່ສົ່ງ</h4>'+
+      riderStatsToolbarHTML()+
+      '<div id="rider-stats-holder">'+dashboardSkeletonHTML()+'</div>'+
+    '</div>';
   try{
     const riders = await api.getRiders(state.admin.token);
     state.admin.ridersList = riders;
@@ -3894,6 +3942,61 @@ async function renderAdminRiders(){
     document.getElementById('riders-grid-holder').innerHTML = '<div class="a-panel"><p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: '+(e.message||'')+'</p></div>';
     console.error(e);
   }
+  loadRiderStats();
+}
+function riderStatsToolbarHTML(){
+  const r = state.admin.riderStatsRange;
+  const presets = [['today','ມື້ນີ້'],['7d','7 ວັນ'],['month','ເດືອນນີ້'],['year','ປີນີ້']];
+  const rangeText = r.start===r.end ? r.start : (r.start+' ຫາ '+r.end);
+  return '<div class="dash-toolbar" style="margin-bottom:10px;">'+
+    '<div class="dash-presets">'+presets.map(p=>'<button class="dash-preset-btn '+(r.preset===p[0]?'active':'')+'" onclick="setRiderStatsPreset(\''+p[0]+'\')">'+p[1]+'</button>').join('')+'</div>'+
+    '<div class="dash-daterange">'+
+      '<span class="dash-daterange-ico">📅</span>'+
+      '<input type="date" id="rs-start" value="'+r.start+'">'+
+      '<span>→</span>'+
+      '<input type="date" id="rs-end" value="'+r.end+'">'+
+      '<button class="dash-apply-btn" onclick="setRiderStatsCustom()">🔍 ຄົ້ນຫາ</button>'+
+      (r.preset==='custom'? '<button class="dash-clear-btn" onclick="clearRiderStatsCustom()" title="ລ້າງ">✕</button>' : '')+
+    '</div>'+
+    '<div class="dash-range-summary">📊 ສະແດງຂໍ້ມູນ: <b>'+rangeText+'</b></div>'+
+  '</div>';
+}
+function setRiderStatsPreset(p){
+  if(p==='custom'){ state.admin.riderStatsRange.preset='custom'; renderAdminRiders(); return; }
+  const r = dashRangeFor(p);
+  state.admin.riderStatsRange = {preset:p, start:r.start, end:r.end};
+  renderAdminRiders();
+}
+function setRiderStatsCustom(){
+  const s = document.getElementById('rs-start').value;
+  const e = document.getElementById('rs-end').value;
+  if(!s || !e){ toast('ກະລຸນາເລືອກວັນທີໃຫ້ຄົບທັງ 2 ຊ່ອງ','⚠️'); return; }
+  if(s > e){ toast('ວັນທີເລີ່ມຕົ້ນຕ້ອງມາກ່ອນວັນທີສິ້ນສຸດ','⚠️'); return; }
+  state.admin.riderStatsRange = {preset:'custom', start:s, end:e};
+  renderAdminRiders();
+}
+function clearRiderStatsCustom(){
+  const r = dashRangeFor('7d');
+  state.admin.riderStatsRange = {preset:'7d', start:r.start, end:r.end};
+  renderAdminRiders();
+}
+async function loadRiderStats(){
+  const holder = document.getElementById('rider-stats-holder');
+  if(!holder) return;
+  try{
+    const res = await api.getRiderStats(state.admin.token, state.admin.riderStatsRange.start, state.admin.riderStatsRange.end);
+    if(!res.riders.length){
+      holder.innerHTML = '<div class="empty-state"><div class="ico">🛵</div><h4>ຍັງບໍ່ມີການສົ່ງ</h4><p>ຍັງບໍ່ມີອອເດີທີ່ Rider ສົ່ງສຳເລັດໃນຊ່ວງນີ້</p></div>';
+      return;
+    }
+    holder.innerHTML = '<p style="font-size:11.5px;color:var(--ink-soft);margin:0 0 10px;">ຄ່າຄອມມິດຊັ່ນ/ອອເດີ: <b>'+money(res.commissionPerOrder)+'</b> (ປັບໄດ້ທີ່ ຮ້ານ & ໂຕນຮັບ → ຄວາມປອດໄພ)</p>'+
+      '<div style="overflow-x:auto;"><table class="a-table"><thead><tr><th>Rider</th><th>ຈຳນວນອອເດີ</th><th>ຄ່າຄອມມິດຊັ່ນ</th></tr></thead><tbody>'+
+      res.riders.map(function(r){
+        return '<tr><td>'+r.riderName+'</td><td class="num">'+r.orderCount+'</td><td class="num" style="color:var(--success);font-weight:700;">'+money(r.commission)+'</td></tr>';
+      }).join('')+
+      '</tbody></table></div>'+
+      '<div style="margin-top:10px;font-size:13px;font-weight:800;">ລວມທັງໝົດ: '+res.totalOrders+' ອອເດີ</div>';
+  }catch(e){ holder.innerHTML = '<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; console.error(e); }
 }
 function buildRidersGridHTML(riders){
   if(!riders || riders.length===0){
@@ -4296,7 +4399,7 @@ function renderAdminSettings(){
 
   '<div class="a-panel"><h4>🔐 ຄວາມປອດໄພ</h4>'+
   '<div class="field"><label>ປ່ຽນລະຫັດຜ່ານແອັດມິນ (ຫວ່າງໄວ້ = ບໍ່ປ່ຽນ)</label><input type="password" id="st-pw" placeholder="ລະຫັດຜ່ານໃໝ່"></div>'+
-  '<div class="field"><label>🛵 ລະຫັດ PIN ສຳລັບ Rider</label><input type="text" id="st-riderpin" value="'+(s.riderPin||'9999')+'" placeholder="ເຊັ່ນ: 9999"></div></div>'+
+  '<div class="field"><label>💰 ຄ່າຄອມມິດຊັ່ນ Rider ຕໍ່ 1 ອອເດີ (₭)</label><input type="number" id="st-ridercommission" value="'+(s.riderCommissionPerOrder||5000)+'" placeholder="5000"></div></div>'+
 
   '<button class="btn-primary" onclick="saveAllSettings()">💾 ບັນທຶກການຕັ້ງຄ່າທັງໝົດ</button>';
 
@@ -4405,7 +4508,7 @@ async function saveAllSettings(){
     newS['icon_'+key] = document.getElementById('icon-in-'+key).value.trim();
   });
   const pw = val('st-pw'); if(pw) newS.adminPassword = pw;
-  newS.riderPin = val('st-riderpin');
+  newS.riderCommissionPerOrder = val('st-ridercommission');
   state.settings = await api.saveSettings(state.admin.token, newS);
   applyTheme(); renderHeader(); applyAllIcons();
   toast('ບັນທຶກການຕັ້ງຄ່າແລ້ວ','✅');
