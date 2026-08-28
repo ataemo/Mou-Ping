@@ -1043,6 +1043,7 @@ const api = {
   uploadAvatar: (base64, fileName, mimeType) => callApi('uploadAvatar', {base64, fileName, mimeType}),
   uploadPhoto: (base64, fileName, mimeType) => callApi('uploadPhoto', {base64, fileName, mimeType}),
   getOrdersByPhone: (phone) => callApi('getOrdersByPhone', {phone}),
+  resolveMapsLink: (url) => callApi('resolveMapsLink', {url}),
   saveTransaction: (token, transaction) => callApi('saveTransaction', {token, transaction}),
   deleteTransaction: (token, id) => callApi('deleteTransaction', {token, id}),
   getTransactions: (token, startDate, endDate) => callApi('getTransactions', {token, startDate, endDate}),
@@ -1766,19 +1767,42 @@ function parseGoogleMapsLink(url){
   if(m) return {lat:parseFloat(m[1]), lng:parseFloat(m[2])};
   return null;
 }
-function handleMapsLinkInput(v){
+function isShortMapsLink(url){
+  return /goo\.gl\/|maps\.app\.goo\.gl|g\.co\/kgs/i.test(url||'');
+}
+async function handleMapsLinkInput(v){
   captureCheckoutDraft();
   v = (v||'').trim();
   checkoutState.locationLink = v;
-  if(v && !/^https?:\/\//i.test(v)){
+  if(!v) return;
+
+  if(!/^https?:\/\//i.test(v)){
     toast('ລິ້ງບໍ່ຖືກຕ້ອງ — ກະລຸນາວາງລິ້ງເຕັມທີ່ຂຶ້ນຕົ້ນດ້ວຍ https://','⚠️');
+    return;
   }
+
   const coords = parseGoogleMapsLink(v);
   if(coords){
     checkoutState.locationLat = coords.lat;
     checkoutState.locationLng = coords.lng;
     renderCartBody();
     toast('ດຶງພິກັດຈາກລິ້ງສຳເລັດ','📍');
+    return;
+  }
+
+  if(isShortMapsLink(v)){
+    toast('ກຳລັງແກະລິ້ງຫຍໍ້... ລໍຖ້າແປ໊ບໜຶ່ງ','⏳');
+    try{
+      const res = await api.resolveMapsLink(v);
+      checkoutState.locationLat = res.lat;
+      checkoutState.locationLng = res.lng;
+      checkoutState.locationLink = res.resolvedUrl || v;
+      renderCartBody();
+      toast('ດຶງພິກັດຈາກລິ້ງຫຍໍ້ສຳເລັດ','📍');
+    }catch(err){
+      toast('ແກະລິ້ງບໍ່ສຳເລັດ — ລອງໃຊ້ປຸ່ມ GPS ແທນ','⚠️');
+      console.error(err);
+    }
   }
 }
 function removeLocation(){
