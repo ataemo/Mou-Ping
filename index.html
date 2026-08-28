@@ -1012,9 +1012,9 @@ const state = {
 /* ── API ຜ່ານ fetch() ໄປຫາ Apps Script Web App ─────────────────── */
 const API_BASE_URL = 'https://script.google.com/macros/s/AKfycbxq3b114K4f_8zVQIh9HlC_5NLRGLNEeZAIJqorP6faLTsvGpX9AiInsL-9AUZavFvgMg/exec';
 
-function callApi(action, params){
+function callApi(action, params, timeoutMs){
   const controller = new AbortController();
-  const timeoutId = setTimeout(()=>controller.abort(), 20000); // ★ 20 ວິນາທີ ຕັດ ບໍ່ໃຫ້ຄ້າງຕະຫຼອດ
+  const timeoutId = setTimeout(()=>controller.abort(), timeoutMs || 20000);
   return fetch(API_BASE_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1029,7 +1029,7 @@ function callApi(action, params){
   })
   .catch(err=>{
     clearTimeout(timeoutId);
-    if(err.name==='AbortError') throw new Error('ການເຊື່ອມຕໍ່ຊ້າເກີນໄປ ລອງໃໝ່ອີກຄັ້ງ');
+    if(err.name==='AbortError') throw new Error('ການເຊື່ອມຕໍ່ຊ້າເກີນໄປ (ຮູບອາດຈະຖືກອັບໂຫລດເຂົ້າ Drive ແລ້ວ ກະລຸນາກວດກ່ອນອັບຊ້ຳ)');
     throw err;
   });
 }
@@ -1056,9 +1056,9 @@ const api = {
   deleteBanner: (token, id) => callApi('deleteBanner', {token, id}),
   saveSettings: (token, settings) => callApi('saveSettings', {token, settings}),
   getSettings: () => callApi('getSettings'),
-  uploadSlip: (base64, fileName, mimeType) => callApi('uploadSlip', {base64, fileName, mimeType}),
-  uploadAvatar: (base64, fileName, mimeType) => callApi('uploadAvatar', {base64, fileName, mimeType}),
-  uploadPhoto: (base64, fileName, mimeType) => callApi('uploadPhoto', {base64, fileName, mimeType}),
+  uploadSlip: (base64, fileName, mimeType) => callApi('uploadSlip', {base64, fileName, mimeType}, 60000),
+  uploadAvatar: (base64, fileName, mimeType) => callApi('uploadAvatar', {base64, fileName, mimeType}, 60000),
+  uploadPhoto: (base64, fileName, mimeType) => callApi('uploadPhoto', {base64, fileName, mimeType}, 60000),
   getOrdersByPhone: (phone) => callApi('getOrdersByPhone', {phone}),
   resolveMapsLink: (url) => callApi('resolveMapsLink', {url}),
   riderLookupOrders: (pin, code) => callApi('riderLookupOrders', {pin, code}),
@@ -1120,6 +1120,28 @@ function toast(msg, icon){
   wrap.appendChild(t);
   requestAnimationFrame(()=>t.classList.add('show'));
   setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),300); }, 2600);
+}
+
+function resizeImageToDataUrl(file, maxSize, quality){
+  return new Promise(function(resolve, reject){
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const img = new Image();
+      img.onload = function(){
+        let w = img.width, h = img.height;
+        if(w > h){ if(w > maxSize){ h = Math.round(h*maxSize/w); w = maxSize; } }
+        else { if(h > maxSize){ w = Math.round(w*maxSize/h); h = maxSize; } }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality||0.85));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -4433,16 +4455,14 @@ function handleQrUpload(input){
   const file = input.files[0];
   if(!file) return;
   const statusEl = document.getElementById('qr-upload-status');
-  statusEl.textContent = 'ກຳລັງອັບໂຫລດ...';
-  const reader = new FileReader();
-  reader.onload = async function(e){
+  statusEl.textContent = 'ກຳລັງຫຍໍ້ຂະໜາດ ແລະ ອັບໂຫລດ...';
+  resizeImageToDataUrl(file, 900, 0.85).then(async function(dataUrl){
     try{
-      const res = await api.uploadPhoto(e.target.result, file.name, file.type);
+      const res = await api.uploadPhoto(dataUrl, 'qr_'+Date.now()+'.jpg', 'image/jpeg');
       document.getElementById('st-bankqr').value = res.url;
       statusEl.textContent = '✅ ອັບໂຫລດສຳເລັດ — ກົດ "ບັນທຶກການຕັ້ງຄ່າ" ເພື່ອບັນທຶກ';
-    }catch(err){ statusEl.textContent='⚠️ ອັບໂຫລດບໍ່ສຳເລັດ'; console.error(err); }
-  };
-  reader.readAsDataURL(file);
+    }catch(err){ statusEl.textContent='⚠️ '+(err.message||'ອັບໂຫລດບໍ່ສຳເລັດ'); console.error(err); }
+  }).catch(function(err){ statusEl.textContent='⚠️ ອ່ານໄຟລ໌ຮູບບໍ່ສຳເລັດ'; console.error(err); });
 }
 
 function previewLogoUpload(url){
