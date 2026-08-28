@@ -662,6 +662,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
     <button class="dnav-btn" id="dnav-menu" onclick="dnavSelect(this);openMenuPage()">🍽️ <span>ເມນູ</span></button>
     <button class="dnav-btn" id="dnav-orders" onclick="dnavSelect(this);openTrackSheet()">📦 <span>ຕິດຕາມ</span></button>
     <button class="dnav-btn" id="dnav-account" onclick="dnavSelect(this);openAccountSheet()">👤 <span>ບັນຊີ</span></button>
+    <button class="dnav-btn" onclick="openRiderSheet()">🛵 <span>Rider</span></button>
     <button class="dnav-btn dnav-admin" id="dnav-admin" style="display:none;" onclick="adminEntry()">⚡ <span>Admin</span></button>
   </nav>
   <button class="icon-btn" onclick="openSearch()" aria-label="search" id="btn-search"></button>
@@ -683,6 +684,8 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <button class="btn-ghost" onclick="openTrackSheet();closeHamburger();" style="text-align:left;">📦 ຕິດຕາມອອເດີ</button>
       <button class="btn-ghost" onclick="openAccountSheet();closeHamburger();" style="text-align:left;">👤 ບັນຊີຂອງຂ້ອຍ</button>
       <button class="btn-ghost" onclick="toggleDarkMode();closeHamburger();" style="text-align:left;">🌓 ໂໝດມືດ / ສະຫວ່າງ</button>
+      <button class="btn-secondary" onclick="openRiderSheet();closeHamburger();" style="margin-bottom:8px;">🛵 ຮັບອໍເດີ (Rider)</button>
+      <button class="btn-secondary" onclick="openRiderSheet();closeHamburger();" style="margin-bottom:8px;">🛵 ຮັບອໍເດີ (Rider)</button>
       <div class="gilt-divider"><div class="ln"></div><div class="gem"></div><div class="ln"></div></div>
       <button class="btn-primary" onclick="adminEntry();closeHamburger();">🔐 ເຂົ້າລະບົບຫຼັງບ້ານ (Admin)</button>
     </div>
@@ -803,6 +806,14 @@ table.a-table tr:hover td{background:var(--c-bg);}
   </div>
 </div>
 
+<!-- ══════════════ RIDER SHEET ══════════════ -->
+<div class="overlay" id="rider-overlay" onclick="closeSheet('rider')"></div>
+<div class="sheet" id="rider-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><h3>🛵 Rider ຈັດສົ່ງ</h3><button class="sheet-close" onclick="closeSheet('rider')">✕</button></div>
+  <div class="sheet-body" id="rider-body"></div>
+</div>
+
 <!-- ══════════════ WISHLIST SHEET ══════════════ -->
 <div class="overlay" id="wishlist-overlay" onclick="closeSheet('wishlist')"></div>
 <div class="sheet" id="wishlist-sheet">
@@ -856,6 +867,7 @@ table.a-table tr:hover td{background:var(--c-bg);}
       <div class="a-nav-sec">ຕັ້ງຄ່າ</div>
       <div class="a-nav-item" data-page="settings" onclick="gotoAdminPage('settings')" id="sb-settings"><span>ຮ້ານ &amp; ໂຕນຮັບ</span></div>
       <div class="a-nav-item" data-page="users" onclick="gotoAdminPage('users')" id="sb-users"><span>ຜູ້ໃຊ້ງານ</span></div>
+      <div class="a-nav-item" data-page="riders" onclick="gotoAdminPage('riders')" id="sb-riders"><span>Rider</span></div>
       <div style="margin-top:auto;padding:14px 20px;border-top:1px solid color-mix(in srgb, var(--c-accent) 20%, transparent);">
         <span id="admin-user-label" style="font-size:12px;opacity:.9;display:block;"></span>
       </div>
@@ -887,6 +899,7 @@ const DEFAULT_ICONS = {
   a_finance:'<svg class="ico" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
   a_settings:'<svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
   a_users:'<svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>'
+  a_riders:'<svg class="ico" viewBox="0 0 24 24"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M5 18l4-9h4l3 5h3M9 9l3-4h3"/></svg>',
 };
 const ICON_LABELS = {
   search:'ຄົ້ນຫາ (Header)', orders:'ອອເດີ (Header)', cart:'ກະຕ່າ (Header)', menu:'ເມນູ (Header)',
@@ -894,11 +907,12 @@ const ICON_LABELS = {
   dashboard:'Dashboard (Admin)', a_orders:'ອອເດີ (Admin)', a_products:'ສິນຄ້າ (Admin)',
   a_categories:'ໝວດໝູ່ (Admin)', a_banners:'Banner (Admin)',a_finance:'ລາຍຮັບ-ລາຍຈ່າຍ (Admin)', a_settings:'ຮ້ານ & ໂຕນຮັບ (Admin)', a_users:'ຜູ້ໃຊ້ງານ (Admin)',
   a_featured:'ສິນຄ້າແນະນຳ (Admin)',
+  a_riders:'Rider (Admin)',
 };
 const ROLE_LABELS = {director:'ຜູ້ອຳນວຍການ', manager:'ຜູ້ຈັດການ', admin:'ແອັດມິນ', sale:'ພະນັກງານຂາຍ'};
 const ROLE_PAGE_ACCESS = {
-  director: ['dashboard','orders','products','featured','categories','banners','finance','settings','users'],
-  manager:  ['dashboard','orders','products','featured','categories','banners','finance','users'],
+  director: ['dashboard','orders','products','featured','categories','banners','finance','settings','users','riders'],
+  manager:  ['dashboard','orders','products','featured','categories','banners','finance','users','riders'],
   admin:    ['dashboard','orders','products','featured','categories','banners'],
   sale:     ['orders', 'featured']
 };
@@ -932,8 +946,8 @@ function applyAllIcons(){
   document.getElementById('nav-orders').innerHTML = iconHtml('orders')+'<span>ອອເດີ</span>';
   document.getElementById('nav-cart').innerHTML = iconHtml('cart')+'<span>ກະຕ່າ</span><span class="badge-dot" id="nav-cart-badge" style="display:none;">0</span>';
   document.getElementById('nav-account').innerHTML = iconHtml('account')+'<span>ບັນຊີ</span>';
-  const sb = {dashboard:'dashboard', orders:'a_orders', products:'a_products', featured:'a_featured', categories:'a_categories', banners:'a_banners', finance:'a_finance', settings:'a_settings', users:'a_users'};
-  const labels = {dashboard:'Dashboard', orders:'ອອເດີ', products:'ສິນຄ້າ', featured:'ສິນຄ້າແນະນຳ', categories:'ໝວດໝູ່', banners:'Banner', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ &amp; ໂຕນຮັບ', users:'ຜູ້ໃຊ້ງານ'};
+  const sb = {dashboard:'dashboard', orders:'a_orders', products:'a_products', featured:'a_featured', categories:'a_categories', banners:'a_banners', finance:'a_finance', settings:'a_settings', users:'a_users', riders:'a_riders'};
+  const labels = {dashboard:'Dashboard', orders:'ອອເດີ', products:'ສິນຄ້າ', featured:'ສິນຄ້າແນະນຳ', categories:'ໝວດໝູ່', banners:'Banner', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ &amp; ໂຕນຮັບ', users:'ຜູ້ໃຊ້ງານ', riders:'Rider'};
   Object.keys(sb).forEach(function(page){
     const el = document.getElementById('sb-'+page);
     if(!el) return;
@@ -989,6 +1003,9 @@ const state = {
     financeTx:[], charts:{line:null, pie:null, financeLine:null, financePie:null},
     productFilter:'all', productSearchQuery:'', productSort:'name', dashLoading:false, _hasPendingOrders:false },
   customer: JSON.parse(localStorage.getItem('pk_customer')||'{}'),
+  rider: { token: localStorage.getItem('pk_rider_token')||null,
+    username: JSON.parse(localStorage.getItem('pk_rider_user')||'{}').username||null,
+    fullName: JSON.parse(localStorage.getItem('pk_rider_user')||'{}').fullName||null },
   _catJson:'', _prodJson:'', _banJson:''
 };
 
@@ -1044,6 +1061,8 @@ const api = {
   uploadPhoto: (base64, fileName, mimeType) => callApi('uploadPhoto', {base64, fileName, mimeType}),
   getOrdersByPhone: (phone) => callApi('getOrdersByPhone', {phone}),
   resolveMapsLink: (url) => callApi('resolveMapsLink', {url}),
+  riderLookupOrders: (pin, code) => callApi('riderLookupOrders', {pin, code}),
+  riderMarkDelivered: (pin, orderId, riderName) => callApi('riderMarkDelivered', {pin, orderId, riderName}),
   saveTransaction: (token, transaction) => callApi('saveTransaction', {token, transaction}),
   deleteTransaction: (token, id) => callApi('deleteTransaction', {token, id}),
   getTransactions: (token, startDate, endDate) => callApi('getTransactions', {token, startDate, endDate}),
@@ -1051,7 +1070,15 @@ const api = {
   approveTransaction: (token, id) => callApi('approveTransaction', {token, id}),
   getUsers: (token) => callApi('getUsers', {token}),
   saveUser: (token, user) => callApi('saveUser', {token, user}),
-  deleteUser: (token, username) => callApi('deleteUser', {token, username})
+  deleteUser: (token, username) => callApi('deleteUser', {token, username}),
+
+  riderLogin: (username, password) => callApi('riderLogin', {username, password}),
+  riderLogout: (token) => callApi('riderLogout', {token}),
+  riderLookupOrders: (token, code) => callApi('riderLookupOrders', {token, code}),
+  riderMarkDelivered: (token, orderId) => callApi('riderMarkDelivered', {token, orderId}),
+  getRiders: (token) => callApi('getRiders', {token}),
+  saveRider: (token, rider) => callApi('saveRider', {token, rider}),
+  deleteRider: (token, username) => callApi('deleteRider', {token, username})
 };
 /* ── formatting ─────────────────────────────────────────────── */
 function money(n){
@@ -1955,6 +1982,96 @@ function toggleOrderItems(orderId){
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   RIDER — ຈັດສົ່ງ (ໜ້າສາທາລະນະ)
+   ═══════════════════════════════════════════════════════════════ */
+function openRiderSheet(){ renderRiderBody(); openSheet('rider'); }
+function renderRiderBody(){
+  const body = document.getElementById('rider-body');
+  if(!state.rider.token){
+    body.innerHTML =
+      '<div class="login-card" style="box-shadow:none;padding:10px 4px;border:none;">'+
+      '<div class="ico">🛵</div><h3>ເຂົ້າສູ່ລະບົບ Rider</h3><p>ສຳລັບພະນັກງານຈັດສົ່ງ</p>'+
+      '<div class="field"><input type="text" id="rider-username-input" placeholder="ຊື່ຜູ້ໃຊ້ (username)"></div>'+
+      '<div class="field"><input type="password" id="rider-password-input" placeholder="ລະຫັດຜ່ານ" onkeydown="if(event.key===\'Enter\')riderDoLogin()"></div>'+
+      '<button class="btn-primary" onclick="riderDoLogin()">ເຂົ້າສູ່ລະບົບ</button>'+
+      '</div>';
+    return;
+  }
+  body.innerHTML =
+    '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">🛵 ສະບາຍດີ <b>'+(state.rider.fullName||state.rider.username)+'</b> — <a href="javascript:void(0)" onclick="riderDoLogout()" style="color:var(--c-primary);font-weight:700;">ອອກຈາກລະບົບ</a></p>'+
+    '<div class="field"><label>ໃສ່ 4 ໂຕທ້າຍລະຫັດອໍເດີ (ຫຼືລະຫັດເຕັມ)</label><input id="rider-code-input" placeholder="ເຊັ່ນ: 8636" onkeydown="if(event.key===\'Enter\')riderSearch()"></div>'+
+    '<button class="btn-primary" onclick="riderSearch()">🔍 ຄົ້ນຫາອໍເດີ</button>'+
+    '<div id="rider-result" style="margin-top:16px;"></div>';
+}
+async function riderDoLogin(){
+  const username = document.getElementById('rider-username-input').value.trim();
+  const password = document.getElementById('rider-password-input').value;
+  if(!username || !password){ toast('ກະລຸນາປ້ອນຊື່ຜູ້ໃຊ້ ແລະ ລະຫັດຜ່ານ','⚠️'); return; }
+  try{
+    const res = await api.riderLogin(username, password);
+    if(res.success){
+      state.rider.token = res.token; state.rider.username = res.username; state.rider.fullName = res.fullName;
+      localStorage.setItem('pk_rider_token', res.token);
+      localStorage.setItem('pk_rider_user', JSON.stringify({username:res.username, fullName:res.fullName}));
+      renderRiderBody();
+      toast('ຍິນດີຕ້ອນຮັບ '+res.fullName,'🛵');
+    } else { toast(res.error || 'ຊື່ຜູ້ໃຊ້ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ','⚠️'); }
+  }catch(e){ toast('ເຂົ້າສູ່ລະບົບບໍ່ສຳເລັດ','⚠️'); console.error(e); }
+}
+async function riderDoLogout(){
+  try{ await api.riderLogout(state.rider.token); }catch(e){}
+  state.rider = {token:null, username:null, fullName:null};
+  localStorage.removeItem('pk_rider_token'); localStorage.removeItem('pk_rider_user');
+  renderRiderBody();
+}
+async function riderSearch(){
+  const code = document.getElementById('rider-code-input').value.trim();
+  if(!code){ toast('ກະລຸນາໃສ່ລະຫັດອໍເດີ','⚠️'); return; }
+  const box = document.getElementById('rider-result');
+  box.innerHTML = '<p style="text-align:center;color:var(--ink-soft);">ກຳລັງຄົ້ນຫາ...</p>';
+  try{
+    const orders = await api.riderLookupOrders(state.rider.token, code);
+    if(!orders.length){ box.innerHTML = '<div class="empty-state"><div class="ico">🔍</div><h4>ບໍ່ພົບອໍເດີ</h4><p>ກະລຸນາກວດສອບລະຫັດອີກຄັ້ງ</p></div>'; return; }
+    box.innerHTML = orders.map(o=>riderOrderCardHtml(o)).join('');
+  }catch(e){
+    if(String(e.message||'').indexOf('UNAUTHORIZED')>-1){ toast('ໝົດເວລາເຂົ້າສູ່ລະບົບ ກະລຸນາເຂົ້າໃໝ່','⏰'); riderDoLogout(); }
+    else toast('ເກີດຂໍ້ຜິດພາດ','⚠️');
+    console.error(e);
+  }
+}
+function riderOrderCardHtml(o){
+  const label = (STATUS_STEPS.find(s=>s.k===o.orderStatus)||{}).l || o.orderStatus;
+  const hasCoords = o.locationLat && o.locationLng;
+  const mapsUrl = hasCoords
+    ? 'https://www.google.com/maps/dir/?api=1&destination='+o.locationLat+','+o.locationLng
+    : (safeExternalUrl(o.locationLink) || 'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(o.address||o.customerName||''));
+  const delivered = o.orderStatus==='DELIVERED' || o.orderStatus==='COMPLETED';
+  return '<div class="a-panel" style="padding:14px;margin-bottom:12px;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'+
+    '<h3 style="margin:0;font-size:15px;">#'+o.orderId+'</h3><span class="pill '+o.orderStatus+'">'+label+'</span></div>'+
+    '<p style="font-size:12.5px;margin:2px 0;"><b>👤 '+o.customerName+'</b> · 📞 '+o.phone+'</p>'+
+    '<p style="font-size:12.5px;color:var(--ink-soft);margin:2px 0 10px;">🏠 '+(o.address||'-')+'</p>'+
+    '<div style="font-weight:800;color:var(--c-primary);margin-bottom:10px;">💰 '+money(o.total)+' ('+(o.paymentMethod==='cash'?'ເງິນສົດ':(o.paymentMethod==='qr'?'ໂອນ QR':'ໂອນ'))+')</div>'+
+    '<a href="'+mapsUrl+'" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="display:block;text-align:center;text-decoration:none;margin-bottom:8px;">🗺️ ນຳທາງໄປສົ່ງ</a>'+
+    (delivered
+      ? '<div style="text-align:center;font-weight:800;color:var(--success);">✅ ສົ່ງສຳເລັດແລ້ວ'+(o.riderName?' ໂດຍ '+o.riderName:'')+'</div>'
+      : '<button class="btn-primary" onclick="riderConfirmDelivered(\''+o.orderId+'\')">✅ ຢືນຢັນສົ່ງສຳເລັດ</button>')+
+  '</div>';
+}
+async function riderConfirmDelivered(orderId){
+  if(!confirm('ຢືນຢັນວ່າສົ່ງອໍເດີ '+orderId+' ສຳເລັດແລ້ວ?')) return;
+  try{
+    await api.riderMarkDelivered(state.rider.token, orderId);
+    toast('ບັນທຶກການສົ່ງສຳເລັດແລ້ວ','🎉');
+    riderSearch();
+  }catch(e){
+    if(String(e.message||'').indexOf('UNAUTHORIZED')>-1){ toast('ໝົດເວລາເຂົ້າສູ່ລະບົບ','⏰'); riderDoLogout(); }
+    else toast('ບັນທຶກບໍ່ສຳເລັດ','⚠️');
+    console.error(e);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
    ACCOUNT
    ═══════════════════════════════════════════════════════════════ */
 function openAccountSheet(){
@@ -2146,7 +2263,7 @@ function adminEntry(){
 }
 
 /* ── admin nav ─────────────────────────────────────────────── */
-const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', featured:'ເມນູແນະນຳ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ & ໂຕນຮັບ', users:'ຈັດການຜູ້ໃຊ້ງານ'};
+const ADMIN_TITLES = {dashboard:'Dashboard', orders:'ຈັດການອອເດີ', products:'ຈັດການສິນຄ້າ', featured:'ເມນູແນະນຳ', categories:'ໝວດໝູ່ສິນຄ້າ', banners:'Banner ໜ້າຫຼັກ', finance:'ລາຍຮັບ-ລາຍຈ່າຍ', settings:'ຮ້ານ & ໂຕນຮັບ', users:'ຈັດການຜູ້ໃຊ້ງານ', riders:'ຈັດການ Rider'};
 function gotoAdminPage(page){
   const allowed = ROLE_PAGE_ACCESS[state.admin.role] || [];
   if(allowed.indexOf(page)===-1){ page = allowed[0] || 'orders'; }   // ★ ເພີ່ມ 2 ແຖວນີ້
@@ -2155,7 +2272,7 @@ function gotoAdminPage(page){
   document.querySelectorAll('.a-nav-item').forEach(el=>el.classList.toggle('active', el.dataset.page===page));
   closeAdminSidebar();
   document.getElementById('admin-page-title').textContent = ADMIN_TITLES[page];
-  const renderers = {dashboard:renderAdminDashboard, orders:renderAdminOrders, products:renderAdminProducts, featured:renderAdminFeatured, categories:renderAdminCategories, banners:renderAdminBanners, finance:renderAdminFinance, settings:renderAdminSettings, users:renderAdminUsers};
+  const renderers = {dashboard:renderAdminDashboard, orders:renderAdminOrders, products:renderAdminProducts, featured:renderAdminFeatured, categories:renderAdminCategories, banners:renderAdminBanners, finance:renderAdminFinance, settings:renderAdminSettings, users:renderAdminUsers, riders:renderAdminRiders};
   renderers[page]();
 }
 function refreshAdminCurrentView(){
@@ -2900,7 +3017,7 @@ function buildOrdersTableOnlyHTML(orders){
   return '<div class="a-panel" style="padding:0;overflow-x:auto;"><table class="a-table"><thead><tr>'+
     '<th>ລະຫັດ</th><th>ລູກຄ້າ</th><th>ຍອດ</th><th>SLIP</th><th>ສະຖານະ</th><th>ວັນທີ</th><th>ຈັດການ</th></tr></thead><tbody>'+
     orders.map(o=>
-      '<tr><td class="num" style="color:#1D5FC7;font-weight:700;cursor:pointer;" onclick="openOrderDetailModal(\''+o.orderId+'\')">'+o.orderId+'</td>'+
+      '<tr><td class="num" style="color:#1D5FC7;font-weight:700;cursor:pointer;" onclick="openOrderDetailModal(\''+o.orderId+'\')">'+o.orderId+(o.riderName?'<br><span style="font-size:10px;color:var(--success);font-weight:700;">🛵 '+o.riderName+'</span>':'')+'</td>'+
       '<td>'+o.customerName+'<br><span style="font-size:11px;color:var(--ink-soft);">'+o.phone+'</span></td>'+
       '<td class="num">'+money(o.total)+'</td>'+
       '<td>'+(o.slipUrl?
@@ -2989,6 +3106,7 @@ function openOrderDetailModal(orderId){
         '<h4 style="margin:18px 0 8px;font-size:13.5px;">📍 ພິກັດຈັດສົ່ງ</h4>'+
         '<button type="button" class="btn-secondary" style="width:100%;" onclick="closeOrderDetailModal();openLocationModal(\''+o.orderId+'\')">🗺️ ເບິ່ງແຜນທີ່ ແລະ ໄລຍະທາງ</button>'
       : '')+
+      (o.riderName? '<div class="od-row"><span class="od-label">🛵 ຄົນຂັບທີ່ຈັດສົ່ງ</span><span class="od-value">'+o.riderName+(o.deliveredAt?' ('+new Date(o.deliveredAt).toLocaleString('lo-LA')+')':'')+'</span></div>' : '')+
       (o.slipUrl? '<h4 style="margin:18px 0 8px;font-size:13.5px;">🧾 Slip ການໂອນ</h4><img src="'+o.slipUrl+'" referrerpolicy="no-referrer" style="width:100%;border-radius:14px;border:1px solid var(--line);cursor:pointer;" onclick="openSlipLightbox(\''+o.slipUrl+'\')" onerror="imgFallback(this)">' : '')+
     '</div></div>';
 }
@@ -3760,6 +3878,91 @@ async function removeUser(username){
   }catch(e){ toast('ລຶບບໍ່ສຳເລັດ: '+(e.message||''),'⚠️'); console.error(e); }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   ADMIN — ຈັດການບັນຊີ Rider
+   ═══════════════════════════════════════════════════════════════ */
+async function renderAdminRiders(){
+  const main = document.getElementById('admin-main');
+  main.innerHTML = '<div class="a-title-row"><h2>🛵 ບັນຊີ Rider</h2><button class="btn-sm primary" onclick="openRiderAccountForm()">+ ເພີ່ມ Rider</button></div>'+
+    '<div id="riders-grid-holder">'+dashboardSkeletonHTML()+'</div>'+
+    '<div id="rider-account-form-holder"></div>';
+  try{
+    const riders = await api.getRiders(state.admin.token);
+    state.admin.ridersList = riders;
+    document.getElementById('riders-grid-holder').innerHTML = buildRidersGridHTML(riders);
+  }catch(e){
+    document.getElementById('riders-grid-holder').innerHTML = '<div class="a-panel"><p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: '+(e.message||'')+'</p></div>';
+    console.error(e);
+  }
+}
+function buildRidersGridHTML(riders){
+  if(!riders || riders.length===0){
+    return '<div class="a-panel"><div class="empty-state"><div class="ico">🛵</div><h4>ຍັງບໍ່ມີ Rider</h4><p>ກົດ "+ ເພີ່ມ Rider" ເພື່ອສ້າງບັນຊີໃໝ່</p></div></div>';
+  }
+  return '<div class="grid-3">'+riders.map(function(r){
+    return '<div class="a-panel">'+
+      '<div style="font-weight:800;font-size:14px;">'+(r.fullName||'-')+'</div>'+
+      '<div style="font-size:11.5px;color:var(--ink-soft);margin-bottom:8px;">@'+r.username+(r.phone?' · 📞 '+r.phone:'')+'</div>'+
+      '<span class="pill '+(r.status==='active'?'active':'inactive')+'">'+(r.status==='active'?'ເປີດໃຊ້ງານ':'ປິດການໃຊ້ງານ')+'</span>'+
+      '<div style="display:flex;gap:8px;margin-top:10px;">'+
+        '<button class="btn-sm" style="flex:1;" onclick=\'openRiderAccountForm(JSON.parse(this.dataset.r))\' data-r=\''+JSON.stringify(r).replace(/'/g,"&apos;")+'\'>✏️ ແກ້ໄຂ</button>'+
+        '<button class="btn-sm danger" style="flex:1;" onclick="removeRiderAccount(\''+r.username+'\')">🗑️ ລຶບ</button>'+
+      '</div></div>';
+  }).join('')+'</div>';
+}
+function openRiderAccountForm(r){
+  const isEdit = !!(r && r.username);
+  r = r || {username:'',fullName:'',phone:'',status:'active'};
+  document.getElementById('rider-account-form-holder').innerHTML =
+    '<div class="overlay show" onclick="closeRiderAccountForm()"></div>'+
+    '<div class="sheet show" style="position:fixed;"><div class="sheet-handle"></div>'+
+    '<div class="sheet-head"><h3>'+(isEdit?'ແກ້ໄຂ Rider':'ເພີ່ມ Rider ໃໝ່')+'</h3><button class="sheet-close" onclick="closeRiderAccountForm()">✕</button></div>'+
+    '<div class="sheet-body">'+
+    '<div class="field"><label>ຊື່ຜູ້ໃຊ້ (username)</label><input id="rf-username" value="'+r.username+'" '+(isEdit?'disabled style="opacity:.6;"':'')+' placeholder="ເຊັ່ນ: rider2"></div>'+
+    '<div class="field"><label>ລະຫັດຜ່ານ'+(isEdit?' (ຫວ່າງໄວ້ = ບໍ່ປ່ຽນ)':'')+'</label><input type="password" id="rf-password" placeholder="'+(isEdit?'••••••':'ຕັ້ງລະຫັດຜ່ານ')+'"></div>'+
+    '<div class="field"><label>ຊື່ເຕັມ</label><input id="rf-fullname" value="'+(r.fullName||'')+'" placeholder="ຊື່ ແລະ ນາມສະກຸນ"></div>'+
+    '<div class="field"><label>ເບີໂທ</label><input id="rf-phone" value="'+(r.phone||'')+'" placeholder="020 xxxxxxxx"></div>'+
+    '<div class="field"><label>ສະຖານະ</label><div class="seg">'+
+      '<div class="seg-btn '+(r.status==='active'?'active':'')+'" onclick="setRfStatus(\'active\')" id="rf-status-active">✅ ເປີດໃຊ້ງານ</div>'+
+      '<div class="seg-btn '+(r.status!=='active'?'active':'')+'" onclick="setRfStatus(\'inactive\')" id="rf-status-inactive">⛔ ປິດການໃຊ້ງານ</div>'+
+    '</div></div><input type="hidden" id="rf-status" value="'+r.status+'">'+
+    '<button class="btn-primary" style="margin-top:10px;" onclick="submitRiderAccountForm(\''+(isEdit?r.username:'')+'\')">ບັນທຶກ</button>'+
+    '</div></div>';
+}
+function setRfStatus(status){
+  document.getElementById('rf-status').value = status;
+  document.getElementById('rf-status-active').classList.toggle('active', status==='active');
+  document.getElementById('rf-status-inactive').classList.toggle('active', status!=='active');
+}
+function closeRiderAccountForm(){ document.getElementById('rider-account-form-holder').innerHTML=''; }
+async function submitRiderAccountForm(originalUsername){
+  const username = val('rf-username').trim();
+  const password = val('rf-password');
+  const fullName = val('rf-fullname').trim();
+  const phone = val('rf-phone').trim();
+  const status = val('rf-status');
+  if(!username){ toast('ກະລຸນາປ້ອນຊື່ຜູ້ໃຊ້','⚠️'); return; }
+  if(!originalUsername && !password){ toast('ກະລຸນາຕັ້ງລະຫັດຜ່ານ','⚠️'); return; }
+  const payload = { username: username, fullName: fullName, phone: phone, status: status, _isNew: !originalUsername };
+  if(password) payload.password = password;
+  try{
+    const riders = await api.saveRider(state.admin.token, payload);
+    state.admin.ridersList = riders;
+    closeRiderAccountForm();
+    document.getElementById('riders-grid-holder').innerHTML = buildRidersGridHTML(riders);
+    toast('ບັນທຶກ Rider ແລ້ວ','✅');
+  }catch(e){ toast('ບັນທຶກບໍ່ສຳເລັດ: '+(e.message||''),'⚠️'); console.error(e); }
+}
+async function removeRiderAccount(username){
+  if(!confirm('ຢືນຢັນລຶບ Rider "'+username+'"?')) return;
+  try{
+    const riders = await api.deleteRider(state.admin.token, username);
+    state.admin.ridersList = riders;
+    document.getElementById('riders-grid-holder').innerHTML = buildRidersGridHTML(riders);
+    toast('ລຶບແລ້ວ','🗑️');
+  }catch(e){ toast('ລຶບບໍ່ສຳເລັດ: '+(e.message||''),'⚠️'); console.error(e); }
+}
+
 /* ── banners admin ─────────────────────────────────────────── */
 async function renderAdminBanners(){
   const main = document.getElementById('admin-main');
@@ -4092,7 +4295,8 @@ function renderAdminSettings(){
   '</div></div>'+
 
   '<div class="a-panel"><h4>🔐 ຄວາມປອດໄພ</h4>'+
-  '<div class="field"><label>ປ່ຽນລະຫັດຜ່ານແອັດມິນ (ຫວ່າງໄວ້ = ບໍ່ປ່ຽນ)</label><input type="password" id="st-pw" placeholder="ລະຫັດຜ່ານໃໝ່"></div></div>'+
+  '<div class="field"><label>ປ່ຽນລະຫັດຜ່ານແອັດມິນ (ຫວ່າງໄວ້ = ບໍ່ປ່ຽນ)</label><input type="password" id="st-pw" placeholder="ລະຫັດຜ່ານໃໝ່"></div>'+
+  '<div class="field"><label>🛵 ລະຫັດ PIN ສຳລັບ Rider</label><input type="text" id="st-riderpin" value="'+(s.riderPin||'9999')+'" placeholder="ເຊັ່ນ: 9999"></div></div>'+
 
   '<button class="btn-primary" onclick="saveAllSettings()">💾 ບັນທຶກການຕັ້ງຄ່າທັງໝົດ</button>';
 
@@ -4201,6 +4405,7 @@ async function saveAllSettings(){
     newS['icon_'+key] = document.getElementById('icon-in-'+key).value.trim();
   });
   const pw = val('st-pw'); if(pw) newS.adminPassword = pw;
+  newS.riderPin = val('st-riderpin');
   state.settings = await api.saveSettings(state.admin.token, newS);
   applyTheme(); renderHeader(); applyAllIcons();
   toast('ບັນທຶກການຕັ້ງຄ່າແລ້ວ','✅');
