@@ -918,9 +918,11 @@ const ROLE_PAGE_ACCESS = {
 function applyRolePermissions(){
   const role = state.admin.role;
   let allowed = ROLE_PAGE_ACCESS[role] || [];
-  if (state.admin.pageAccess) {
+  // ★ custom pageAccess ໃຊ້ໄດ້ສະເພາະ admin/sale — director/manager ຕ້ອງເຫັນທຸກໜ້າຕາມ Role ສະເໝີ
+  //   ບໍ່ດັ່ງນັ້ນ ຖ້າມີໜ້າໃໝ່ຖືກເພີ່ມໃນອະນາຄົດ ບັນຊີທີ່ຕັ້ງ custom ໄວ້ຈະບໍ່ເຫັນໜ້ານັ້ນອັດຕະໂນມັດ
+  if (state.admin.pageAccess && (role === 'admin' || role === 'sale')) {
     const custom = String(state.admin.pageAccess).split(',').map(function(s){return s.trim();}).filter(Boolean);
-    if (custom.length) allowed = custom; // ★ ຖ້າມີການຕັ້ງສິດເປັນລາຍບຸກຄົນ ໃຫ້ໃຊ້ອັນນີ້ແທນ role ເລີ່ມຕົ້ນ
+    if (custom.length) allowed = custom;
   }
   document.querySelectorAll('.a-nav-item').forEach(function(el){
     el.style.display = allowed.indexOf(el.dataset.page)>-1 ? 'flex' : 'none';
@@ -953,6 +955,9 @@ function applyAllIcons(){
     let extra = '';
     if(page==='orders'){
       extra = '<span class="a-nav-dot" id="orders-pending-dot" style="display:'+(state.admin._hasPendingOrders?'flex':'none')+';"></span>';
+    }
+    if(page==='riders'){
+      extra = '<span class="a-nav-dot" id="riders-pending-dot" style="display:'+(state.admin._hasPendingOrders?'flex':'none')+';">'+(state.admin._pendingOrdersCount>9?'9+':(state.admin._pendingOrdersCount||''))+'</span>';
     }
     el.innerHTML = iconHtml(sb[page]) + '<span>'+labels[page]+'</span>' + extra;
   });
@@ -2262,9 +2267,13 @@ function updateOrdersPendingBadge(orders){
   const doneStatuses = ['DELIVERED','COMPLETED','CANCELLED'];
   const pendingCount = orders.filter(o=>doneStatuses.indexOf(o.orderStatus)===-1).length;
   state.admin._hasPendingOrders = pendingCount > 0;
+  state.admin._pendingOrdersCount = pendingCount;
   const dot = document.getElementById('orders-pending-dot');
   if(dot) dot.style.display = pendingCount>0 ? 'flex' : 'none';
   if(dot) dot.textContent = pendingCount>9 ? '9+' : (pendingCount>0? String(pendingCount) : '');
+  const ridersDot = document.getElementById('riders-pending-dot');
+  if(ridersDot) ridersDot.style.display = pendingCount>0 ? 'flex' : 'none';
+  if(ridersDot) ridersDot.textContent = pendingCount>9 ? '9+' : (pendingCount>0? String(pendingCount) : '');
 }
 
 async function checkNewOrders(){
@@ -2306,6 +2315,9 @@ async function checkNewOrders(){
       // ★ ອອເດີໃໝ່ເຂົ້າ/ປ່ຽນສະຖານະ -> ລ້າງ cache Finance ແລະ ອັບເດດງຽບໆຖ້າກຳລັງເປີດໜ້ານັ້ນຢູ່
       localStorage.removeItem('pk_cache_finance_'+state.admin.financeRange.start+'_'+state.admin.financeRange.end);
       if(state.admin.page==='finance') loadFinanceData(true);
+      // ★ ອອເດີໃໝ່/ປ່ຽນສະຖານະ -> ອາດມີການສົ່ງໃໝ່, ລ້າງ cache ສະຖິຕິ Rider ແລະ ອັບເດດງຽບໆຖ້າກຳລັງເປີດຢູ່
+      Object.keys(localStorage).filter(k=>k.startsWith('pk_cache_riderstats_')).forEach(k=>localStorage.removeItem(k));
+      if(state.admin.page==='riders') loadRiderStats();
     }
     state.admin.seenOrderIds = ids;
     state.admin._lastOrdersMap = {}; orders.forEach(function(o){ state.admin._lastOrdersMap[o.orderId]=o.orderStatus; });
@@ -3949,23 +3961,47 @@ async function renderAdminRiders(){
     const r = dashRangeFor('7d');
     state.admin.riderStatsRange = {preset:'7d', start:r.start, end:r.end};
   }
+
+  // ★ ໃຊ້ຂໍ້ມູນເກົ່າ (memory ຫຼື localStorage) ໂຊວ໌ທັນທີ — ບໍ່ຕ້ອງ skeleton ຊ້ຳຖ້າມີແລ້ວ
+  let riders = state.admin.ridersList;
+  if(!riders){
+    const cached = localStorage.getItem('pk_cache_admin_riders');
+    if(cached){ try{ riders = JSON.parse(cached); state.admin.ridersList = riders; }catch(e){} }
+  }
+
   main.innerHTML = '<div class="a-title-row"><h2>🛵 ບັນຊີ Rider</h2><button class="btn-sm primary" onclick="openRiderAccountForm()">+ ເພີ່ມ Rider</button></div>'+
-    '<div id="riders-grid-holder">'+dashboardSkeletonHTML()+'</div>'+
+    '<div id="riders-grid-holder">'+(riders? buildRidersGridHTML(riders) : dashboardSkeletonHTML())+'</div>'+
     '<div id="rider-account-form-holder"></div>'+
     '<div class="a-panel"><h4>💰 ສະຫຼຸບຄ່າຄອມມິດຊັ່ນ / ຈຳນວນອອເດີທີ່ສົ່ງ</h4>'+
-      riderStatsToolbarHTML()+
-      '<div id="rider-stats-holder">'+dashboardSkeletonHTML()+'</div>'+
+      '<div id="rider-stats-section">'+riderStatsToolbarHTML()+'<div id="rider-stats-holder">'+riderStatsCachedHTML()+'</div></div>'+
     '</div>';
-  try{
-    const riders = await api.getRiders(state.admin.token);
-    state.admin.ridersList = riders;
-    document.getElementById('riders-grid-holder').innerHTML = buildRidersGridHTML(riders);
-  }catch(e){
-    document.getElementById('riders-grid-holder').innerHTML = '<div class="a-panel"><p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ: '+(e.message||'')+'</p></div>';
-    console.error(e);
-  }
+
+  refreshRidersListSilent();
   loadRiderStats();
 }
+
+// ★ ໃໝ່: ດຶງລາຍຊື່ Rider ໃໝ່ຢູ່ເບື້ອງຫຼັງ, ອັບເດດ DOM ສະເພາະຖ້າຂໍ້ມູນປ່ຽນຈິງໆ
+async function refreshRidersListSilent(){
+  try{
+    const fresh = await api.getRiders(state.admin.token);
+    const changed = JSON.stringify(fresh) !== JSON.stringify(state.admin.ridersList||[]);
+    state.admin.ridersList = fresh;
+    localStorage.setItem('pk_cache_admin_riders', JSON.stringify(fresh));
+    if(changed && state.admin.page==='riders'){
+      const holder = document.getElementById('riders-grid-holder');
+      if(holder) holder.innerHTML = buildRidersGridHTML(fresh);
+    }
+  }catch(e){ console.error(e); }
+}
+
+// ★ ໃໝ່: render ສະເພາະສ່ວນ toolbar+stats ຂອງ Rider (ບໍ່ແຕະລາຍຊື່ Rider ດ້ານເທິງ)
+function renderRiderStatsSection(){
+  const el = document.getElementById('rider-stats-section');
+  if(!el) return;
+  el.innerHTML = riderStatsToolbarHTML()+'<div id="rider-stats-holder">'+riderStatsCachedHTML()+'</div>';
+  loadRiderStats();
+}
+
 function riderStatsToolbarHTML(){
   const r = state.admin.riderStatsRange;
   const presets = [['today','ມື້ນີ້'],['7d','7 ວັນ'],['month','ເດືອນນີ້'],['year','ປີນີ້']];
@@ -3984,10 +4020,10 @@ function riderStatsToolbarHTML(){
   '</div>';
 }
 function setRiderStatsPreset(p){
-  if(p==='custom'){ state.admin.riderStatsRange.preset='custom'; renderAdminRiders(); return; }
+  if(p==='custom'){ state.admin.riderStatsRange.preset='custom'; renderRiderStatsSection(); return; }
   const r = dashRangeFor(p);
   state.admin.riderStatsRange = {preset:p, start:r.start, end:r.end};
-  renderAdminRiders();
+  renderRiderStatsSection();
 }
 function setRiderStatsCustom(){
   const s = document.getElementById('rs-start').value;
@@ -3995,30 +4031,49 @@ function setRiderStatsCustom(){
   if(!s || !e){ toast('ກະລຸນາເລືອກວັນທີໃຫ້ຄົບທັງ 2 ຊ່ອງ','⚠️'); return; }
   if(s > e){ toast('ວັນທີເລີ່ມຕົ້ນຕ້ອງມາກ່ອນວັນທີສິ້ນສຸດ','⚠️'); return; }
   state.admin.riderStatsRange = {preset:'custom', start:s, end:e};
-  renderAdminRiders();
+  renderRiderStatsSection();
 }
 function clearRiderStatsCustom(){
   const r = dashRangeFor('7d');
   state.admin.riderStatsRange = {preset:'7d', start:r.start, end:r.end};
-  renderAdminRiders();
+  renderRiderStatsSection();
+}
+function riderStatsCacheKey(){
+  return 'pk_cache_riderstats_'+state.admin.riderStatsRange.start+'_'+state.admin.riderStatsRange.end;
+}
+function riderStatsCachedHTML(){
+  const cached = localStorage.getItem(riderStatsCacheKey());
+  if(cached){ try{ return buildRiderStatsHTML(JSON.parse(cached)); }catch(e){} }
+  return dashboardSkeletonHTML();
+}
+function buildRiderStatsHTML(res){
+  if(!res.riders.length){
+    return '<div class="empty-state"><div class="ico">🛵</div><h4>ຍັງບໍ່ມີການສົ່ງ</h4><p>ຍັງບໍ່ມີອອເດີທີ່ Rider ສົ່ງສຳເລັດໃນຊ່ວງນີ້</p></div>';
+  }
+  return '<p style="font-size:11.5px;color:var(--ink-soft);margin:0 0 10px;">ຄ່າຄອມມິດຊັ່ນ/ອອເດີ: <b>'+money(res.commissionPerOrder)+'</b> (ປັບໄດ້ທີ່ ຮ້ານ & ໂຕນຮັບ → ຄວາມປອດໄພ)</p>'+
+    '<div style="overflow-x:auto;"><table class="a-table"><thead><tr><th>Rider</th><th>ຈຳນວນອອເດີ</th><th>ຄ່າຄອມມິດຊັ່ນ</th></tr></thead><tbody>'+
+    res.riders.map(function(r){
+      return '<tr><td>'+r.riderName+'</td><td class="num">'+r.orderCount+'</td><td class="num" style="color:var(--success);font-weight:700;">'+money(r.commission)+'</td></tr>';
+    }).join('')+
+    '</tbody></table></div>'+
+    '<div style="margin-top:10px;font-size:13px;font-weight:800;">ລວມທັງໝົດ: '+res.totalOrders+' ອອເດີ</div>';
 }
 async function loadRiderStats(){
   const holder = document.getElementById('rider-stats-holder');
   if(!holder) return;
   try{
     const res = await api.getRiderStats(state.admin.token, state.admin.riderStatsRange.start, state.admin.riderStatsRange.end);
-    if(!res.riders.length){
-      holder.innerHTML = '<div class="empty-state"><div class="ico">🛵</div><h4>ຍັງບໍ່ມີການສົ່ງ</h4><p>ຍັງບໍ່ມີອອເດີທີ່ Rider ສົ່ງສຳເລັດໃນຊ່ວງນີ້</p></div>';
-      return;
+    const key = riderStatsCacheKey();
+    const cached = localStorage.getItem(key);
+    const freshJson = JSON.stringify(res);
+    if(cached !== freshJson){
+      localStorage.setItem(key, freshJson);
+      if(state.admin.page==='riders') holder.innerHTML = buildRiderStatsHTML(res);
     }
-    holder.innerHTML = '<p style="font-size:11.5px;color:var(--ink-soft);margin:0 0 10px;">ຄ່າຄອມມິດຊັ່ນ/ອອເດີ: <b>'+money(res.commissionPerOrder)+'</b> (ປັບໄດ້ທີ່ ຮ້ານ & ໂຕນຮັບ → ຄວາມປອດໄພ)</p>'+
-      '<div style="overflow-x:auto;"><table class="a-table"><thead><tr><th>Rider</th><th>ຈຳນວນອອເດີ</th><th>ຄ່າຄອມມິດຊັ່ນ</th></tr></thead><tbody>'+
-      res.riders.map(function(r){
-        return '<tr><td>'+r.riderName+'</td><td class="num">'+r.orderCount+'</td><td class="num" style="color:var(--success);font-weight:700;">'+money(r.commission)+'</td></tr>';
-      }).join('')+
-      '</tbody></table></div>'+
-      '<div style="margin-top:10px;font-size:13px;font-weight:800;">ລວມທັງໝົດ: '+res.totalOrders+' ອອເດີ</div>';
-  }catch(e){ holder.innerHTML = '<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>'; console.error(e); }
+  }catch(e){
+    if(!localStorage.getItem(riderStatsCacheKey())) holder.innerHTML = '<p>ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>';
+    console.error(e);
+  }
 }
 function buildRidersGridHTML(riders){
   if(!riders || riders.length===0){
@@ -4073,6 +4128,7 @@ async function submitRiderAccountForm(originalUsername){
   try{
     const riders = await api.saveRider(state.admin.token, payload);
     state.admin.ridersList = riders;
+    localStorage.setItem('pk_cache_admin_riders', JSON.stringify(riders));
     closeRiderAccountForm();
     document.getElementById('riders-grid-holder').innerHTML = buildRidersGridHTML(riders);
     toast('ບັນທຶກ Rider ແລ້ວ','✅');
@@ -4083,6 +4139,7 @@ async function removeRiderAccount(username){
   try{
     const riders = await api.deleteRider(state.admin.token, username);
     state.admin.ridersList = riders;
+    localStorage.setItem('pk_cache_admin_riders', JSON.stringify(riders));
     document.getElementById('riders-grid-holder').innerHTML = buildRidersGridHTML(riders);
     toast('ລຶບແລ້ວ','🗑️');
   }catch(e){ toast('ລຶບບໍ່ສຳເລັດ: '+(e.message||''),'⚠️'); console.error(e); }
