@@ -1081,11 +1081,16 @@ const api = {
   riderLogout: (token) => callApi('riderLogout', {token}),
   riderLookupOrders: (token, code) => callApi('riderLookupOrders', {token, code}),
   riderGetPendingOrders: (token) => callApi('riderGetPendingOrders', {token}),
+  riderGetMyStats: (token, startDate, endDate) => callApi('riderGetMyStats', {token, startDate, endDate}),
   riderMarkDelivered: (token, orderId) => callApi('riderMarkDelivered', {token, orderId}),
   getRiders: (token) => callApi('getRiders', {token}),
   saveRider: (token, rider) => callApi('saveRider', {token, rider}),
   deleteRider: (token, username) => callApi('deleteRider', {token, username}),
-  getRiderStats: (token, startDate, endDate) => callApi('getRiderStats', {token, startDate, endDate})
+  getRiderStats: (token, startDate, endDate) => callApi('getRiderStats', {token, startDate, endDate}),
+  getRiderPayoutSummary: (token) => callApi('getRiderPayoutSummary', {token}),
+  recordRiderPayout: (token, riderName, note) => callApi('recordRiderPayout', {token, riderName, note}),
+  riderGetPayoutStatus: (token) => callApi('riderGetPayoutStatus', {token}),
+  getRiderPayoutHistory: (token, riderName) => callApi('getRiderPayoutHistory', {token, riderName})
 };
 /* ── formatting ─────────────────────────────────────────────── */
 function money(n){
@@ -2027,27 +2032,120 @@ function renderRiderBody(){
       '</div>';
     return;
   }
+  riderRefreshPayoutBadge();
   const tab = state.rider.viewTab || 'search';
+  const hasUnpaid = state.rider.payoutStatus && state.rider.payoutStatus.unpaidCount>0;
   body.innerHTML =
     '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;">🛵 ສະບາຍດີ <b>'+(state.rider.fullName||state.rider.username)+'</b> — <a href="javascript:void(0)" onclick="riderDoLogout()" style="color:var(--c-primary);font-weight:700;">ອອກຈາກລະບົບ</a></p>'+
     '<div class="seg" style="margin-bottom:14px;">'+
       '<div class="seg-btn '+(tab==='search'?'active':'')+'" onclick="riderSwitchTab(\'search\')">🔍 ຄົ້ນຫາ</div>'+
-      '<div class="seg-btn '+(tab==='pending'?'active':'')+'" onclick="riderSwitchTab(\'pending\')">📦 ລໍຖ້າຈັດສົ່ງ</div>'+
+      '<div class="seg-btn '+(tab==='pending'?'active':'')+'" onclick="riderSwitchTab(\'pending\')">📦 ລໍຖ້າ</div>'+
+      '<div class="seg-btn '+(tab==='stats'?'active':'')+'" onclick="riderSwitchTab(\'stats\')" style="position:relative;">💰 ລາຍຮັບ'+
+        '<span id="rider-payout-dot" style="display:'+(hasUnpaid?'inline-block':'none')+';position:absolute;top:-3px;right:6px;width:9px;height:9px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 2px var(--c-surface);"></span>'+
+      '</div>'+
     '</div>'+
     (tab==='search'?
       '<div class="field"><label>ໃສ່ 4 ໂຕທ້າຍລະຫັດອໍເດີ (ຫຼືລະຫັດເຕັມ)</label><input id="rider-code-input" placeholder="ເຊັ່ນ: 8636" onkeydown="if(event.key===\'Enter\')riderSearch()"></div>'+
       '<button class="btn-primary" onclick="riderSearch()">🔍 ຄົ້ນຫາອໍເດີ</button>'+
       '<div id="rider-result" style="margin-top:16px;"></div>'
-    :
+    : tab==='pending'?
       '<div id="rider-pending-result"><p style="text-align:center;color:var(--ink-soft);">ກຳລັງໂຫຼດ...</p></div>'
+    :
+      '<div class="seg" style="margin-bottom:14px;">'+
+        [['today','ມື້ນີ້'],['week','7 ວັນ'],['month','ເດືອນນີ້'],['all','ທັງໝົດ']].map(function(o){
+          return '<div class="seg-btn '+((state.rider.statsPreset||'today')===o[0]?'active':'')+'" onclick="riderSetStatsPreset(\''+o[0]+'\')">'+o[1]+'</div>';
+        }).join('')+
+      '</div>'+
+      '<div id="rider-stats-result"><p style="text-align:center;color:var(--ink-soft);">ກຳລັງໂຫຼດ...</p></div>'
     );
   if(tab==='pending'){
     riderLoadPending();
     clearInterval(state.rider._pendingTimer);
-    state.rider._pendingTimer = setInterval(riderLoadPending, 15000); // ອັບເດດອັດຕະໂນມັດທຸກ 15s
+    state.rider._pendingTimer = setInterval(riderLoadPending, 15000);
+  } else if(tab==='stats'){
+    clearInterval(state.rider._pendingTimer);
+    riderLoadMyStats();
   } else {
     clearInterval(state.rider._pendingTimer);
   }
+}
+async function riderRefreshPayoutBadge(){
+  try{
+    const payout = await api.riderGetPayoutStatus(state.rider.token);
+    state.rider.payoutStatus = payout;
+    const dot = document.getElementById('rider-payout-dot');
+    if(dot) dot.style.display = payout.unpaidCount>0 ? 'inline-block' : 'none';
+  }catch(e){}
+}
+function riderPayoutBadgeHtml(payout){
+  if(!payout || payout.unpaidCount<=0){
+    return '<div class="a-panel" style="padding:12px 14px;margin-bottom:14px;border-color:var(--success);display:flex;align-items:center;gap:10px;">'+
+      '<span style="font-size:20px;">✅</span><div style="font-size:12.5px;font-weight:700;">ໄດ້ຮັບຄ່າຄອມຄົບແລ້ວ — ບໍ່ມີຍອດຄ້າງຈ່າຍ</div></div>';
+  }
+  return '<div class="a-panel" style="padding:12px 14px;margin-bottom:14px;border-color:var(--danger);background:color-mix(in srgb, var(--danger) 6%, var(--c-surface));">'+
+    '<div style="display:flex;align-items:center;gap:10px;">'+
+      '<span style="font-size:20px;">🔴</span>'+
+      '<div style="flex:1;">'+
+        '<div style="font-weight:800;font-size:13.5px;color:var(--danger);">ຍັງບໍ່ໄດ້ຮັບ '+money(payout.unpaidCommission)+'</div>'+
+        '<div style="font-size:11.5px;color:var(--ink-soft);">'+payout.unpaidCount+' ອອເດີ ຍັງບໍ່ໄດ້ຈ່າຍຄ່າຄອມ'+(payout.lastPaidAt? ' (ຄັ້ງກ່ອນຈ່າຍ '+new Date(payout.lastPaidAt).toLocaleDateString('lo-LA')+')':' (ຍັງບໍ່ເຄີຍຈ່າຍ)')+'</div>'+
+      '</div>'+
+    '</div></div>';
+}
+function riderSetStatsPreset(p){
+  state.rider.statsPreset = p;
+  renderRiderBody();
+}
+function riderStatsRangeFor(preset){
+  const now = new Date();
+  const fmt = d => d.toISOString().slice(0,10);
+  let start;
+  if(preset==='today'){ start = new Date(now); }
+  else if(preset==='week'){ start = new Date(now); start.setDate(start.getDate()-6); }
+  else if(preset==='month'){ start = new Date(now.getFullYear(), now.getMonth(), 1); }
+  else { return { start:null, end:null }; }
+  return { start: fmt(start), end: fmt(now) };
+}
+async function riderLoadMyStats(){
+  const box = document.getElementById('rider-stats-result');
+  if(!box) return;
+  const preset = state.rider.statsPreset || 'today';
+  const range = riderStatsRangeFor(preset);
+  try{
+    const [res, payout] = await Promise.all([
+      api.riderGetMyStats(state.rider.token, range.start, range.end),
+      api.riderGetPayoutStatus(state.rider.token)
+    ]);
+    state.rider.payoutStatus = payout;
+    const dot = document.getElementById('rider-payout-dot');
+    if(dot) dot.style.display = payout.unpaidCount>0 ? 'inline-block' : 'none';
+    box.innerHTML = riderPayoutBadgeHtml(payout) + buildRiderMyStatsHTML(res, preset);
+  }catch(e){
+    if(String(e.message||'').indexOf('UNAUTHORIZED')>-1){ toast('ໝົດເວລາເຂົ້າສູ່ລະບົບ','⏰'); riderDoLogout(); }
+    else box.innerHTML = '<p style="text-align:center;color:var(--ink-soft);">ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>';
+    console.error(e);
+  }
+}
+function buildRiderMyStatsHTML(res, preset){
+  const label = {today:'ມື້ນີ້', week:'7 ວັນຫຼ້າສຸດ', month:'ເດືອນນີ້', all:'ທັງໝົດ'}[preset]||'';
+  return '<div class="kpi-grid" style="grid-template-columns:repeat(2,1fr);margin-bottom:14px;">'+
+    '<div class="kpi-card"><div class="lbl">ອອເດີ ('+label+')</div><div class="val num orange">'+res.orderCount+'</div></div>'+
+    '<div class="kpi-card"><div class="lbl">ຄ່າຄອມ ('+label+')</div><div class="val num herb">'+money(res.commission)+'</div></div>'+
+  '</div>'+
+  '<div class="a-panel" style="padding:14px;margin-bottom:14px;">'+
+    '<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;"><span>📅 ອອເດີມື້ນີ້</span><b>'+res.todayCount+' ອອເດີ</b></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;"><span>💵 ຄ່າຄອມມື້ນີ້</span><b style="color:var(--success);">'+money(res.todayCommission)+'</b></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-top:1px dashed var(--line);margin-top:4px;padding-top:9px;"><span>🏆 ອອເດີທັງໝົດ (ຕັ້ງແຕ່ເລີ່ມ)</span><b>'+res.allTimeCount+' ອອເດີ</b></div>'+
+    '<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;"><span>💰 ຄ່າຄອມທັງໝົດ</span><b style="color:var(--success);">'+money(res.allTimeCommission)+'</b></div>'+
+    '<div style="font-size:11px;color:var(--ink-soft);margin-top:8px;">ອັດຕາຄ່າຄອມ: '+money(res.commissionPerOrder)+' / ອອເດີ</div>'+
+  '</div>'+
+  '<h4 style="font-size:13.5px;margin:0 0 10px;">🧾 ລາຍການສົ່ງລ້າສຸດ</h4>'+
+  (res.orders.length?
+    '<div style="overflow-x:auto;"><table class="a-table"><thead><tr><th>ລະຫັດ</th><th>ວັນທີສົ່ງ</th><th>ຄ່າສົ່ງ</th></tr></thead><tbody>'+
+    res.orders.slice(0,30).map(function(o){
+      return '<tr><td class="num" style="color:#1D5FC7;">'+o.orderId+'</td><td style="font-size:12px;">'+new Date(o.deliveredAt).toLocaleString('lo-LA')+'</td><td class="num">'+money(o.deliveryFee)+'</td></tr>';
+    }).join('')+
+    '</tbody></table></div>'
+   : '<div class="empty-state"><div class="ico">📭</div><h4>ຍັງບໍ່ມີການສົ່ງ</h4><p>ໃນຊ່ວງເວລານີ້ຍັງບໍ່ມີອອເດີທີ່ສົ່ງສຳເລັດ</p></div>');
 }
 function riderSwitchTab(tab){
   state.rider.viewTab = tab;
@@ -3962,7 +4060,6 @@ async function renderAdminRiders(){
     state.admin.riderStatsRange = {preset:'7d', start:r.start, end:r.end};
   }
 
-  // ★ ໃຊ້ຂໍ້ມູນເກົ່າ (memory ຫຼື localStorage) ໂຊວ໌ທັນທີ — ບໍ່ຕ້ອງ skeleton ຊ້ຳຖ້າມີແລ້ວ
   let riders = state.admin.ridersList;
   if(!riders){
     const cached = localStorage.getItem('pk_cache_admin_riders');
@@ -3972,12 +4069,48 @@ async function renderAdminRiders(){
   main.innerHTML = '<div class="a-title-row"><h2>🛵 ບັນຊີ Rider</h2><button class="btn-sm primary" onclick="openRiderAccountForm()">+ ເພີ່ມ Rider</button></div>'+
     '<div id="riders-grid-holder">'+(riders? buildRidersGridHTML(riders) : dashboardSkeletonHTML())+'</div>'+
     '<div id="rider-account-form-holder"></div>'+
+    '<div class="a-panel"><h4>💵 ຄ່າຄອມທີ່ຍັງບໍ່ໄດ້ຈ່າຍ</h4><div id="rider-payout-holder"><p style="text-align:center;color:var(--ink-soft);">ກຳລັງໂຫຼດ...</p></div></div>'+
     '<div class="a-panel"><h4>💰 ສະຫຼຸບຄ່າຄອມມິດຊັ່ນ / ຈຳນວນອອເດີທີ່ສົ່ງ</h4>'+
       '<div id="rider-stats-section">'+riderStatsToolbarHTML()+'<div id="rider-stats-holder">'+riderStatsCachedHTML()+'</div></div>'+
     '</div>';
 
   refreshRidersListSilent();
   loadRiderStats();
+  loadRiderPayoutSummary();
+}
+
+async function loadRiderPayoutSummary(){
+  const holder = document.getElementById('rider-payout-holder');
+  if(!holder) return;
+  try{
+    const res = await api.getRiderPayoutSummary(state.admin.token);
+    holder.innerHTML = buildRiderPayoutHTML(res);
+  }catch(e){
+    holder.innerHTML = '<p style="text-align:center;color:var(--ink-soft);">ໂຫຼດຂໍ້ມູນບໍ່ສຳເລັດ</p>';
+    console.error(e);
+  }
+}
+function buildRiderPayoutHTML(res){
+  const unpaidRiders = (res.riders||[]).filter(function(r){ return r.unpaidCount>0; });
+  if(!unpaidRiders.length){
+    return '<div class="empty-state" style="padding:20px 0;"><div class="ico">✅</div><h4>ຈ່າຍຄົບແລ້ວທຸກຄົນ</h4><p>ບໍ່ມີຍອດຄ້າງຈ່າຍໃນຕອນນີ້</p></div>';
+  }
+  return '<div style="overflow-x:auto;"><table class="a-table"><thead><tr><th>Rider</th><th>ອອເດີຄ້າງຈ່າຍ</th><th>ຍອດຄ້າງຈ່າຍ</th><th>ຈ່າຍຄັ້ງກ່ອນ</th><th>ຈັດການ</th></tr></thead><tbody>'+
+    unpaidRiders.map(function(r){
+      return '<tr><td style="font-weight:700;">'+r.fullName+'</td><td class="num">'+r.unpaidCount+'</td>'+
+      '<td class="num" style="color:var(--danger);font-weight:800;">'+money(r.unpaidCommission)+'</td>'+
+      '<td style="font-size:12px;">'+(r.lastPaidAt? new Date(r.lastPaidAt).toLocaleDateString('lo-LA') : 'ຍັງບໍ່ເຄີຍຈ່າຍ')+'</td>'+
+      '<td><button class="btn-sm primary" onclick="doRecordRiderPayout(\''+String(r.fullName).replace(/'/g,"\\'")+'\')">✅ ບັນທຶກຈ່າຍແລ້ວ</button></td></tr>';
+    }).join('')+
+    '</tbody></table></div>';
+}
+async function doRecordRiderPayout(riderName){
+  if(!confirm('ຢືນຢັນວ່າໄດ້ຈ່າຍຄ່າຄອມໃຫ້ '+riderName+' ຄົບແລ້ວ ຕອນນີ້?')) return;
+  try{
+    await api.recordRiderPayout(state.admin.token, riderName, '');
+    toast('ບັນທຶກການຈ່າຍແລ້ວ','✅');
+    loadRiderPayoutSummary();
+  }catch(e){ toast('ບັນທຶກບໍ່ສຳເລັດ: '+(e.message||''),'⚠️'); console.error(e); }
 }
 
 // ★ ໃໝ່: ດຶງລາຍຊື່ Rider ໃໝ່ຢູ່ເບື້ອງຫຼັງ, ອັບເດດ DOM ສະເພາະຖ້າຂໍ້ມູນປ່ຽນຈິງໆ
