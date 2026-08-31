@@ -630,6 +630,42 @@ table.a-table tr:hover td{background:var(--c-bg);}
 .skel{background:linear-gradient(110deg, var(--porcelain-2) 8%, #efe9df 18%, var(--porcelain-2) 33%);background-size:200% 100%;animation:heroShimmer 1.3s linear infinite;border-radius:12px;}
 .kpi-card.skel,.a-panel.skel,.cat-pill.skel,.pcard.skel{border:none;box-shadow:none;}
 
+/* ── Contact FAB (ປຸ່ມລອຍຕິດຕໍ່ຮ້ານ) ─────────────────────────── */
+#contact-fab{
+  position:fixed;right:16px;bottom:96px;z-index:160;
+  width:56px;height:56px;border-radius:50%;
+  background:linear-gradient(135deg,var(--c-primary),var(--c-secondary));
+  color:#fff;border:none;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 14px 30px -10px rgba(0,0,0,.45);
+  animation:contactPulse 2.4s infinite;
+}
+#contact-fab svg{width:26px;height:26px;}
+@keyframes contactPulse{
+  0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--c-primary) 45%, transparent),0 14px 30px -10px rgba(0,0,0,.45);}
+  70%{box-shadow:0 0 0 14px transparent,0 14px 30px -10px rgba(0,0,0,.45);}
+  100%{box-shadow:0 0 0 0 transparent,0 14px 30px -10px rgba(0,0,0,.45);}
+}
+@media(min-width:720px){ #contact-fab{ bottom:26px; } }
+
+.contact-card{
+  display:flex;align-items:center;gap:14px;width:100%;
+  padding:16px 18px;border-radius:18px;border:none;margin-bottom:12px;
+  color:#fff;font-weight:800;font-size:15px;text-align:left;box-shadow:0 10px 24px -10px rgba(0,0,0,.3);
+  cursor:pointer;transition:transform .15s;
+}
+.contact-card:active{transform:scale(.97);}
+.contact-card .cc-ico{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;flex:none;font-size:20px;}
+.contact-card .cc-txt{flex:1;min-width:0;}
+.contact-card .cc-txt b{display:block;font-size:14.5px;}
+.contact-card .cc-txt span{display:block;font-size:11.5px;font-weight:500;opacity:.9;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.contact-card .cc-copy{width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex:none;}
+.contact-card .cc-copy svg{width:15px;height:15px;}
+.contact-card.tel{background:linear-gradient(135deg,#1B6E63,#0F4C43);}
+.contact-card.whatsapp{background:linear-gradient(135deg,#3FCB74,#22A653);}
+.contact-card.messenger{background:linear-gradient(135deg,#4A6DFF,#8A2FC9);}
+.contact-card.line{background:linear-gradient(135deg,#2FD46B,#06C755);}
+.contact-card.facebook{background:linear-gradient(135deg,#4267F1,#2851C4);}
+
 /* tablet / desktop tweaks for CUSTOMER site */
 @media(min-width:720px){
   #product-grid,#product-grid-menu,#featured-grid{grid-template-columns:repeat(4,1fr);max-width:1100px;margin:0 auto;padding:6px 24px 30px;}
@@ -819,6 +855,17 @@ table.a-table tr:hover td{background:var(--c-bg);}
   <div class="sheet-handle"></div>
   <div class="sheet-head"><h3>❤️ ລາຍການທີ່ຖືກໃຈ</h3><button class="sheet-close" onclick="closeSheet('wishlist')">✕</button></div>
   <div class="sheet-body" id="wishlist-body"></div>
+</div>
+
+<!-- ══════════════ CONTACT FAB + SHEET ══════════════ -->
+<button id="contact-fab" onclick="openContactSheet()" aria-label="ຕິດຕໍ່ຮ້ານ">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5a2 2 0 0 1 2-2h3l2 5-2 1a11 11 0 0 0 5 5l1-2 5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 5z"/></svg>
+</button>
+<div class="overlay" id="contact-overlay" onclick="closeSheet('contact')"></div>
+<div class="sheet" id="contact-sheet">
+  <div class="sheet-handle"></div>
+  <div class="sheet-head"><h3>📞 ຊ່ອງທາງຕິດຕໍ່ຮ້ານ</h3><button class="sheet-close" onclick="closeSheet('contact')">✕</button></div>
+  <div class="sheet-body" id="contact-body"></div>
 </div>
 
 <!-- ══════════════ BOTTOM NAV (mobile) ══════════════ -->
@@ -1541,6 +1588,56 @@ function wishlistBtnHtml(id, ctx){
   const active = isWishlisted(id);
   return '<button class="wishlist-btn '+(active?'active':'')+'" id="wish-'+ctx+id+'" onclick="event.stopPropagation();toggleWishlist(\''+id+'\')">'+
     '<svg viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"/></svg></button>';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CONTACT FAB — ຊ່ອງທາງຕິດຕໍ່ຮ້ານ
+   ═══════════════════════════════════════════════════════════════ */
+function openContactSheet(){
+  renderContactBody();
+  openSheet('contact');
+}
+function copyPhoneNumber(text){
+  navigator.clipboard.writeText(text).then(function(){
+    toast('ສຳເນົາເບີໂທແລ້ວ','📋');
+  }).catch(function(){ toast('ສຳເນົາບໍ່ສຳເລັດ','⚠️'); });
+}
+function renderContactBody(){
+  const s = state.settings;
+  const body = document.getElementById('contact-body');
+  let html = '';
+
+  if(s.phone){
+    const telHref = 'tel:'+s.phone.replace(/\s/g,'');
+    html += '<div class="contact-card tel" onclick="window.location.href=\''+telHref+'\'">'+
+      '<div class="cc-ico">📞</div>'+
+      '<div class="cc-txt"><b>ໂທຫາຮ້ານ</b><span>'+s.phone+'</span></div>'+
+      '<div class="cc-copy" onclick="event.stopPropagation();copyPhoneNumber(\''+s.phone+'\')">'+
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>'+
+      '</div></div>';
+  }
+  if(s.whatsappNumber){
+    const digits = String(s.whatsappNumber).replace(/\D/g,'');
+    html += '<div class="contact-card whatsapp" onclick="window.open(\'https://wa.me/'+digits+'\',\'_blank\',\'noopener\')">'+
+      '<div class="cc-ico">💬</div><div class="cc-txt"><b>WhatsApp</b><span>ທັກແຊັດ</span></div></div>';
+  }
+  if(s.messengerUrl){
+    html += '<div class="contact-card messenger" onclick="window.open(\''+s.messengerUrl+'\',\'_blank\',\'noopener\')">'+
+      '<div class="cc-ico">💌</div><div class="cc-txt"><b>Messenger</b><span>ທັກຂໍ້ຄວາມ</span></div></div>';
+  }
+  if(s.lineId){
+    html += '<div class="contact-card line" onclick="window.open(\'https://line.me/ti/p/'+encodeURIComponent(s.lineId)+'\',\'_blank\',\'noopener\')">'+
+      '<div class="cc-ico">💚</div><div class="cc-txt"><b>Line</b><span>ທັກແຊັດ</span></div></div>';
+  }
+  if(s.facebookUrl){
+    html += '<div class="contact-card facebook" onclick="window.open(\''+s.facebookUrl+'\',\'_blank\',\'noopener\')">'+
+      '<div class="cc-ico">👍</div><div class="cc-txt"><b>Facebook</b><span>ໄປທີ່ໜ້າເພຈ</span></div></div>';
+  }
+
+  if(!html){
+    html = '<div class="empty-state"><div class="ico">📵</div><h4>ຍັງບໍ່ໄດ້ຕັ້ງຄ່າຊ່ອງທາງຕິດຕໍ່</h4><p>ເຂົ້າ Admin → ຮ້ານ & ໂຕນຮັບ ເພື່ອເພີ່ມເບີ/ລິ້ງຕິດຕໍ່</p></div>';
+  }
+  body.innerHTML = html;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -4544,6 +4641,14 @@ function renderAdminSettings(){
   '<div class="field"><label>ທີ່ຢູ່</label><input id="st-addr" value="'+s.address+'"></div>'+
   '</div></div>'+
 
+  '<div class="a-panel"><h4>💬 ຊ່ອງທາງຕິດຕໍ່ (ປຸ່ມລອຍ 📞)</h4>'+
+  '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 12px;">ຕັ້ງຄ່ານີ້ ເພື່ອໃຫ້ປຸ່ມ 📞 ລອຍໜ້າຮ້ານສະແດງຊ່ອງທາງໃຫ້ລູກຄ້າ — ຫວ່າງໄວ້ = ບໍ່ສະແດງບັດນັ້ນ</p>'+
+  '<div class="field"><label>WhatsApp (ໃສ່ເບີໂທລວມລະຫັດປະເທດ ບໍ່ໃສ່ + ເຊັ່ນ 8562055xxxxxx)</label><input id="st-whatsapp" value="'+(s.whatsappNumber||'')+'"></div>'+
+  '<div class="field"><label>Messenger (ລິ້ງ m.me/xxxx ຫຼື ລິ້ງ Facebook Page)</label><input id="st-messenger" value="'+(s.messengerUrl||'')+'"></div>'+
+  '<div class="field"><label>Facebook Page (ວາງລິ້ງເຕັມ https://facebook.com/...)</label><input id="st-facebook" value="'+(s.facebookUrl||'')+'"></div>'+
+  '<div class="field"><label>Line ID</label><input id="st-line" value="'+(s.lineId||'')+'"></div>'+
+  '</div>'+
+
   '<div class="a-panel"><h4>📍 ຕຳແໜ່ງຮ້ານ (ສຳລັບຄິດໄລ່ໄລຍະທາງຈັດສົ່ງ)</h4>'+
   '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 12px;">ຕັ້ງຄ່າຄັ້ງດຽວ ລະບົບຈະໃຊ້ຄິດໄລ່ໄລຍະທາງ ແລະ ເວລາຂັບຂີ່ ຈາກຮ້ານໄປຫາລູກຄ້າອັດຕະໂນມັດ ໃນໜ້າ "ພິກັດຈັດສົ່ງ"</p>'+
   '<button type="button" class="btn-secondary" id="store-gps-btn" onclick="captureStoreLocation()" style="margin-bottom:10px;">📍 ຈັບພິກັດຮ້ານປັດຈຸບັນ</button>'+
@@ -4712,7 +4817,8 @@ async function saveAllSettings(){
     deliveryFeeDefault:val('st-delivery'), taxPercent:val('st-tax'), serviceFeePercent:val('st-service'),
     themePreset: state.settings.themePreset||'Ivory Aurum',
     bankName:val('st-bankname'), bankAccountNumber:val('st-bankacc'), bankAccountHolder:val('st-bankholder'), bankQrUrl:val('st-bankqr'),
-    storeLat: val('st-storelat'), storeLng: val('st-storelng')
+    storeLat: val('st-storelat'), storeLng: val('st-storelng'),
+    whatsappNumber: val('st-whatsapp'), messengerUrl: val('st-messenger'), facebookUrl: val('st-facebook'), lineId: val('st-line')
   };
   Object.keys(ICON_LABELS).forEach(function(key){
     newS['icon_'+key] = document.getElementById('icon-in-'+key).value.trim();
