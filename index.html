@@ -365,6 +365,12 @@ svg.ico{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;st
 
 /* horizontal order-status stepper */
 .h-timeline{display:flex;align-items:flex-start;gap:0;overflow-x:auto;padding:6px 2px 4px;scrollbar-width:none;}
+.h-timeline-wrap{position:relative;}
+.h-timeline-wrap::before,.h-timeline-wrap::after{
+  content:'';position:absolute;top:0;bottom:0;width:26px;pointer-events:none;z-index:2;
+}
+.h-timeline-wrap::before{left:0;background:linear-gradient(90deg, var(--c-surface), transparent);}
+.h-timeline-wrap::after{right:0;background:linear-gradient(270deg, var(--c-surface), transparent);}
 .h-step{display:flex;flex-direction:column;align-items:center;flex:none;width:76px;position:relative;}
 .h-step:not(:last-child)::after{content:'';position:absolute;top:18px;left:calc(50% + 19px);width:calc(100% - 18px);height:3px;background:var(--line);z-index:0;}
 .h-step.done:not(:last-child)::after{background:var(--success);}
@@ -2062,7 +2068,7 @@ async function lookupOrder(){
   state._trackPhone = phone;
   await refreshTrackedOrders(true);
   clearInterval(state._trackTimer);
-  state._trackTimer = setInterval(()=>refreshTrackedOrders(false), 8000);
+  state._trackTimer = setInterval(()=>refreshTrackedOrders(false), 15000);
 }
 async function refreshTrackedOrders(showLoading){
   const box = document.getElementById('track-result');
@@ -2092,11 +2098,11 @@ async function refreshTrackedOrders(showLoading){
         '</div>'+
         '<p style="font-size:11.5px;color:var(--ink-soft);margin:0 0 10px;">'+new Date(o.date).toLocaleString('lo-LA')+' · '+money(o.total)+'</p>'+
         (cancelled? '<p style="color:var(--c-secondary);font-weight:700;">❌ ອອເດີນີ້ຖືກຍົກເລີກ</p>' :
-        '<div class="h-timeline">'+STATUS_STEPS.map((s,i)=>{
+        '<div class="h-timeline-wrap"><div class="h-timeline">'+STATUS_STEPS.map((s,i)=>{
           const cls = i<idx?'done':(i===idx?'current':'');
           const iconHtml = cls==='done'?'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>':s.ico;
-          return '<div class="h-step '+cls+'"><div class="h-dot">'+iconHtml+'</div><div class="h-label">'+s.l+'</div></div>';
-        }).join('')+'</div>')+
+        return '<div class="h-step '+cls+'"><div class="h-dot">'+iconHtml+'</div><div class="h-label">'+s.l+'</div></div>';
+        }).join('')+'</div></div>')+
         '<button class="btn-ghost" style="width:100%;margin-top:10px;" onclick="toggleOrderItems(\''+o.orderId+'\')">📋 ເບິ່ງລາຍການສັ່ງຊື້</button>'+
         '<div id="items-'+o.orderId+'" style="display:'+(trackExpandedIds.has(o.orderId)?'block':'none')+';margin-top:8px;">'+
           o.items.map(function(it){
@@ -2113,6 +2119,17 @@ async function refreshTrackedOrders(showLoading){
         (o.slipUrl? '<div style="margin-top:10px;background:var(--c-bg);border:1px solid var(--line);border-radius:14px;padding:12px;"><div style="font-size:12px;font-weight:800;color:var(--c-primary);margin-bottom:8px;">🧾 Slip ການໂອນ</div><img src="'+o.slipUrl+'" referrerpolicy="no-referrer" style="width:100%;border-radius:10px;border:1px solid var(--line);" onerror="imgFallback(this)"></div>' : '')+
       '</div>';
     }).join('');
+    // ★ ເພີ່ມແຖວໃໝ່ນີ້
+    requestAnimationFrame(function(){
+      box.querySelectorAll('.h-timeline').forEach(function(tl){
+        const current = tl.querySelector('.h-step.current');
+        if(!current) return;
+        const tlRect = tl.getBoundingClientRect();
+        const curRect = current.getBoundingClientRect();
+        const target = tl.scrollLeft + (curRect.left - tlRect.left) - (tlRect.width/2) + (curRect.width/2);
+        tl.scrollTo({left: Math.max(0, target), behavior:'smooth'});
+      });
+    });
   }catch(e){ if(showLoading) box.innerHTML='<p>ເກີດຂໍ້ຜິດພາດ</p>'; console.error(e); }
 }
 function toggleOrderItems(orderId){
@@ -2167,7 +2184,7 @@ function renderRiderBody(){
   if(tab==='pending'){
     riderLoadPending();
     clearInterval(state.rider._pendingTimer);
-    state.rider._pendingTimer = setInterval(riderLoadPending, 15000);
+    state.rider._pendingTimer = setInterval(riderLoadPending, 20000);
   } else if(tab==='stats'){
     clearInterval(state.rider._pendingTimer);
     riderLoadMyStats();
@@ -2451,7 +2468,7 @@ function showAdmin(){
   gotoAdminPage(localStorage.getItem('pk_admin_page') || 'dashboard');
   // ★ ໜ່ວງ poll ຄັ້ງທຳອິດ 15 ວິນາທີ ເພາະ gotoAdminPage ໄດ້ໂຫຼດອອເດີ້ຄັ້ງທຳອິດໄປແລ້ວ
   stopAdminOrderPoll();
-  state.admin.pollTimer = setInterval(checkNewOrders, 15000);
+  state.admin.pollTimer = setInterval(checkNewOrders, 20000);
 }
 function viewStorefront(){
   document.getElementById('admin-root').classList.remove('show');
@@ -2463,7 +2480,7 @@ function viewStorefront(){
 }
 function startAdminOrderPoll(){
   stopAdminOrderPoll();
-  state.admin.pollTimer = setInterval(checkNewOrders, 15000);
+  state.admin.pollTimer = setInterval(checkNewOrders, 20000);
   checkNewOrders();
 }
 function stopAdminOrderPoll(){ clearInterval(state.admin.pollTimer); }
